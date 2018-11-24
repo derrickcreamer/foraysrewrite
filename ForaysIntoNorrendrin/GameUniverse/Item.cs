@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using GameComponents;
 
 namespace Forays {
-	public enum ItemType { A, B };
+	public enum ItemType { PotionOfHealth, PotionOfSpeed, PotionOfStrength };
 	public class Item : GameObject, IPhysicalObject {
 		public Point? Position => Items.TryGetPositionOf(this, out Point p)? p : (Point?)null;
 		public ItemType Type;

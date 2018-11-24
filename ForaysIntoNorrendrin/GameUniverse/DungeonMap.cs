@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using GameComponents;
 using UtilityCollections;
 
@@ -6,8 +7,10 @@ namespace Forays {
 	public enum MapLight { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
 	public class DungeonMap : GameObject {
 		new public Grid<Creature, Point> Creatures;
+		public List<CreatureGroup> CreatureGroups;
 		new public Grid<Tile, Point> Tiles;
 		new public Grid<Item, Point> Items;
+		//todo: features here
 		public MapLight MapLight;
 		public int DangerModifier;
 		public EasyHashSet<Point> Seen; // todo: hashset isn't bad BUT a 2d array might be better..not sure.
@@ -37,7 +40,7 @@ namespace Forays {
 					if(i == 0 || j == 0 || i == width-1 || j == height-1 || R.OneIn(20))
 						Tiles.Add(new Tile(g){ Type = TileType.Wall }, new Point(i, j));
 					else if(R.OneIn(50))
-						Creatures.Add(new Creature(g){ Type = CreatureType.GOBLIN }, new Point(i, j)); //todo
+						Creatures.Add(new Creature(g){ Type = CreatureType.Goblin }, new Point(i, j)); //todo
 		}
 
 		/*

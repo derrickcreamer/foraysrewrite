@@ -1,19 +1,41 @@
 ﻿using System;
+using System.Collections.Generic;
 using GameComponents;
 using UtilityCollections;
 
 namespace Forays {
+	//todo move all this stuff out from before GameUniverse:
+	public enum DungeonLevelType { Sparse, Cramped };
+	public enum ShrineStatus { Undiscovered, Discovered, NextLevel };
+	public enum Feat { Lunge, WhirlwindAttack, NeckSnap };
+	public enum Spell { Fireball, Blink, MagicMissile, DetectMovement };
 	public class GameUniverse {
 		public bool Suspend;
 		public Creature Player;
 		public EventScheduler Q;
 		public DungeonMap Map;
-		//final level counters(cultist+demon counts, clock)
-		//tile definitions
+		public int CurrentDepth;
+		public List<DungeonLevelType> LevelTypes;
+		public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
+		public bool FeatGainedFromCurrentShrineSet;
+		public int SpellbooksGenerated;
+		public List<Feat> PlayerFeats;
+		public int FinalLevelClock;
+		public int[] FinalLevelCultistCount;
+		public int FinalLevelDemonCount;
 		public DefaultValueDictionary<CreatureType, CreatureBase> Species;
+		// tile defs
+		// item defs
+		// feature defs - probably static though?
 		//item ID stuff: flavors, tried, IDed...
 		//what knows item rarity, wand charges, etc.?
 		public RNG R;
+
+		/*
+id status for all consumables <<< needs more detail, but, this tracks a bool per item type, plus a random identity for each item type, right?
+unIDed color for all consumables <<< see above
+actor, tile, and item prototypes or definitions <<< WhateverBase should work nicely here
+*/
 
 		public event Action<object> OnNotify;
 		public T Notify<T>(T notification) {
@@ -27,6 +49,7 @@ namespace Forays {
 			}
 		}
 		public GameUniverse() { // NEXT: (maybe.) fix the init here - is the Map actually created yet?
+			//todo: actually, i think there should be a Start method that gets everything created and *ready* to Run. Maybe StartNew?
 			ulong seed = (ulong)DateTime.Now.Ticks; //todo check - will this get passed in? maybe a null-defaulted param?
 			R = new RNG(seed);
 

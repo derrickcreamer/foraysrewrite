@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forays {
 	public class RNG { //splitmix64
@@ -18,9 +14,12 @@ namespace Forays {
 		}
 
 		public RNG(ulong seed){ RngState = seed; }
-		public int GetNext(int upperExclusiveBound) => (int)(GetNext() % (ulong)upperExclusiveBound); //todo, improve w/128bit mult?
+		/*public int GetNext(int upperExclusiveBound) => (int)(GetNext() % (ulong)upperExclusiveBound); //todo, improve w/128bit mult?
 		public bool CoinFlip() => GetNext() % 2 == 0;
-		public bool OneIn(int x) => GetNext() % (ulong)x == 0;
+		public bool OneIn(int x) => GetNext() % (ulong)x == 0;*/
+		public int GetNext(int upperExclusiveBound) => (int)(((ulong)upperExclusiveBound * (GetNext() & 0xFFFFFFFFUL)) >> 32);
+		public bool CoinFlip() => GetNext() < 0x8000000000000000UL;
+		public bool OneIn(int x) => GetNext(x)  == 0;
 
 	}
 }
