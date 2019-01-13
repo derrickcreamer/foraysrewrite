@@ -71,7 +71,7 @@ namespace ForaysUI {
 		}
 		static void HandleNotifications(object o) {
 			switch(o) {
-				case FireballEvent.NotifyExplosion n:
+				/*case FireballEvent.NotifyExplosion n:
 					Dictionary<Point, char> chs = new Dictionary<Point, char>();
 					Dictionary<Point, Color4> colors = new Dictionary<Point, Color4>();
 					w.HoldUpdates();
@@ -82,7 +82,7 @@ namespace ForaysUI {
 					w.ResumeUpdates();
 					w.WindowUpdate();
 					Thread.Sleep(100);
-					break;
+					break;*/
 				case PlayerTurnEvent.NotifyTurnStart n:
 					w.HoldUpdates();
 					for(int i = 0; i < 20; i++) {
@@ -90,11 +90,11 @@ namespace ForaysUI {
 							w.Write(i, j, ' ', Color4.Black);
 						}
 					}
-					foreach(var c in g.Map.Creatures) {
+					/*foreach(var c in g.Map.Creatures) {
 						char ch = 'C';
 						if(c == g.Player) ch = '@';
 						Color4 color = Color4.DarkCyan;
-						/*switch(c.State) {
+						/ *switch(c.State) {
 							case CreatureState.Angry:
 								color = Color4.Red;
 								break;
@@ -109,9 +109,9 @@ namespace ForaysUI {
 							default:
 								color = Color4.White;
 								break;
-						}*/
+						}* /
 						w.Write(19-c.Position.Value.Y, c.Position.Value.X, ch, color);
-					}
+					}*/
 					w.ResumeUpdates();
 					if(!w.WindowUpdate()) g.Suspend = true;
 					/*if(g.Player.State == CreatureState.Dead) {
@@ -158,7 +158,7 @@ namespace ForaysUI {
 									dir = Dir4.E;
 									break;
 								case Key.M:
-									n.Event.ChosenAction = new FireballEvent(g.Player, null);
+									//n.Event.ChosenAction = new FireballEvent(g.Player, null);
 									return;
 							}
 							if(dir != null) {
@@ -181,7 +181,7 @@ namespace ForaysUI {
 		static bool DecideCancel(object action) {
 			switch(action) {
 				// More events would go here eventually, but right now it's just for targeting:
-				case FireballEvent e:
+				/*case FireballEvent e:
 					if(e.Target != null) return false;
 					WriteStatusString(w, "Fireball - choose a direction ");
 					{
@@ -234,7 +234,7 @@ namespace ForaysUI {
 						}
 					}
 					WriteStatusString(w, "");
-					return e.Target == null;
+					return e.Target == null;*/
 			}
 			return false;
 		}

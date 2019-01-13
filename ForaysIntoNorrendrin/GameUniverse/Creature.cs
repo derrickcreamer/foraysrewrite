@@ -5,7 +5,7 @@ using UtilityCollections;
 
 namespace Forays {
 	//todo, move stuFF:
-	public interface IPhysicalObject {
+	/*public interface IPhysicalObject {
 		Point? Position { get; }
 	}
 	public enum GroupType { Normal, LeaderWithFollowers };
@@ -25,9 +25,9 @@ namespace Forays {
 		public CreatureBase(GameUniverse g) : base(g) {
 
 		}
-	}
-	public class Creature : CreatureBase, IPhysicalObject {
-		public Point? Position => Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
+	}*/
+	public class Creature : GameObject /*CreatureBase, IPhysicalObject*/ {
+		public Point? Position; // => Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
 
 		public int CurHP { get; set; }
 		public int CurMP { get; set; }
@@ -53,12 +53,12 @@ namespace Forays {
 		}
 
 		//todo, this might be better in its own file:
-		public static DefaultValueDictionary<CreatureType, Creature> CreatePrototypeCreatures(GameUniverse g) {
+		/*public static DefaultValueDictionary<CreatureType, Creature> CreatePrototypeCreatures(GameUniverse g) {
 			//todo, default or not? should it throw? the code in GameUniverse actually makes a default 1hp creature - probably do that.
 			// give it a good name though, like a mysterious spirit.
 			return new DefaultValueDictionary<CreatureType, Creature> {
 				[CreatureType.Goblin] = new Creature(g){ MaxHP = 10, MoveCost = 120, Type = CreatureType.Goblin }
 			}; //todo: this definitely needs a helper like the old code, to avoid duplicating type.
-		}
+		}*/
 	}
 }

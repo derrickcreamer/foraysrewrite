@@ -4,7 +4,7 @@ using GameComponents;
 using UtilityCollections;
 
 namespace Forays {
-	public enum MapLight { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
+	/*public enum MapLight { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
 	public class DungeonMap : GameObject {
 		new public Grid<Creature, Point> Creatures;
 		public List<CreatureGroup> CreatureGroups;
@@ -41,7 +41,7 @@ namespace Forays {
 						Tiles.Add(new Tile(g){ Type = TileType.Wall }, new Point(i, j));
 					else if(R.OneIn(50))
 						Creatures.Add(new Creature(g){ Type = CreatureType.Goblin }, new Point(i, j)); //todo
-		}
+		}*/
 
 		/*
 								all groups
@@ -54,5 +54,5 @@ namespace Forays {
 								direction exited (AI helper)
 
 										 */
-	}
+	//}
 }

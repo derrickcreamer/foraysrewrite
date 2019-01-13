@@ -24,17 +24,18 @@ namespace Forays {
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
 		public override bool IsInvalid => Creature == null || base.IsInvalid; /* or destination not on map */
 		protected override PassFailResult ExecuteFinal() {
-			if(OutOfRange || /*TerrainIsBlocking ||*/ CreatureAt(Destination) != null) {
+			if(OutOfRange /*|| TerrainIsBlocking || CreatureAt(Destination) != null*/) {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
 			}
-			bool moved = Creatures.Move(Creature, Destination);
+			Creature.Position = Destination; //todo
+			bool moved = true; //Creatures.Move(Creature, Destination);
 			if(moved) return Success();
 			else return Failure();
 		}
 	}
 
-	public class FireballEvent : CreatureEvent<ActionResult> {
+	/*public class FireballEvent : CreatureEvent<ActionResult> {
 
 		public class NotifyExplosion : EventNotify<FireballEvent> {
 			public int CurrentRadius { get; set; }
@@ -61,9 +62,9 @@ namespace Forays {
 			}
 			return Done();
 		}
-	}
+	}*/
 
-	public class AiTurnEvent : SimpleEvent {
+	/*public class AiTurnEvent : SimpleEvent {
 		public Creature Creature { get; set; }
 		public AiTurnEvent(Creature creature) : base(creature.GameUniverse) {
 			this.Creature = creature;
@@ -88,7 +89,7 @@ namespace Forays {
 
 			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
 		}
-	}
+	}*/
 
 	public class PlayerTurnEvent : SimpleEvent {
 		public IActionEvent ChosenAction { get; set; } = null;
@@ -122,7 +123,7 @@ namespace Forays {
 				case FireballEvent e:
 					break;
 			}*/
-			if(ChosenAction is WalkEvent || ChosenAction is FireballEvent) {
+			if(ChosenAction is WalkEvent /*|| ChosenAction is FireballEvent*/) {
 				var result = ChosenAction.Execute(); //todo, wait, don't i need to check for cancellation here?
 				if(result.InvalidEvent) {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");

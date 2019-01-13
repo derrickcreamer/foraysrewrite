@@ -5,15 +5,15 @@ using UtilityCollections;
 
 namespace Forays {
 	//todo move all this stuff out from before GameUniverse:
-	public enum DungeonLevelType { Sparse, Cramped };
+	/*public enum DungeonLevelType { Sparse, Cramped };
 	public enum ShrineStatus { Undiscovered, Discovered, NextLevel };
 	public enum Feat { Lunge, WhirlwindAttack, NeckSnap };
-	public enum Spell { Fireball, Blink, MagicMissile, DetectMovement };
+	public enum Spell { Fireball, Blink, MagicMissile, DetectMovement };*/
 	public class GameUniverse {
 		public bool Suspend;
 		public Creature Player;
 		public EventScheduler Q;
-		public DungeonMap Map;
+		/*public DungeonMap Map;
 		public int CurrentDepth;
 		public List<DungeonLevelType> LevelTypes;
 		public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
@@ -29,7 +29,7 @@ namespace Forays {
 		// feature defs - probably static though?
 		//item ID stuff: flavors, tried, IDed...
 		//what knows item rarity, wand charges, etc.?
-		public RNG R;
+		public RNG R;*/
 
 		/*
 id status for all consumables <<< needs more detail, but, this tracks a bool per item type, plus a random identity for each item type, right?
@@ -50,15 +50,15 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		}
 		public GameUniverse() { // NEXT: (maybe.) fix the init here - is the Map actually created yet?
 			//todo: actually, i think there should be a Start method that gets everything created and *ready* to Run. Maybe StartNew?
-			ulong seed = (ulong)DateTime.Now.Ticks; //todo check - will this get passed in? maybe a null-defaulted param?
-			R = new RNG(seed);
+			/*ulong seed = (ulong)DateTime.Now.Ticks; //todo check - will this get passed in? maybe a null-defaulted param?
+			R = new RNG(seed);*/
 
 			Q = new EventScheduler();
 			//Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < 30 && p.Y >= 0 && p.Y < 20);
-			Species = new DefaultValueDictionary<CreatureType, CreatureBase>();
+			/*Species = new DefaultValueDictionary<CreatureType, CreatureBase>();
 			Species.GetDefaultValue = () => new CreatureBase(this) { MaxHP = 1, MoveCost = 120 }; //todo check
 
-			Map = new DungeonMap(this);
+			Map = new DungeonMap(this);*/
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
@@ -74,12 +74,12 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		//Note that not everything on GameUniverse will be reflected here - just the most common & useful:
 		public Creature Player => GameUniverse.Player;
 		public EventScheduler Q => GameUniverse.Q;
-		public RNG R => GameUniverse.R;
+		/*public RNG R => GameUniverse.R;
 		public Grid<Creature, Point> Creatures => GameUniverse.Map.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
 		public Grid<Tile, Point> Tiles => GameUniverse.Map.Tiles;
 		public Tile TileAt(Point p) => GameUniverse.Map.Tiles[p];
 		public Grid<Item, Point> Items => GameUniverse.Map.Items;
-		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];
+		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];*/
 	}
 }

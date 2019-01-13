@@ -17,6 +17,7 @@ namespace Forays {
 		/*public int GetNext(int upperExclusiveBound) => (int)(GetNext() % (ulong)upperExclusiveBound); //todo, improve w/128bit mult?
 		public bool CoinFlip() => GetNext() % 2 == 0;
 		public bool OneIn(int x) => GetNext() % (ulong)x == 0;*/
+		//todo, test this eventually:
 		public int GetNext(int upperExclusiveBound) => (int)(((ulong)upperExclusiveBound * (GetNext() & 0xFFFFFFFFUL)) >> 32);
 		public bool CoinFlip() => GetNext() < 0x8000000000000000UL;
 		public bool OneIn(int x) => GetNext(x)  == 0;

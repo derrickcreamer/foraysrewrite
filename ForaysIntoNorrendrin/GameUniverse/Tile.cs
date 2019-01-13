@@ -2,8 +2,7 @@
 using GameComponents;
 
 namespace Forays {
-	public enum TileType { Floor, Wall, Chest, Shrine1, Shrine2, Shrine3, Shrine4, Shrine5 };
-	   //^todo - all caps or not? make it consistent. leaning toward not all caps...  <done?>
+	/*public enum TileType { Floor, Wall, Chest, Shrine1, Shrine2, Shrine3, Shrine4, Shrine5 };
 	public class Tile : GameObject, IPhysicalObject {
 		public Point? Position => Tiles.TryGetPositionOf(this, out Point p) ? p : (Point?)null;
 		public TileType Type;
@@ -12,5 +11,5 @@ namespace Forays {
 
 		public Tile(GameUniverse g) : base(g) { }
 
-	}
+	}*/
 }
