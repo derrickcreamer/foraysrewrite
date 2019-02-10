@@ -12,11 +12,11 @@ using Forays;
 namespace ForaysUI {
 	class Program {
 		static void Main(string[] args) {
-			RNG r = new RNG(235634245);
+			/*RNG r = new RNG(235634245);
 			for(int j=0;j<1000;++j)
 				r.GetNext(j+2);
 			int a = r.GetNext(4);
-			int b = r.GetNext(25);
+			int b = r.GetNext(25);*/
 			RunUI(); return;
 			int i = 0;
 			/*foreach(var x in EightDirections.Enumerate(false, true, true, Dir8.SW)) {
@@ -31,7 +31,7 @@ namespace ForaysUI {
 			foreach(Point p4 in new Point(15, 15).EnumeratePointsByChebyshevDistance(false, true)) {
 				if(++i >= 1000) break;
 			}*/
-			ConsoleWindow w = new ConsoleWindow(30, 30, "hmm");
+			/*ConsoleWindow w = new ConsoleWindow(30, 30, "hmm");
 			w.Write(15, 15, '@', OpenTK.Graphics.Color4.YellowGreen);
 			foreach(var dir in Dir8.S.GetDirectionsInArc(2, false, true)) {
 				Point p5 = new Point(15,15).PointInDir(dir);
@@ -48,25 +48,39 @@ namespace ForaysUI {
 				w.Write(30-p4.Y, p4.X, '@', OpenTK.Graphics.Color4.Lime);
 				System.Threading.Thread.Sleep(100);
 				if(!w.WindowUpdate()) break;
-			}
+			}*/
 			//w.Write(0, 0, '!', OpenTK.Graphics.Color4.Azure);
 			//w.WindowUpdate();
-			w.Exit();
+			//w.Exit();
 		}
+		const int wHeight = GameUniverse.MapHeight + 2;
+		const int wWidth = GameUniverse.MapWidth;
 		static GameUniverse g;
 		static ConsoleWindow w;
-		static int turnsDeadCounter = 10;
+		//static int turnsDeadCounter = 10;
 		static Dir4? walkDir = null;
+		static string lastMsg;
 
 		static void RunUI() {
 			g = new GameUniverse();
-			w = new ConsoleWindow(21, 30, "Roguelike Rewrite Tech Demo");
+			g.InitializeNewGame();
+			w = new ConsoleWindow(wHeight, wWidth, "Roguelike Rewrite Tech Demo");
 			g.OnNotify += HandleNotifications;
-			g.Run();
+			lastMsg = "Welcome!";
+			while(true) {
+				g.Run();
+				if(g.GameOver) break;
+				//WriteStatusString(w, "PAUSED");
+				while(w.KeyPressed == false) {
+					Thread.Sleep(200);
+					WriteStatusString(w, "PAUSED: " + DateTime.Now.Second);
+				}
+			}
+			w.Exit();
 		}
 		static void WriteStatusString(ConsoleWindow w, string s) {
-			s = s.PadRight(30);
-			w.Write(20, 0, s, Color4.Lime);
+			s = (s ?? "").PadRight(wWidth);
+			w.Write(wHeight - 2, 0, s, Color4.Lime, Color4.DimGray);
 			w.WindowUpdate();
 		}
 		static void HandleNotifications(object o) {
@@ -83,18 +97,25 @@ namespace ForaysUI {
 					w.WindowUpdate();
 					Thread.Sleep(100);
 					break;*/
+				case NotifyPrintMessage n:
+					lastMsg = n.Message;
+					break;
 				case PlayerTurnEvent.NotifyTurnStart n:
 					w.HoldUpdates();
-					for(int i = 0; i < 20; i++) {
-						for(int j = 0; j < 30; j++) {
+					for(int i = 0; i < wHeight - 1; i++) {
+						for(int j = 0; j < wWidth; j++) {
 							w.Write(i, j, ' ', Color4.Black);
 						}
 					}
-					/*foreach(var c in g.Map.Creatures) {
+					//if(g.Player.Position != null)
+						//w.Write(wHeight-3-g.Player.Position.Value.Y, g.Player.Position.Value.X, '@', Color4.DarkCyan);
+					WriteStatusString(w, lastMsg);
+					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / 120).ToString().PadRight(wWidth), Color4.DarkGray);
+					foreach(var c in g.Creatures) {
 						char ch = 'C';
 						if(c == g.Player) ch = '@';
 						Color4 color = Color4.DarkCyan;
-						/ *switch(c.State) {
+						/*switch(c.State) {
 							case CreatureState.Angry:
 								color = Color4.Red;
 								break;
@@ -109,9 +130,9 @@ namespace ForaysUI {
 							default:
 								color = Color4.White;
 								break;
-						}* /
-						w.Write(19-c.Position.Value.Y, c.Position.Value.X, ch, color);
-					}*/
+						}*/
+						w.Write(wHeight-3-c.Position.Value.Y, c.Position.Value.X, ch, color);
+					}
 					w.ResumeUpdates();
 					if(!w.WindowUpdate()) g.Suspend = true;
 					/*if(g.Player.State == CreatureState.Dead) {
@@ -160,6 +181,9 @@ namespace ForaysUI {
 								case Key.M:
 									//n.Event.ChosenAction = new FireballEvent(g.Player, null);
 									return;
+								case Key.Q:
+									g.Suspend = true;
+									return;
 							}
 							if(dir != null) {
 								n.Event.ChosenAction = new WalkEvent(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
@@ -169,6 +193,7 @@ namespace ForaysUI {
 						}
 						if(!w.WindowUpdate()) {
 							g.Suspend = true;
+							g.GameOver = true;
 							return;
 						}
 						else Thread.Sleep(10);

@@ -20,7 +20,7 @@ namespace Forays {
 		//todo, test this eventually:
 		public int GetNext(int upperExclusiveBound) => (int)(((ulong)upperExclusiveBound * (GetNext() & 0xFFFFFFFFUL)) >> 32);
 		public bool CoinFlip() => GetNext() < 0x8000000000000000UL;
-		public bool OneIn(int x) => GetNext(x)  == 0;
+		public bool OneIn(int x) => GetNext(x) == 0;
 
 	}
 }

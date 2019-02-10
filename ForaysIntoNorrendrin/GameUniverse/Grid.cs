@@ -8,7 +8,7 @@ namespace GameComponents {
 	//todo: xml: maybe list the main assumptions made by this class:
 	// one element per position, one position per element, moves need explicit calls, uhhh...
 	// maybe mention the default values returned for empty positions.
-	/*public class Grid<T, TPosition> : IEnumerable<T> where T : class {
+	public class Grid<T, TPosition> : IEnumerable<T> where T : class {
 		protected BimapOneToOne<T, TPosition> map;
 		protected Func<T> getDefault;
 		protected Func<TPosition, bool> isInBounds;
@@ -191,7 +191,7 @@ namespace GameComponents {
 		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 		public IEnumerator<T> GetEnumerator() => map.KeysT1.GetEnumerator();
 	}
-	public class MultiGrid<T, TPosition> : IEnumerable<T> where T : class {
+	/*public class MultiGrid<T, TPosition> : IEnumerable<T> where T : class {
 		protected BimapOneToMany<TPosition, T> map;
 		protected Func<TPosition, bool> isInBounds;
 		public MultiGrid() : this(null) { }

@@ -22,14 +22,15 @@ namespace Forays {
 		}
 		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
-		public override bool IsInvalid => Creature == null || base.IsInvalid; /* or destination not on map */
+		public override bool IsInvalid => Creature == null || base.IsInvalid
+			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth
+			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
 		protected override PassFailResult ExecuteFinal() {
-			if(OutOfRange /*|| TerrainIsBlocking || CreatureAt(Destination) != null*/) {
+			if(OutOfRange /*|| TerrainIsBlocking*/ || CreatureAt(Destination) != null) {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
 			}
-			Creature.Position = Destination; //todo
-			bool moved = true; //Creatures.Move(Creature, Destination);
+			bool moved = Creatures.Move(Creature, Destination);
 			if(moved) return Success();
 			else return Failure();
 		}
@@ -64,7 +65,7 @@ namespace Forays {
 		}
 	}*/
 
-	/*public class AiTurnEvent : SimpleEvent {
+	public class AiTurnEvent : SimpleEvent {
 		public Creature Creature { get; set; }
 		public AiTurnEvent(Creature creature) : base(creature.GameUniverse) {
 			this.Creature = creature;
@@ -75,21 +76,32 @@ namespace Forays {
 			//if(Creature.State == CreatureState.Dead) return;
 			// todo: All this actual AI code *probably* won't go directly in the event like this.
 			// It'll probably be a method on the Creature, and this event will just call it.
-			foreach(Creature c in Creatures[Creature.Position?.EnumeratePointsAtChebyshevDistance(1, true, false)]) {
+			/*foreach(Creature c in Creatures[Creature.Position?.EnumeratePointsAtChebyshevDistance(1, true, false)]) {
 				if(c == Player) {
 					//todo, message about being fangoriously devoured
 					//Player.State = CreatureState.Dead;
 					//todo, what else?
 					return;
 				}
-			}
+			}*/
 			// Otherwise, just change state:
 			//if(Creature.State == CreatureState.Angry) Creature.State = CreatureState.Crazy;
 			//else if(Creature.State == CreatureState.Crazy) Creature.State = CreatureState.Angry;
 
+			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
+
+			Point dest = Creature.Position.Value.PointInDir((Dir8)R.GetNext(9)+1);
+
+			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
+				Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
+			}
+			else {
+				new WalkEvent(Creature, dest).Execute();
+			}
+
 			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
 		}
-	}*/
+	}
 
 	public class PlayerTurnEvent : SimpleEvent {
 		public IActionEvent ChosenAction { get; set; } = null;
@@ -106,9 +118,15 @@ namespace Forays {
 			//todo, i wonder if it would save time, or be confusing, if I had THIS form and also another form for convenience...
 			//  ...maybe there's still only one going out, but from in here we can Notify(this, SimpleNotification.PlayerTurnStarted); ?
 			//  seems like it would run into the naming problems like before, but it would be a bit easier otherwise.
+
+			if(GameUniverse.Suspend) {
+				// (this should either reschedule, or use some kind of "don't remove the current event" feature on the queue...
+				Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
+				return;
+			}
 			if(ChosenAction == null) {
 				//todo: it *might* be necessary to create & use a DoNothing action here, if important things happen during that action.
-				//todo: schedule turn for 1 turn in the future
+				Q.Schedule(new PlayerTurnEvent(GameUniverse), 120, null); // todo, player initiative
 				return;
 			}
 
