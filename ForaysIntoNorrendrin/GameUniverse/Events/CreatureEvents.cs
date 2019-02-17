@@ -3,21 +3,21 @@ using GameComponents;
 using GameComponents.DirectionUtility;
 
 namespace Forays {
-	// CreatureEvent is a base class for creature actions - it'll use the creature's decider by default.
-	public abstract class CreatureEvent<TResult> : EasyEvent<TResult> where TResult : ActionResult, new() {
+	// CreatureAction is a base class for creature actions that'll use the creature's decider by default.
+	public abstract class CreatureAction<TResult> : EasyAction<TResult> where TResult : ActionResult, new() {
 		public virtual Creature Creature { get; set; }
-		public CreatureEvent(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
+		public CreatureAction(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
 		public override ICancelDecider Decider => Creature?.Decider;
 		public override bool IsInvalid => Creature == null;
 	}
 	public interface IItemUseEvent { } //todo, not final
 	public class NotifyItemHadNoEffect : EventNotify<IItemUseEvent> { } //todo: this isn't used yet, nor is it final
 
-	public class WalkEvent : CreatureEvent<PassFailResult> {
+	public class WalkAction : CreatureAction<PassFailResult> {
 		public Point Destination { get; set; }
 		public bool IgnoreRange { get; set; } = false; //todo, should i have a naming convention for 'arg' properties vs. calculated properties?
 													   // ...such as IgnoreRange vs. OutOfRange. if i had a convention it might suggest 'IgnoreRange' and 'IsOutOfRange' - would that work for most?
-		public WalkEvent(Creature creature, Point destination) : base(creature) {
+		public WalkAction(Creature creature, Point destination) : base(creature) {
 			this.Destination = destination;
 		}
 		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
@@ -25,7 +25,7 @@ namespace Forays {
 		public override bool IsInvalid => Creature == null || base.IsInvalid
 			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth
 			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
-		protected override PassFailResult ExecuteFinal() {
+		protected override PassFailResult ExecuteAction() {
 			if(OutOfRange /*|| TerrainIsBlocking*/ || CreatureAt(Destination) != null) {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
@@ -71,7 +71,7 @@ namespace Forays {
 			this.Creature = creature;
 		}
 
-		public override void ExecuteEvent() {
+		protected override void ExecuteSimpleEvent() {
 
 			//if(Creature.State == CreatureState.Dead) return;
 			// todo: All this actual AI code *probably* won't go directly in the event like this.
@@ -96,7 +96,7 @@ namespace Forays {
 				Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
 			}
 			else {
-				new WalkEvent(Creature, dest).Execute();
+				new WalkAction(Creature, dest).Execute();
 			}
 
 			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
@@ -111,7 +111,7 @@ namespace Forays {
 
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
-		public override void ExecuteEvent() {
+		protected override void ExecuteSimpleEvent() {
 			Notify<NotifyTurnStart>();
 			//if(Player.State == CreatureState.Dead) return;
 			Notify<NotifyChooseAction>();
@@ -141,7 +141,7 @@ namespace Forays {
 				case FireballEvent e:
 					break;
 			}*/
-			if(ChosenAction is WalkEvent /*|| ChosenAction is FireballEvent*/) {
+			if(ChosenAction is WalkAction /*|| ChosenAction is FireballEvent*/) {
 				var result = ChosenAction.Execute(); //todo, wait, don't i need to check for cancellation here?
 				if(result.InvalidEvent) {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
@@ -158,6 +158,37 @@ namespace Forays {
 			else {
 				Q.Schedule(new PlayerTurnEvent(GameUniverse), 120, null); //todo, player initiative
 			}
+		}
+	}
+	public class TakeDamageEvent : Event<TakeDamageEvent.Result> {
+		public Creature Creature { get; set; }
+		public int Amount { get; set; }
+		// (it's possible that this event could eventually get a DamageSource property, or a DamageTypes collection, etc.)
+
+		public bool IsInvalid => Creature == null || Amount <= 0; //todo, duplicating this?
+
+		public class Result : EventResult {
+			//public bool CreatureWasAlreadyDead { get; set; } (might be used one day, might not)
+			public bool CreatureIsNowDead { get; set; } //todo, technically this isn't being used yet either...
+		}
+
+		public TakeDamageEvent(GameUniverse g) : base(g){ }
+		public override Result Execute() {
+			if(IsInvalid) return new Result { InvalidEvent = true }; //todo, duplicating this?
+			if(GameUniverse.DeadCreatures.Contains(Creature)) {
+				//could do other stuff here, and set CreatureWasAlreadyDead if that is ever relevant to callers.
+				return new Result { CreatureIsNowDead = true };
+			}
+			Creature.CurHP -= Amount;
+			if(Creature.CurHP <= 0) {
+				if(Creature == Player){
+					//...
+					GameUniverse.GameOver = true;
+				}
+				//todo, notify creature died here
+				GameUniverse.DeadCreatures.Add(Creature);
+			}
+			return new Result { CreatureIsNowDead = Creature.CurHP <= 0 };
 		}
 	}
 }

@@ -18,6 +18,7 @@ namespace Forays {
 		public const int MapWidth = 30;
 		public RNG R;
 		public Grid<Creature, Point> Creatures;
+		public List<Creature> DeadCreatures; // (from this turn only) (name?)
 		/*public DungeonMap Map;
 		public int CurrentDepth;
 		public List<DungeonLevelType> LevelTypes;
@@ -48,8 +49,18 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		}
 		public void Run() {
 			Suspend = false;
-			while(!Suspend) { // while(!Suspend && !GameOver)?
+			while(!Suspend && !GameOver) {
 				Q.ExecuteNextEvent();
+				CleanUpGameState();
+			}
+		}
+		public void CleanUpGameState() { // name? "checkfor..." ? "state based actions"?
+			if(DeadCreatures.Count > 0) {
+				foreach(Creature c in DeadCreatures) {
+					//any notify here?
+					Creatures.Remove(c);
+				}
+				DeadCreatures.Clear();
 			}
 		}
 		public void InitializeNewGame(ulong? seed = null)
@@ -64,6 +75,8 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			Species.GetDefaultValue = () => new CreatureBase(this) { MaxHP = 1, MoveCost = 120 }; //todo check
 
 			Map = new DungeonMap(this);*/
+
+			DeadCreatures = new List<Creature>();
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };

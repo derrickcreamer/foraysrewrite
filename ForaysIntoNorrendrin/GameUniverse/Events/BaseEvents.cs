@@ -2,21 +2,6 @@
 using GameComponents;
 
 namespace Forays {
-	// SimpleEvent is a separate branch here, used only for a few event types (like player and AI turns).
-	// Most events will return Results objects and inherit from Event<TResult>.
-	// (SimpleEvent wouldn't need to exist if void could be used as a type param...)
-	//todo, xml: no return value
-	public abstract class SimpleEvent : GameObject, IEvent {
-		public SimpleEvent(GameUniverse g) : base(g) { }
-		public abstract void ExecuteEvent();
-		public override T Notify<T>(T notification) {
-			if(notification is IEventNotify eventNotify) {
-				eventNotify.SetEvent(this); // Automatically associate this event with the notification when possible
-			}
-			return base.Notify(notification);
-		}
-		public T Notify<T>() where T : new() => Notify(new T());
-	}
 	// Event<TResult> is the primary base Event type, because most events will return some kind of result.
 	public abstract class Event<TResult> : GameObject, IEvent {
 		public Event(GameUniverse g) : base(g) { }
@@ -29,6 +14,17 @@ namespace Forays {
 			return base.Notify(notification);
 		}
 		public T Notify<T>() where T : new() => Notify(new T());
+	}
+	// SimpleEvent is for those rare event types that will never need a return value (like player and AI turns).
+	public abstract class SimpleEvent : Event<SimpleEvent.NullResult>, IEvent {
+		public SimpleEvent(GameUniverse g) : base(g) { }
+		void IEvent.ExecuteEvent() => ExecuteSimpleEvent();
+		protected abstract void ExecuteSimpleEvent();
+		public sealed override NullResult Execute() {
+			ExecuteSimpleEvent();
+			return null;
+		}
+		public abstract class NullResult { }
 	}
 	// EventResult is a recommended base type for the TResult returned by an Event execution.
 	// It has a bool InvalidEvent, which should be true if the event was in a bad state and could not be executed.
@@ -45,11 +41,11 @@ namespace Forays {
 	public interface IActionEvent {
 		IActionResult Execute();
 	}
-	// ActionResult is the result of an ActionEvent, and carries cancellation & cost info.
+	// An ActionResult is the result of an ActionEvent, and carries cancellation & cost info.
 	public class ActionResult : EventResult, IActionResult {
 		public virtual bool Canceled { get; set; }
 		//todo, xml: this value should be ignored if InvalidEvent and/or Canceled
-		public virtual long Cost { get; set; } = 120; //todo, default? "1.Turn()" or anything?
+		public virtual long Cost { get; set; } = 120; //todo, should probably use a value from the GameUniverse.
 	}
 	public class PassFailResult : ActionResult {
 		public virtual bool Succeeded { get; set; }
@@ -63,18 +59,18 @@ namespace Forays {
 		public ActionEvent(GameUniverse g) : base(g) { }
 		IActionResult IActionEvent.Execute() => Execute();
 		public virtual bool IsInvalid => false;
-		protected virtual long Cost => 120L; // actually 1.Turn() or Turns(1) or whatever
+		protected virtual long Cost => 120L; // todo, get from GameUniverse.
 		protected virtual TResult Error() => new TResult() { InvalidEvent = true };
 		protected virtual TResult Cancel() => new TResult() { Canceled = true };
 		protected virtual TResult Done() => new TResult(){ Cost = Cost };
 		protected virtual TResult Success(){
-			var result = Done();
+			TResult result = Done();
 			var pf = result as PassFailResult;
 			if(pf != null) pf.Succeeded = true;
 			return result;
 		}
 		protected virtual TResult Failure() {
-			var result = Done();
+			TResult result = Done();
 			var pf = result as PassFailResult;
 			if(pf != null) pf.Succeeded = false;
 			return result;
@@ -89,14 +85,15 @@ namespace Forays {
 	public abstract class CancelDecider : GameObject, ICancelDecider {
 		public CancelDecider(GameUniverse g) : base(g) { }
 
+		// todo, xml comment here to explain purpose
 		public virtual bool? WillCancel(object action) => null;
 		public abstract bool Cancels(object action);
 	}
 	public class PlayerCancelDecider : CancelDecider { //todo, make sure this is still right, and still needed
 		public PlayerCancelDecider(GameUniverse g) : base(g) { }
 
-		public class NotifyDecide {
-			public object Action;
+		public class NotifyDecide { //todo, name? maybe notify decide cancellation?
+			public object Action; //todo, name?
 			public bool CancelAction;
 		}
 		public override bool Cancels(object action) {
@@ -104,20 +101,20 @@ namespace Forays {
 			return result.CancelAction;
 		}
 	}
-	// EasyEvent exists to reduce boilerplate for this standard pattern:
-	// 1) If event can't be executed, return with IsInvalid=true.
-	// 2) If event can be canceled and if the decider chooses to cancel, return with Canceled=true.
+	// EasyAction exists to reduce boilerplate for this standard pattern:
+	// 1) If action can't be executed, return with IsInvalid=true.
+	// 2) If action can be canceled and if the decider chooses to cancel, return with Canceled=true.
 	// 3) Otherwise, execute normally and return result.
-	public abstract class EasyEvent<TResult> : ActionEvent<TResult> where TResult : ActionResult, new() {
-		public EasyEvent(GameUniverse g) : base(g) { }
+	public abstract class EasyAction<TResult> : ActionEvent<TResult> where TResult : ActionResult, new() {
+		public EasyAction(GameUniverse g) : base(g) { }
 		//todo, xml: null is fine
 		public abstract ICancelDecider Decider { get; }
 		//todo, xml: this happens after the validity check & cancel check
-		protected abstract TResult ExecuteFinal();
+		protected abstract TResult ExecuteAction();
 		public sealed override TResult Execute() {
 			if(IsInvalid) return Error();
 			if(!NoCancel && Decider?.Cancels(this) == true) return Cancel();
-			return ExecuteFinal();
+			return ExecuteAction();
 		}
 	}
 	// This interface just makes EventNotify<T> easier to work with internally.

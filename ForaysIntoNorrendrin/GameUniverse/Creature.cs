@@ -29,7 +29,7 @@ namespace Forays {
 	public class Creature : GameObject /*CreatureBase, IPhysicalObject*/ {
 		public Point? Position => Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
 
-		//public int CurHP { get; set; }
+		public int CurHP { get; set; }
 		//public int CurMP { get; set; }
 
 		//inherent attributes too
@@ -50,6 +50,7 @@ namespace Forays {
 		public CancelDecider Decider { get; set; }
 		public Creature(GameUniverse g) : base(g) {
 			//
+			CurHP = 3;
 		}
 
 		//todo, this might be better in its own file:

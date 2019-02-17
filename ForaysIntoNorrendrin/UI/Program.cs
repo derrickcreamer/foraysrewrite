@@ -154,7 +154,7 @@ namespace ForaysUI {
 								walkDir = null;
 							}
 							else {
-								n.Event.ChosenAction = new WalkEvent(g.Player, g.Player.Position.Value.PointInDir(walkDir.Value));
+								n.Event.ChosenAction = new WalkAction(g.Player, g.Player.Position.Value.PointInDir(walkDir.Value));
 								Thread.Sleep(30);
 								return;
 							}
@@ -186,7 +186,7 @@ namespace ForaysUI {
 									return;
 							}
 							if(dir != null) {
-								n.Event.ChosenAction = new WalkEvent(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
+								n.Event.ChosenAction = new WalkAction(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
 								if(w.KeyIsDown(Key.ShiftLeft) || w.KeyIsDown(Key.ShiftRight)) walkDir = dir;
 								return;
 							}
