@@ -20,6 +20,7 @@ namespace Forays {
 		public WalkAction(Creature creature, Point destination) : base(creature) {
 			this.Destination = destination;
 		}
+		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
 		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
 		public override bool IsInvalid => Creature == null || base.IsInvalid
@@ -93,7 +94,13 @@ namespace Forays {
 			Point dest = Creature.Position.Value.PointInDir((Dir8)R.GetNext(9)+1);
 
 			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
-				Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
+				if(CreatureAt(dest) != Player) {
+					Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
+				}
+				else {
+					Notify(new NotifyPrintMessage{ Message = "The enemy hits you."}); //todo, remove this when each event autom. sends a notify
+					new AttackAction(Creature, Player).Execute();
+				}
 			}
 			else {
 				new WalkAction(Creature, dest).Execute();
@@ -141,7 +148,7 @@ namespace Forays {
 				case FireballEvent e:
 					break;
 			}*/
-			if(ChosenAction is WalkAction /*|| ChosenAction is FireballEvent*/) {
+			if(ChosenAction is WalkAction || ChosenAction is AttackAction /*|| ChosenAction is FireballEvent*/) {
 				var result = ChosenAction.Execute(); //todo, wait, don't i need to check for cancellation here?
 				if(result.InvalidEvent) {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
@@ -172,7 +179,10 @@ namespace Forays {
 			public bool CreatureIsNowDead { get; set; } //todo, technically this isn't being used yet either...
 		}
 
-		public TakeDamageEvent(GameUniverse g) : base(g){ }
+		public TakeDamageEvent(Creature creature, int amount) : base(creature.GameUniverse) {
+			this.Creature = creature;
+			this.Amount = amount;
+		}
 		public override Result Execute() {
 			if(IsInvalid) return new Result { InvalidEvent = true }; //todo, duplicating this?
 			if(GameUniverse.DeadCreatures.Contains(Creature)) {
@@ -190,5 +200,29 @@ namespace Forays {
 			}
 			return new Result { CreatureIsNowDead = Creature.CurHP <= 0 };
 		}
+	}
+	public class AttackAction : CreatureAction<AttackAction.Result> {
+		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
+
+
+		public override bool IsInvalid => base.IsInvalid || Target == null;
+		public bool IsOutOfRange => Creature?.Position?.ChebyshevDistanceFrom(Target.Position.Value) > 1; //todo, null check etc.
+
+		public class Result : ActionResult {
+			//todo
+			//attack hit, etc
+		}
+
+		public AttackAction(Creature creature, Creature target) : base(creature) { this.Target = target; }
+		protected override Result ExecuteAction() {
+			if(IsOutOfRange) return Failure();
+
+			if(R.CoinFlip()) return Failure(); //todo, would return AttackMissed, not failure
+
+			new TakeDamageEvent(Target, 2).Execute();
+
+			return Success();
+		}
+
 	}
 }

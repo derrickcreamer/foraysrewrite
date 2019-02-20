@@ -83,7 +83,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			Creatures.Add(Player, new Point(15, 8));
 			Q.Schedule(new PlayerTurnEvent(this), 120, null);
 
-			int numEnemies = R.GetNext(4);
+			int numEnemies = R.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(this);
 				Creatures.Add(c, new Point(R.GetNext(MapWidth), R.GetNext(MapHeight)));

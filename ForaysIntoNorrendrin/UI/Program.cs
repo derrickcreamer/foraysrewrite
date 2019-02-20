@@ -69,7 +69,25 @@ namespace ForaysUI {
 			lastMsg = "Welcome!";
 			while(true) {
 				g.Run();
-				if(g.GameOver) break;
+				if(g.GameOver) {
+					if(w.IsExiting) break;
+					WriteStatusString(w, "GAME OVER - PLAY AGAIN? (Y/N)");
+					Key key = Key.Unknown;
+					while(key != Key.Y && key != Key.N) {
+						Thread.Sleep(100);
+						if(!w.WindowUpdate()) break;
+						key = w.GetKey();
+					}
+					if(key != Key.Y) break;
+					else {
+						g.OnNotify -= HandleNotifications;
+						g = new GameUniverse();
+						g.InitializeNewGame();
+						g.OnNotify += HandleNotifications;
+						lastMsg = "Welcome back!";
+						continue;
+					}
+				}
 				//WriteStatusString(w, "PAUSED");
 				while(w.KeyPressed == false) {
 					Thread.Sleep(200);
@@ -111,6 +129,7 @@ namespace ForaysUI {
 						//w.Write(wHeight-3-g.Player.Position.Value.Y, g.Player.Position.Value.X, '@', Color4.DarkCyan);
 					WriteStatusString(w, lastMsg);
 					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / 120).ToString().PadRight(wWidth), Color4.DarkGray);
+					w.Write(wHeight - 1, wWidth/2, $"HP: {g.Player.CurHP}",Color4.Pink);
 					foreach(var c in g.Creatures) {
 						char ch = 'C';
 						if(c == g.Player) ch = '@';
@@ -186,8 +205,15 @@ namespace ForaysUI {
 									return;
 							}
 							if(dir != null) {
-								n.Event.ChosenAction = new WalkAction(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
-								if(w.KeyIsDown(Key.ShiftLeft) || w.KeyIsDown(Key.ShiftRight)) walkDir = dir;
+								Point targetPoint = g.Player.Position.Value.PointInDir(dir.Value);
+								if(g.Creatures[targetPoint] == null) {
+									n.Event.ChosenAction = new WalkAction(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
+									if(w.KeyIsDown(Key.ShiftLeft) || w.KeyIsDown(Key.ShiftRight)) walkDir = dir;
+								}
+								else {
+									n.Event.ChosenAction = new AttackAction(g.Player, g.Creatures[targetPoint]);
+									lastMsg = "You strike!";
+								}
 								return;
 							}
 						}
