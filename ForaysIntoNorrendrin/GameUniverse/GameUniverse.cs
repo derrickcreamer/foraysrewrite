@@ -19,6 +19,7 @@ namespace Forays {
 		public RNG R;
 		public Grid<Creature, Point> Creatures;
 		public List<Creature> DeadCreatures; // (from this turn only) (name?)
+		public TileType[,] Tiles; //temporarily a 2d array...
 		/*public DungeonMap Map;
 		public int CurrentDepth;
 		public List<DungeonLevelType> LevelTypes;
@@ -79,6 +80,9 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			DeadCreatures = new List<Creature>();
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
+
+			GenerateMap();
+
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
 			Creatures.Add(Player, new Point(15, 8));
 			Q.Schedule(new PlayerTurnEvent(this), 120, null);
@@ -89,6 +93,20 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 				Creatures.Add(c, new Point(R.GetNext(MapWidth), R.GetNext(MapHeight)));
 				Q.Schedule(new AiTurnEvent(c), 1200, null);
 			}
+		}
+		private void GenerateMap() {
+			Tiles = new TileType[MapWidth, MapHeight];
+			for(int x=0;x<MapWidth;++x)
+				for(int y = 0; y<MapHeight; ++y) {
+					if(x == 0 || y == 0 || x == MapWidth-1 || y == MapHeight-1)
+						Tiles[x,y] = TileType.Wall;
+					else if(R.OneIn(20))
+						Tiles[x,y] = TileType.Wall;
+					else if(R.OneIn(8))
+						Tiles[x,y] = TileType.Water;
+					else
+						Tiles[x,y] = TileType.Floor;
+				}
 		}
 	}
 	public class GameObject {
@@ -102,6 +120,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public RNG R => GameUniverse.R;
 		public Grid<Creature, Point> Creatures => GameUniverse.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Creatures[p];
+		public TileType TileTypeAt(Point p) => GameUniverse.Tiles[p.X, p.Y];
 		/*public Grid<Creature, Point> Creatures => GameUniverse.Map.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
 		public Grid<Tile, Point> Tiles => GameUniverse.Map.Tiles;

@@ -58,7 +58,7 @@ namespace ForaysUI {
 		static GameUniverse g;
 		static ConsoleWindow w;
 		//static int turnsDeadCounter = 10;
-		static Dir4? walkDir = null;
+		static Dir8? walkDir = null;
 		static string lastMsg;
 
 		static void RunUI() {
@@ -120,9 +120,24 @@ namespace ForaysUI {
 					break;
 				case PlayerTurnEvent.NotifyTurnStart n:
 					w.HoldUpdates();
-					for(int i = 0; i < wHeight - 1; i++) {
-						for(int j = 0; j < wWidth; j++) {
-							w.Write(i, j, ' ', Color4.Black);
+					for(int i = 0; i < GameUniverse.MapHeight - 1; i++) {
+						for(int j = 0; j < GameUniverse.MapWidth; j++) {
+							char ch = ' ';
+							Color4 color = Color4.DimGray;
+							switch(g.Tiles[j, GameUniverse.MapHeight-1-i]) {
+								case TileType.Floor:
+									ch = '.';
+									break;
+								case TileType.Wall:
+									ch = '#';
+									break;
+								case TileType.Water:
+									ch = '~';
+									color = Color4.Cyan;
+									break;
+							}
+
+							w.Write(i, j, ch, color);
 						}
 					}
 					//if(g.Player.Position != null)
@@ -179,34 +194,56 @@ namespace ForaysUI {
 							}
 						}
 						if(w.KeyPressed) {
-							Dir4? dir = null;
+							Dir8? dir = null;
 							switch(w.GetKey()) {
 								case Key.Up:
 								case Key.W:
-									dir = Dir4.N;
+									dir = Dir8.N;
 									break;
 								case Key.Down:
-								case Key.S:
-									dir = Dir4.S;
+								case Key.X:
+									dir = Dir8.S;
 									break;
 								case Key.Left:
 								case Key.A:
-									dir = Dir4.W;
+									dir = Dir8.W;
 									break;
 								case Key.Right:
 								case Key.D:
-									dir = Dir4.E;
+									dir = Dir8.E;
+									break;
+								case Key.Q:
+									dir = Dir8.NW;
+									break;
+								case Key.E:
+									dir = Dir8.NE;
+									break;
+								case Key.Z:
+									dir = Dir8.SW;
+									break;
+								case Key.C:
+									dir = Dir8.SE;
 									break;
 								case Key.M:
 									//n.Event.ChosenAction = new FireballEvent(g.Player, null);
 									return;
-								case Key.Q:
+								case Key.Escape:
 									g.Suspend = true;
 									return;
 							}
 							if(dir != null) {
 								Point targetPoint = g.Player.Position.Value.PointInDir(dir.Value);
 								if(g.Creatures[targetPoint] == null) {
+									if(g.Player.TileTypeAt(targetPoint) == TileType.Wall) { // Check for wall sliding:
+										Point cwPoint = g.Player.Position.Value.PointInDir(dir.Value.Rotate(true));
+										Point ccwPoint = g.Player.Position.Value.PointInDir(dir.Value.Rotate(false));
+										if(g.Player.TileTypeAt(cwPoint) != TileType.Wall && g.Player.TileTypeAt(ccwPoint) == TileType.Wall) {
+											dir = dir.Value.Rotate(true);
+										}
+										else if(g.Player.TileTypeAt(cwPoint) == TileType.Wall && g.Player.TileTypeAt(ccwPoint) != TileType.Wall) {
+											dir = dir.Value.Rotate(false);
+										}
+									}
 									n.Event.ChosenAction = new WalkAction(g.Player, g.Player.Position.Value.PointInDir(dir.Value));
 									if(w.KeyIsDown(Key.ShiftLeft) || w.KeyIsDown(Key.ShiftRight)) walkDir = dir;
 								}
@@ -224,6 +261,19 @@ namespace ForaysUI {
 						}
 						else Thread.Sleep(10);
 					}
+				case PlayerTurnEvent.NotifyTurnEnd n:
+					switch(n.Event.ChosenAction) {
+						case WalkAction a:
+							if((n.ActionResult as PassFailResult)?.Succeeded == true)
+								if(g.Player.TileTypeAt(g.Player.Position.Value) == TileType.Water)
+									lastMsg = "Splash!";
+								else
+									lastMsg = "";
+							else if((n.ActionResult as PassFailResult)?.Succeeded == false)
+								lastMsg = "You walk into the wall.";
+							break;
+					}
+					break;
 				case PlayerCancelDecider.NotifyDecide n:
 					n.CancelAction = DecideCancel(n.Action);
 					break;
@@ -286,6 +336,12 @@ namespace ForaysUI {
 					}
 					WriteStatusString(w, "");
 					return e.Target == null;*/
+				case WalkAction e:
+					if(e.IsBlockedByTerrain) {
+						lastMsg = "There's a wall in the way";
+						return true;
+					}
+					return false; //todo...not yet sure whether this stays here, or is handled in the input loop.
 			}
 			return false;
 		}

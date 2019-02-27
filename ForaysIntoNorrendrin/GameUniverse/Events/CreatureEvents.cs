@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using GameComponents;
 using GameComponents.DirectionUtility;
 
@@ -22,12 +24,13 @@ namespace Forays {
 		}
 		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
 		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
+		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
 		public override bool IsInvalid => Creature == null || base.IsInvalid
 			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth
 			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
 		protected override PassFailResult ExecuteAction() {
-			if(OutOfRange /*|| TerrainIsBlocking*/ || CreatureAt(Destination) != null) {
+			if(OutOfRange || IsBlockedByTerrain || CreatureAt(Destination) != null) {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
 			}
@@ -91,7 +94,11 @@ namespace Forays {
 
 			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
 
-			Point dest = Creature.Position.Value.PointInDir((Dir8)R.GetNext(9)+1);
+			List<Point> validPoints = Creature.Position.Value.EnumeratePointsWithinChebyshevDistance(1, false, false)
+				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();
+			Point dest = Creature.Position.Value;
+			if(validPoints.Count > 0)
+				dest = validPoints[R.GetNext(validPoints.Count)];
 
 			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
 				if(CreatureAt(dest) != Player) {
@@ -115,6 +122,9 @@ namespace Forays {
 
 		public class NotifyTurnStart : EventNotify<PlayerTurnEvent> { }
 		public class NotifyChooseAction : EventNotify<PlayerTurnEvent> { }
+		public class NotifyTurnEnd : EventNotify<PlayerTurnEvent> {
+			public IActionResult ActionResult { get; set; }
+		}
 
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
@@ -148,8 +158,9 @@ namespace Forays {
 				case FireballEvent e:
 					break;
 			}*/
+			IActionResult result = null;
 			if(ChosenAction is WalkAction || ChosenAction is AttackAction /*|| ChosenAction is FireballEvent*/) {
-				var result = ChosenAction.Execute(); //todo, wait, don't i need to check for cancellation here?
+				result = ChosenAction.Execute();
 				if(result.InvalidEvent) {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
 				}
@@ -165,6 +176,9 @@ namespace Forays {
 			else {
 				Q.Schedule(new PlayerTurnEvent(GameUniverse), 120, null); //todo, player initiative
 			}
+			//todo, should this be fired for canceled actions? thinking no..
+			if(!result.Canceled)
+				Notify(new NotifyTurnEnd { ActionResult = result });
 		}
 	}
 	public class TakeDamageEvent : Event<TakeDamageEvent.Result> {
