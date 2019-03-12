@@ -10,7 +10,7 @@ namespace Forays {
 		public virtual Creature Creature { get; set; }
 		public CreatureAction(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
 		public override ICancelDecider Decider => Creature?.Decider;
-		public override bool IsInvalid => Creature == null;
+		public override bool IsInvalid => Creature == null || Creature.Position == null;
 	}
 	public interface IItemUseEvent { } //todo, not final
 	public class NotifyItemHadNoEffect : EventNotify<IItemUseEvent> { } //todo: this isn't used yet, nor is it final
@@ -159,7 +159,7 @@ namespace Forays {
 					break;
 			}*/
 			IActionResult result = null;
-			if(ChosenAction is WalkAction || ChosenAction is AttackAction /*|| ChosenAction is FireballEvent*/) {
+			if(ChosenAction is WalkAction || ChosenAction is AttackAction || ChosenAction is DescendAction /*|| ChosenAction is FireballEvent*/) {
 				result = ChosenAction.Execute();
 				if(result.InvalidEvent) {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
@@ -238,5 +238,29 @@ namespace Forays {
 			return Success();
 		}
 
+	}
+	public class DescendAction : CreatureAction<PassFailResult> {
+		public override bool IsInvalid => base.IsInvalid || Creature != Player;
+		protected override long Cost => 0;
+
+		public DescendAction(Creature creature) : base(creature){ }
+		protected override PassFailResult ExecuteAction() {
+			if(Creature.TileTypeAt(Creature.Position.Value) != TileType.Staircase) return Failure();
+			//todo, Grid.Clear method?
+			//todo, repeated code here:
+			GameUniverse.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);
+			GameUniverse.CurrentDepth++;
+			GameUniverse.GenerateMap();
+
+			Creatures.Add(Player, new Point(15, 8));
+
+			int numEnemies = R.GetNext(8 + GameUniverse.CurrentDepth);
+			for(int i = 0; i<numEnemies; ++i) {
+				Creature c = new Creature(GameUniverse);
+				Creatures.Add(c, new Point(R.GetNext(GameUniverse.MapWidth), R.GetNext(GameUniverse.MapHeight)));
+				Q.Schedule(new AiTurnEvent(c), 1200, null);
+			}
+			return Success();
+		}
 	}
 }

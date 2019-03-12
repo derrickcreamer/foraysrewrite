@@ -20,8 +20,8 @@ namespace Forays {
 		public Grid<Creature, Point> Creatures;
 		public List<Creature> DeadCreatures; // (from this turn only) (name?)
 		public TileType[,] Tiles; //temporarily a 2d array...
-		/*public DungeonMap Map;
 		public int CurrentDepth;
+		/*public DungeonMap Map;
 		public List<DungeonLevelType> LevelTypes;
 		public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
 		public bool FeatGainedFromCurrentShrineSet;
@@ -81,6 +81,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
+			CurrentDepth = 1;
 			GenerateMap();
 
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
@@ -94,7 +95,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 				Q.Schedule(new AiTurnEvent(c), 1200, null);
 			}
 		}
-		private void GenerateMap() {
+		public void GenerateMap() {
 			Tiles = new TileType[MapWidth, MapHeight];
 			for(int x=0;x<MapWidth;++x)
 				for(int y = 0; y<MapHeight; ++y) {
@@ -107,6 +108,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 					else
 						Tiles[x,y] = TileType.Floor;
 				}
+			Tiles[MapWidth / 3, MapHeight / 3] = TileType.Staircase;
 		}
 	}
 	public class GameObject {

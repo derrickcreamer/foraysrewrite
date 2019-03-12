@@ -135,6 +135,10 @@ namespace ForaysUI {
 									ch = '~';
 									color = Color4.Cyan;
 									break;
+								case TileType.Staircase:
+									ch = '>';
+									color = Color4.White;
+									break;
 							}
 
 							w.Write(i, j, ch, color);
@@ -144,7 +148,8 @@ namespace ForaysUI {
 						//w.Write(wHeight-3-g.Player.Position.Value.Y, g.Player.Position.Value.X, '@', Color4.DarkCyan);
 					WriteStatusString(w, lastMsg);
 					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / 120).ToString().PadRight(wWidth), Color4.DarkGray);
-					w.Write(wHeight - 1, wWidth/2, $"HP: {g.Player.CurHP}",Color4.Pink);
+					w.Write(wHeight - 1, wWidth/2 - 2, $"HP: {g.Player.CurHP}",Color4.Pink);
+					w.Write(wHeight - 1, wWidth - 5, $"D: {g.CurrentDepth}", Color4.CadetBlue);
 					foreach(var c in g.Creatures) {
 						char ch = 'C';
 						if(c == g.Player) ch = '@';
@@ -224,9 +229,10 @@ namespace ForaysUI {
 								case Key.C:
 									dir = Dir8.SE;
 									break;
-								case Key.M:
-									//n.Event.ChosenAction = new FireballEvent(g.Player, null);
+								case Key.N:
+									n.Event.ChosenAction = new DescendAction(g.Player);
 									return;
+									//n.Event.ChosenAction = new FireballEvent(g.Player, null);
 								case Key.Escape:
 									g.Suspend = true;
 									return;
@@ -271,6 +277,10 @@ namespace ForaysUI {
 									lastMsg = "";
 							else if((n.ActionResult as PassFailResult)?.Succeeded == false)
 								lastMsg = "You walk into the wall.";
+							break;
+						case DescendAction a:
+							if((n.ActionResult as PassFailResult)?.Succeeded == false)
+								lastMsg = "There are no stairs here.";
 							break;
 					}
 					break;

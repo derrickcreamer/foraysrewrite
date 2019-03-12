@@ -2,7 +2,7 @@
 using GameComponents;
 
 namespace Forays {
-	public enum TileType { Floor, Wall, Water };
+	public enum TileType { Floor, Wall, Water, Staircase };
 	/*public class Tile : GameObject, IPhysicalObject {
 		public Point? Position => Tiles.TryGetPositionOf(this, out Point p) ? p : (Point?)null;
 		public TileType Type;
