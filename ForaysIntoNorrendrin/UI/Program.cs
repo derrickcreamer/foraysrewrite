@@ -279,7 +279,11 @@ namespace ForaysUI {
 								lastMsg = "You walk into the wall.";
 							break;
 						case DescendAction a:
-							if((n.ActionResult as PassFailResult)?.Succeeded == false)
+							if((n.ActionResult as PassFailResult)?.Succeeded == true) {
+								if(g.CurrentLevelType == DungeonLevelType.Cramped)
+									lastMsg = "The walls are closing in...";
+							}
+							else if((n.ActionResult as PassFailResult)?.Succeeded == false)
 								lastMsg = "There are no stairs here.";
 							break;
 					}

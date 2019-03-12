@@ -250,14 +250,15 @@ namespace Forays {
 			//todo, repeated code here:
 			GameUniverse.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);
 			GameUniverse.CurrentDepth++;
+			GameUniverse.CurrentLevelType = GameUniverse.MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
 			GameUniverse.GenerateMap();
 
 			Creatures.Add(Player, new Point(15, 8));
 
-			int numEnemies = R.GetNext(8 + GameUniverse.CurrentDepth);
+			int numEnemies = GameUniverse.MapRNG.GetNext(8 + GameUniverse.CurrentDepth);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(GameUniverse);
-				Creatures.Add(c, new Point(R.GetNext(GameUniverse.MapWidth), R.GetNext(GameUniverse.MapHeight)));
+				Creatures.Add(c, new Point(GameUniverse.MapRNG.GetNext(GameUniverse.MapWidth-2)+1, GameUniverse.MapRNG.GetNext(GameUniverse.MapHeight-2)+1));
 				Q.Schedule(new AiTurnEvent(c), 1200, null);
 			}
 			return Success();
