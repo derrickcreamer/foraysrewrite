@@ -6,6 +6,7 @@ using UtilityCollections;
 
 namespace GameComponents {
 	public abstract class Initiative { }
+	public enum RelativeInitiativeOrder { First, Last, BeforeCurrent, Current, AfterCurrent, BeforeTarget, Target, AfterTarget };
 	public interface IEvent {
 		void ExecuteEvent();
 	}
@@ -34,12 +35,6 @@ namespace GameComponents {
 		private int CompareEventSchedulings(InternalEventScheduling first, InternalEventScheduling second) {
 			int tickCompare = first.ExecutionTick.CompareTo(second.ExecutionTick);
 			if(tickCompare != 0) return tickCompare;
-			// Any initiative is given priority over no initiative:
-			if(first.Initiative == null) {
-				if(second.Initiative == null) return 0;
-				else return 1;
-			}
-			else if(second.Initiative == null) return -1;
 			else return oc.Compare(first.Initiative, second.Initiative);
 		}
 		public EventScheduler() {
@@ -50,7 +45,8 @@ namespace GameComponents {
 		private EventScheduler(
 			IEnumerable<Initiative> inits,
 			IEnumerable<InternalEventScheduling> eventSchedulings,
-			IEnumerable<IGrouping<AutoInitiative, InternalEventScheduling>> eventsForInits) {
+			IEnumerable<IGrouping<AutoInitiative, InternalEventScheduling>> eventsForInits)
+		{
 			pq = new PriorityQueue<InternalEventScheduling, InternalEventScheduling>(x => x, eventSchedulings, CompareEventSchedulings);
 			oc = new OrderingCollection<Initiative>(inits, null);
 			scheduledEventsForInitiatives = new MultiValueDictionary<AutoInitiative, InternalEventScheduling>(eventsForInits, null);
@@ -74,30 +70,78 @@ namespace GameComponents {
 				}
 			}
 		}
+		//todo xml... explain basics, and def. explain that initiative is THE initiative that'll be used, as compared to the relative version.
 		public EventScheduling Schedule(IEvent scheduledEvent, long ticksInFuture, Initiative initiative) {
 			if(scheduledEvent == null) throw new ArgumentNullException(nameof(scheduledEvent));
-			// Non-null initiatives must have been created in this class:
-			if(initiative != null && !oc.Contains(initiative)) throw new InvalidOperationException("Can't use an unordered initiative. Use CreateInitiative methods instead.");
+			if(initiative == null) throw new ArgumentNullException(nameof(initiative)); // Initiatives must have been created in this class:
+			else if(!oc.Contains(initiative)) throw new InvalidOperationException("Can't use an unordered initiative. Use CreateInitiative methods instead.");
 			var es = new InternalEventScheduling(scheduledEvent, currentTick, ticksInFuture, initiative);
 			pq.Enqueue(es);
 			return es;
 		}
 		//todo xml: not sure how much to describe here, but it uses THIS tick and THIS initiative,
 		// so it's kind of like adding it to a "right now" queue.
-		public EventScheduling ScheduleImmediately(IEvent scheduledEvent) {
+		public EventScheduling ScheduleNow(IEvent scheduledEvent) {
 			if(scheduledEvent == null) throw new ArgumentNullException(nameof(scheduledEvent));
-			var es = new InternalEventScheduling(scheduledEvent, currentTick, 0, currentlyExecuting.Initiative);
+			if(currentlyExecuting == null) throw new InvalidOperationException("There is no currently executing event from which to get an initiative");
+			var es = new InternalEventScheduling(scheduledEvent, currentTick, 0, currentlyExecuting.Initiative); //todo, this doesn't handle scheduledEventsForInitiatives, right? need a better helper for that.
 			pq.Enqueue(es);
 			return es;
 		}
-		//todo, consider naming this one "ScheduleEndOfDuration" or something
-		// todo:  and the xml needs to explain it well, too.
-		public EventScheduling ScheduleDuration(IEvent durationEndEvent, long ticksInFuture) {
-			if(durationEndEvent == null) throw new ArgumentNullException(nameof(durationEndEvent));
+		// todo xml
+		public EventScheduling ScheduleEndOfDuration(IEvent durationEndEvent, long ticksInFuture) { //todo, instead of (or MAYBE in addition to) this, there should be a ScheduleBefore(EventScheduling otherScheduling) as well as ScheduleAfter.
+			if(durationEndEvent == null) throw new ArgumentNullException(nameof(durationEndEvent));  // (todo) ... what about a ticks param too? how else would THIS method be duplicated? Maybe the name SHOULD mention the initiative.
 			AutoInitiative init = new AutoInitiative();
-			oc.InsertBefore(currentlyExecuting.Initiative, init);
+			oc.InsertBefore(currentlyExecuting?.Initiative, init);
 			var es = new InternalEventScheduling(durationEndEvent, currentTick, ticksInFuture, init);
 			scheduledEventsForInitiatives.Add(init, es);
+			pq.Enqueue(es);
+			return es;
+		}
+		//todo xml, maybe a note here about how this is relative to all currently extant initiatives
+		public EventScheduling ScheduleWithRelativeInitiative(IEvent scheduledEvent, long ticksInFuture, RelativeInitiativeOrder relativeInitiativeOrder)
+			=> ScheduleWithRelativeInitiativeInternal(scheduledEvent, ticksInFuture, relativeInitiativeOrder, null);
+
+		//todo xml, make sure to reinforce here that ticksInFuture is from the CURRENT tick only.
+		public EventScheduling ScheduleWithRelativeInitiative(IEvent scheduledEvent, long ticksInFuture, RelativeInitiativeOrder relativeInitiativeOrder, Initiative targetInitiative)
+			=> ScheduleWithRelativeInitiativeInternal(scheduledEvent, ticksInFuture, relativeInitiativeOrder, targetInitiative);
+
+		public EventScheduling ScheduleWithRelativeInitiative(IEvent scheduledEvent, long ticksInFuture, RelativeInitiativeOrder relativeInitiativeOrder, EventScheduling targetEventScheduling){
+			if(targetEventScheduling == null) throw new ArgumentNullException(nameof(targetEventScheduling));
+			var es = targetEventScheduling as InternalEventScheduling;
+			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
+			return ScheduleWithRelativeInitiativeInternal(scheduledEvent, ticksInFuture, relativeInitiativeOrder, es.Initiative);
+			// (Commit. Maybe test. Then start turning AutoInitiative into a regular InternalInitiative with an internal bool.)
+		}
+		private EventScheduling ScheduleWithRelativeInitiativeInternal(IEvent scheduledEvent, long ticksInFuture, RelativeInitiativeOrder relativeInitiativeOrder, Initiative targetInitiative){
+			if(scheduledEvent == null) throw new ArgumentNullException(nameof(scheduledEvent));
+			switch(relativeInitiativeOrder){
+				case RelativeInitiativeOrder.BeforeCurrent:
+				case RelativeInitiativeOrder.Current:
+				case RelativeInitiativeOrder.AfterCurrent:
+					if(currentlyExecuting == null) throw new InvalidOperationException("There is no currently executing event from which to get an initiative");
+					break;
+				case RelativeInitiativeOrder.BeforeTarget:
+				case RelativeInitiativeOrder.Target:
+				case RelativeInitiativeOrder.AfterTarget:
+					if(targetInitiative == null) throw new ArgumentNullException(nameof(targetInitiative), "The chosen RelativeInitiativeOrder requires a target initiative, but no initiative was passed in.");
+					break;
+			}
+			Initiative init;
+			if(relativeInitiativeOrder == RelativeInitiativeOrder.Current){
+				init = currentlyExecuting.Initiative;
+			}
+			else if(relativeInitiativeOrder == RelativeInitiativeOrder.Target){
+				init = targetInitiative;
+				if(!oc.Contains(init)) throw new InvalidOperationException("Target initiative must exist in this event scheduler");
+			}
+			else{
+				init = new AutoInitiative();
+				InsertInitiative(relativeInitiativeOrder, init);
+			}
+			var es = new InternalEventScheduling(scheduledEvent, currentTick, ticksInFuture, init);
+			if(init is AutoInitiative autoInit)
+				scheduledEventsForInitiatives.Add(autoInit, es);
 			pq.Enqueue(es);
 			return es;
 		}
@@ -105,53 +149,95 @@ namespace GameComponents {
 		public bool CancelEventScheduling(EventScheduling eventScheduling) {
 			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
 			var es = eventScheduling as InternalEventScheduling;
-			if(es == null) throw new Exception("User-created subtypes of EventScheduling are not supported");
+			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
 			bool result = pq.Remove(es);
 			RemoveScheduling(es);
-			return result;
+			return result; //todo, this method must throw if called on the currently executing event. Any other methods that need to consider that? probably reschedule method.
 		}
-		//todo, xml, the current tick will be used if the given value has already passed, right?
-		// and that this returns false if the ES is not scheduled, but still changes its value
-		public bool ChangeEventScheduling(EventScheduling eventScheduling, long newExecutionTick) {
+		// todo xml-- note that this returns false if the ES is not scheduled, but still changes its value
+		//  ... and that this does NOT change insertion order.
+		public bool ChangeEventScheduling(EventScheduling eventScheduling, long newTicksInFuture) {
 			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
 			var es = eventScheduling as InternalEventScheduling;
-			if(es == null) throw new Exception("User-created subtypes of EventScheduling are not supported");
-			if(newExecutionTick < currentTick) newExecutionTick = currentTick;
-			// The new delay must be relative to the ES's creation time:
-			long newDelay = newExecutionTick - es.CreationTick;
-			return pq.ChangePriority(es, () => es.ChangeDelay(newDelay));
+			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
+			return pq.ChangePriority(es, () => es.ChangeDelay(newTicksInFuture));
 		}
-		public Initiative CreateInitiativeBefore(Initiative beforeInitiative) {
-			var init = new InternalInitiative();
-			oc.InsertBefore(beforeInitiative, init);
+		/// <summary>
+		/// Simply returns the numerical difference between the current tick and the tick at which the given EventScheduling would execute - therefore the result can be negative.
+		/// Does not perform any validation such as checking whether the given EventScheduling was created by this EventScheduler.
+		/// </summary>
+		public long CalculateTicksInFuture(EventScheduling eventScheduling){
+			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
+			return eventScheduling.ExecutionTick - currentTick;
+		}
+		//todo, add GetCurrentInitiative here - with xml doc notes about what it does
+		public Initiative CreateInitiative(RelativeInitiativeOrder relativeOrder){
+			if(relativeOrder == RelativeInitiativeOrder.BeforeCurrent || relativeOrder == RelativeInitiativeOrder.AfterCurrent && currentlyExecuting == null)
+				throw new InvalidOperationException("There is no currently executing event from which to get an initiative");
+			else if(relativeOrder == RelativeInitiativeOrder.BeforeTarget)
+				throw new InvalidOperationException("BeforeTarget requires a target initiative - use other overload.");
+			else if(relativeOrder == RelativeInitiativeOrder.AfterTarget)
+				throw new InvalidOperationException("AfterTarget requires a target initiative - use other overload.");
+
+			InternalInitiative init = new InternalInitiative();
+			InsertInitiative(relativeOrder, init);
 			return init;
 		}
-		public Initiative CreateInitiativeAfter(Initiative afterInitiative) {
-			var init = new InternalInitiative();
-			oc.InsertAfter(afterInitiative, init);
+		//todo xml, ignores given init if first/last/__current is used
+		public Initiative CreateInitiative(RelativeInitiativeOrder relativeOrder, Initiative targetInitiative){
+			if(relativeOrder == RelativeInitiativeOrder.BeforeCurrent || relativeOrder == RelativeInitiativeOrder.AfterCurrent && currentlyExecuting == null)
+				throw new InvalidOperationException("There is no currently executing event from which to get an initiative");
+			else if(relativeOrder == RelativeInitiativeOrder.BeforeTarget || relativeOrder == RelativeInitiativeOrder.AfterTarget && targetInitiative == null)
+				throw new ArgumentNullException(nameof(targetInitiative));
+
+			InternalInitiative init = new InternalInitiative();
+			InsertInitiative(relativeOrder, init, targetInitiative);
 			return init;
 		}
-		public Initiative CreateInitiativeAtStart() {
-			var init = new InternalInitiative();
-			oc.InsertAtStart(init);
-			return init;
+		//todo xml?
+		public Initiative CreateInitiative(RelativeInitiativeOrder relativeOrder, EventScheduling targetEventScheduling){
+			if(targetEventScheduling == null) throw new ArgumentNullException(nameof(targetEventScheduling));
+			var es = targetEventScheduling as InternalEventScheduling;
+			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
+			return CreateInitiative(relativeOrder, es.Initiative);
 		}
-		public Initiative CreateInitiativeAtEnd() {
-			var init = new InternalInitiative();
-			oc.InsertAtEnd(init);
-			return init;
+		//todo xml, no checks, just does the call
+		private void InsertInitiative(RelativeInitiativeOrder relativeOrder, Initiative initToInsert, Initiative targetInitiative = null){
+			switch(relativeOrder){
+				case RelativeInitiativeOrder.First:
+					oc.InsertAtStart(initToInsert);
+					break;
+				case RelativeInitiativeOrder.Last:
+					oc.InsertAtEnd(initToInsert);
+					break;
+				case RelativeInitiativeOrder.BeforeCurrent:
+					oc.InsertBefore(currentlyExecuting.Initiative, initToInsert);
+					break;
+				case RelativeInitiativeOrder.Current:
+					throw new InvalidOperationException("Can't reinsert current initiative");
+				case RelativeInitiativeOrder.AfterCurrent:
+					oc.InsertAfter(currentlyExecuting.Initiative, initToInsert);
+					break;
+				case RelativeInitiativeOrder.BeforeTarget:
+					oc.InsertBefore(targetInitiative, initToInsert); // This call throws if targetInitiative isn't in the collection
+					break;
+				case RelativeInitiativeOrder.Target:
+					throw new InvalidOperationException("Can't reinsert target initiative");
+				case RelativeInitiativeOrder.AfterTarget:
+					oc.InsertAfter(targetInitiative, initToInsert); // This call throws if targetInitiative isn't in the collection
+					break;
+			}
+			throw new InvalidOperationException("Unknown value for relativeOrder");
 		}
-		public Initiative CreateInitiativeBeforeCurrent() {
-			var init = new InternalInitiative();
-			oc.InsertBefore(currentlyExecuting?.Initiative, init);
-			return init;
+		//todo xml
+		public bool UnregisterInitiative(Initiative initiative){
+			if(initiative == null) throw new ArgumentNullException(nameof(initiative));
+			if(!oc.Contains(initiative)) return false;
+			//if(initiative is AutoInitiative autoInit && scheduledEventsForInitiatives.AnyValues(autoInit))  //  TODO NEXT... this part is wrong...should check all events instead, but needs to be O(n) with validation or O(1) without.
+				throw new InvalidOperationException("");
+				oc.Contains
+			return oc.Remove(initiative);
 		}
-		public Initiative CreateInitiativeAfterCurrent() {
-			var init = new InternalInitiative();
-			oc.InsertAfter(currentlyExecuting?.Initiative, init);
-			return init;
-		}
-		public bool UnregisterInitiative(Initiative initiative) => oc.Remove(initiative);
 
 		private class InternalInitiative : Initiative { }
 		private class AutoInitiative : Initiative { }
@@ -163,7 +249,7 @@ namespace GameComponents {
 				: base(scheduledEvent, currentTick, delay, init) { }
 		}
 
-		public static void Serialize(EventScheduler scheduler,
+		public static void Serialize(EventScheduler scheduler, // TODO, MADE CHANGES, PROBABLY BROKE.
 			BinaryWriter writer,
 			Action<EventScheduling, BinaryWriter> onSaveEventScheduling,
 			Action<Initiative, BinaryWriter> onSaveInitiative,
@@ -274,7 +360,7 @@ namespace GameComponents {
 				Initiative init;
 				if(initId == 0) init = null;
 				else {
-					init = (objectsById[initId] as Initiative) ?? throw new Exception("Initiative not loaded properly");
+					init = (objectsById[initId] as Initiative) ?? throw new Exception("Initiative not loaded properly"); //todo, exception type?
 				}
 				var es = new InternalEventScheduling(ievent, creationTick, delay, init);
 				// then call onLoadEventScheduling.

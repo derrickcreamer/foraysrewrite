@@ -264,4 +264,51 @@ namespace Forays {
 			return Success();
 		}
 	}
+	public class StatusExpirationEvent : SimpleEvent {
+		public Creature Creature { get; set; }
+		public StatusExpirationEvent(Creature creature) : base(creature.GameUniverse) {
+			this.Creature = creature;
+		}
+
+		protected override void ExecuteSimpleEvent() {`
+
+			//if(Creature.State == CreatureState.Dead) return;
+			// todo: All this actual AI code *probably* won't go directly in the event like this.
+			// It'll probably be a method on the Creature, and this event will just call it.
+			/*foreach(Creature c in Creatures[Creature.Position?.EnumeratePointsAtChebyshevDistance(1, true, false)]) {
+				if(c == Player) {
+					//todo, message about being fangoriously devoured
+					//Player.State = CreatureState.Dead;
+					//todo, what else?
+					return;
+				}
+			}*/
+			// Otherwise, just change state:
+			//if(Creature.State == CreatureState.Angry) Creature.State = CreatureState.Crazy;
+			//else if(Creature.State == CreatureState.Crazy) Creature.State = CreatureState.Angry;
+
+			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
+
+			List<Point> validPoints = Creature.Position.Value.EnumeratePointsWithinChebyshevDistance(1, false, false)
+				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();
+			Point dest = Creature.Position.Value;
+			if(validPoints.Count > 0)
+				dest = validPoints[R.GetNext(validPoints.Count)];
+
+			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
+				if(CreatureAt(dest) != Player) {
+					Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
+				}
+				else {
+					Notify(new NotifyPrintMessage{ Message = "The enemy hits you."}); //todo, remove this when each event autom. sends a notify
+					new AttackAction(Creature, Player).Execute();
+				}
+			}
+			else {
+				new WalkAction(Creature, dest).Execute();
+			}
+
+			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
+		}
+	}
 }
