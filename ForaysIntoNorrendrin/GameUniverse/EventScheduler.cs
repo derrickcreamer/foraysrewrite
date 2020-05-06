@@ -16,6 +16,9 @@ namespace GameComponents {
 		public long Delay { get; protected set; }
 		protected Initiative initiative;
 		public long ExecutionTick => CreationTick + Delay;
+		public bool Executed { get; protected set; }
+		public bool Canceled { get; protected set; }
+		internal bool IsLive => !(Executed || Canceled);
 		protected EventScheduling(IEvent scheduledEvent, long currentTick, long delay, Initiative init) {
 			Event = scheduledEvent;
 			CreationTick = currentTick;
@@ -53,10 +56,14 @@ namespace GameComponents {
 		}
 		public void ExecuteNextEvent() {
 			InternalEventScheduling es = pq.Dequeue();
+			while(es.Canceled){
+				es = pq.Dequeue();
+			}
 			currentTick = es.ExecutionTick;
 			currentlyExecuting = es;
 			currentlyExecuting.Event.ExecuteEvent();
 			currentlyExecuting = null;
+			es.ChangeExecuted(true);
 			RemoveSchedulingForInitiative(es);
 		}
 		private void RemoveSchedulingForInitiative(InternalEventScheduling es) {
@@ -100,6 +107,7 @@ namespace GameComponents {
 
 		public EventScheduling ScheduleWithRelativeInitiative(IEvent scheduledEvent, long ticksInFuture, RelativeInitiativeOrder relativeInitiativeOrder, EventScheduling targetEventScheduling){
 			if(targetEventScheduling == null) throw new ArgumentNullException(nameof(targetEventScheduling));
+			if(!targetEventScheduling.IsLive) throw new InvalidOperationException("This event scheduling has already executed or been canceled, and can't be reused");
 			var es = targetEventScheduling as InternalEventScheduling;
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
 			return ScheduleWithRelativeInitiativeInternal(scheduledEvent, ticksInFuture, relativeInitiativeOrder, es.Initiative);
@@ -132,21 +140,24 @@ namespace GameComponents {
 			}
 			return CreateAndSchedule(scheduledEvent, ticksInFuture, init);
 		}
-		//todo xml: returns false if not actually scheduled
-		public bool CancelEventScheduling(EventScheduling eventScheduling) {
+		//todo xml: returns false if not actually scheduled -- nah, make it void,
+		public void CancelEventScheduling(EventScheduling eventScheduling) {
 			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
 			var es = eventScheduling as InternalEventScheduling;
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
-			bool result = pq.Remove(es); //todo! right here -- this can be changed to look up the eventScheduling by its initiative now, which means it doesn't need to be O(n) any more.  <<< pretty sure that's wrong, because pq.Remove is still O(n)
+			if(es == currentlyExecuting) throw new InvalidOperationException("This EventScheduling is currently executing and can't be canceled");
+			if(!es.IsLive) return;
+			es.ChangeCanceled(true); // mark it Canceled instead of removing from the PQ, to avoid the O(n) remove operation
 			RemoveSchedulingForInitiative(es);
-			return result; //todo, this method must throw if called on the currently executing event. Any other methods that need to consider that? probably reschedule method.  <<< ah, currently executing is NOT in the pq any more.
 		}
 		// todo xml-- note that this returns false if the ES is not scheduled, but still changes its value
 		//  ... and that this does NOT change insertion order.
 		public bool ChangeEventScheduling(EventScheduling eventScheduling, long newTicksInFuture) {
 			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
+			if(!eventScheduling.IsLive) throw new InvalidOperationException("This event scheduling has already executed or been canceled, and can't be rescheduled");
 			var es = eventScheduling as InternalEventScheduling;
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
+			if(es == currentlyExecuting) throw new InvalidOperationException("This EventScheduling is currently executing and can't be rescheduled");
 			return pq.ChangePriority(es, () => es.ChangeDelay(newTicksInFuture));
 		}
 		/// <summary>
@@ -167,6 +178,7 @@ namespace GameComponents {
 		//todo - definitely needs xml doc notes about what it does.
 		public Initiative GetInitiativeFromEventScheduling(EventScheduling eventScheduling){
 			if(eventScheduling == null) throw new ArgumentNullException(nameof(eventScheduling));
+			if(!eventScheduling.IsLive) throw new InvalidOperationException("This event scheduling has already executed or been canceled, and can't be reused");
 			InternalInitiative init = (eventScheduling as InternalEventScheduling)?.Initiative as InternalInitiative;
 			if(init == null) throw new InvalidOperationException("No initiative found");
 			init.AutoRemove = false;
@@ -211,6 +223,7 @@ namespace GameComponents {
 		//todo xml?
 		public Initiative CreateInitiative(RelativeInitiativeOrder relativeOrder, EventScheduling targetEventScheduling){
 			if(targetEventScheduling == null) throw new ArgumentNullException(nameof(targetEventScheduling));
+			if(!targetEventScheduling.IsLive) throw new InvalidOperationException("This event scheduling has already executed or been canceled, and can't be reused");
 			var es = targetEventScheduling as InternalEventScheduling;
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
 			return CreateInitiative(relativeOrder, es.Initiative);
@@ -246,16 +259,18 @@ namespace GameComponents {
 		//todo xml
 		// if the given initiative is still being used by any EventScheduling, throws, unless forceCancelEvents is true.
 		// ...if forceCancelEvents is true, all events using this initiative will first be canceled and removed.
+		// also throws if the currently executing one is using this initiative.
 		public bool UnregisterInitiative(Initiative initiative, bool forceCancelEvents = false){
 			if(initiative == null) throw new ArgumentNullException(nameof(initiative));
 			if(!oc.Contains(initiative)) return false;
+			if(currentlyExecuting?.Initiative == initiative) throw new InvalidOperationException("Can't unregister an initiative while the currently executing EventScheduling is still using it");
 			EventScheduling[] schedulings = scheduledEventsForInitiatives[initiative].ToArray();
 			if(schedulings.Length > 0){
 				if(!forceCancelEvents) throw new InvalidOperationException("Can't unregister an initiative while an EventScheduling is still using it");
-				foreach(EventScheduling es in schedulings){
-					pq.Remove(es as InternalEventScheduling);
-					//todo... pq.Remove is O(n)... maybe THIS class should do something about that,
-					// rather than making the game do it, by simply tracking canceled schedulings instead of removing them? discarding on serialize too.
+				foreach(EventScheduling eventScheduling in schedulings){
+					InternalEventScheduling es = eventScheduling as InternalEventScheduling;
+					if(!es.IsLive) continue;
+					es.ChangeCanceled(true);
 				}
 				scheduledEventsForInitiatives.Clear(initiative);
 			}
@@ -265,7 +280,7 @@ namespace GameComponents {
 		public IEnumerable<EventScheduling> GetScheduledEventsForInitiative(Initiative initiative){
 			if(initiative == null) throw new ArgumentNullException(nameof(initiative));
 			if(!oc.Contains(initiative)) return null;
-			return scheduledEventsForInitiatives[initiative];
+			return scheduledEventsForInitiatives[initiative]; // Canceled EventSchedulings have already been removed from this collection
 		}
 
 		private class InternalInitiative : Initiative{
@@ -274,6 +289,8 @@ namespace GameComponents {
 		private class InternalEventScheduling : EventScheduling {
 			// Delay needs to be changed during a reschedule, but this can't be exposed publicly:
 			public void ChangeDelay(long newDelay) => Delay = newDelay;
+			public void ChangeCanceled(bool value) => Canceled = value; //todo, these 3 can change once GameComponents are in a separate project.
+			public void ChangeExecuted(bool value) => Executed = value;
 			public Initiative Initiative => initiative;
 			public InternalEventScheduling(IEvent scheduledEvent, long currentTick, long delay, Initiative init)
 				: base(scheduledEvent, currentTick, delay, init) { }
@@ -310,8 +327,10 @@ namespace GameComponents {
 			// (the OC can now be recreated)
 			//now, write the PQ:
 			//write the count...for each ES in insertion order...
-			writer.Write(scheduler.pq.Count);
-			foreach(var es in scheduler.pq.GetAllInInsertionOrder()) {
+			// Canceled ones are not serialized:
+			InternalEventScheduling[] eventSchedulings = scheduler.pq.GetAllInInsertionOrder().Where(es => !es.Canceled).ToArray();
+			writer.Write(eventSchedulings.Length);
+			foreach(var es in eventSchedulings) {
 				//add the ES to the dict and write the ID...if not already written (actually, can't be already written i think):
 				int newId = nextId++;
 				objIds[es] = newId;
