@@ -13,11 +13,11 @@ namespace GameComponents {
 	public abstract class EventScheduling {
 		public IEvent Event { get; protected set; }
 		public long CreationTick { get; protected set; }
-		public long Delay { get; protected set; }
+		public long Delay { get; internal set; }
 		protected Initiative initiative;
 		public long ExecutionTick => CreationTick + Delay;
-		public bool Executed { get; protected set; }
-		public bool Canceled { get; protected set; }
+		public bool Executed { get; internal set; }
+		public bool Canceled { get; internal set; }
 		internal bool IsLive => !(Executed || Canceled);
 		protected EventScheduling(IEvent scheduledEvent, long currentTick, long delay, Initiative init) {
 			Event = scheduledEvent;
@@ -63,7 +63,7 @@ namespace GameComponents {
 			currentlyExecuting = es;
 			currentlyExecuting.Event.ExecuteEvent();
 			currentlyExecuting = null;
-			es.ChangeExecuted(true);
+			es.Executed = true;
 			RemoveSchedulingForInitiative(es);
 		}
 		private void RemoveSchedulingForInitiative(InternalEventScheduling es) {
@@ -147,7 +147,7 @@ namespace GameComponents {
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
 			if(es == currentlyExecuting) throw new InvalidOperationException("This EventScheduling is currently executing and can't be canceled");
 			if(!es.IsLive) return;
-			es.ChangeCanceled(true); // mark it Canceled instead of removing from the PQ, to avoid the O(n) remove operation
+			es.Canceled = true; // mark it Canceled instead of removing from the PQ, to avoid the O(n) remove operation
 			RemoveSchedulingForInitiative(es);
 		}
 		// todo xml-- note that this returns false if the ES is not scheduled, but still changes its value
@@ -158,7 +158,7 @@ namespace GameComponents {
 			var es = eventScheduling as InternalEventScheduling;
 			if(es == null) throw new InvalidOperationException("User-created subtypes of EventScheduling are not supported");
 			if(es == currentlyExecuting) throw new InvalidOperationException("This EventScheduling is currently executing and can't be rescheduled");
-			return pq.ChangePriority(es, () => es.ChangeDelay(newTicksInFuture));
+			return pq.ChangePriority(es, () => { es.Delay = newTicksInFuture; });
 		}
 		/// <summary>
 		/// Simply returns the numerical difference between the current tick and the tick at which the given EventScheduling would execute - therefore the result can be negative.
@@ -270,7 +270,7 @@ namespace GameComponents {
 				foreach(EventScheduling eventScheduling in schedulings){
 					InternalEventScheduling es = eventScheduling as InternalEventScheduling;
 					if(!es.IsLive) continue;
-					es.ChangeCanceled(true);
+					es.Canceled = true;
 				}
 				scheduledEventsForInitiatives.Clear(initiative);
 			}
@@ -287,10 +287,6 @@ namespace GameComponents {
 			internal bool AutoRemove;
 		}
 		private class InternalEventScheduling : EventScheduling {
-			// Delay needs to be changed during a reschedule, but this can't be exposed publicly:
-			public void ChangeDelay(long newDelay) => Delay = newDelay;
-			public void ChangeCanceled(bool value) => Canceled = value; //todo, these 3 can change once GameComponents are in a separate project.
-			public void ChangeExecuted(bool value) => Executed = value;
 			public Initiative Initiative => initiative;
 			public InternalEventScheduling(IEvent scheduledEvent, long currentTick, long delay, Initiative init)
 				: base(scheduledEvent, currentTick, delay, init) { }
