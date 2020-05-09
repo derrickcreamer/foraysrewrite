@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Forays {
+namespace GameComponents {
 	public class RNG { //splitmix64
 		public ulong RngState;
 

@@ -138,7 +138,7 @@ namespace Forays {
 
 			if(GameUniverse.Suspend) {
 				// (this should either reschedule, or use some kind of "don't remove the current event" feature on the queue...
-				Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
+				//todo disabled Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
 				return;
 			}
 			if(ChosenAction == null) {
@@ -165,7 +165,7 @@ namespace Forays {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
 				}
 				if(result.Canceled) {
-					Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
+					//todo disabled Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
 					//todo, does this reschedule at 0, or just loop and ask again?
 				}
 				else {
@@ -270,7 +270,7 @@ namespace Forays {
 			this.Creature = creature;
 		}
 
-		protected override void ExecuteSimpleEvent() {`
+		protected override void ExecuteSimpleEvent() {
 
 			//if(Creature.State == CreatureState.Dead) return;
 			// todo: All this actual AI code *probably* won't go directly in the event like this.

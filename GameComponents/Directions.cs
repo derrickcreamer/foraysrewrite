@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace GameComponents.DirectionUtility {
+namespace GameComponents.DirectionUtility { // todo...figure out a sane namespace scheme for this project
 
 	// Arranged like a numpad:
 	public enum Dir8 { N = 8, NE = 9, E = 6, SE = 3, S = 2, SW = 1, W = 4, NW = 7, Neutral = 5, None = 0 };
