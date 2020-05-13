@@ -138,7 +138,7 @@ namespace Forays {
 
 			if(GameUniverse.Suspend) {
 				// (this should either reschedule, or use some kind of "don't remove the current event" feature on the queue...
-				//todo disabled Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
+				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
 				return;
 			}
 			if(ChosenAction == null) {
@@ -165,7 +165,7 @@ namespace Forays {
 					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
 				}
 				if(result.Canceled) {
-					//todo disabled Q.ScheduleImmediately(new PlayerTurnEvent(GameUniverse));
+					Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
 					//todo, does this reschedule at 0, or just loop and ask again?
 				}
 				else {
@@ -264,7 +264,7 @@ namespace Forays {
 			return Success();
 		}
 	}
-	public class StatusExpirationEvent : SimpleEvent {
+	public class StatusExpirationEvent : SimpleEvent { //todo, every bit of this class might be wrong, since it was just pasted in
 		public Creature Creature { get; set; }
 		public StatusExpirationEvent(Creature creature) : base(creature.GameUniverse) {
 			this.Creature = creature;

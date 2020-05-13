@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameComponents;
 using UtilityCollections;
+using Hemlock;
 
 namespace Forays {
 	//todo, move stuFF:
@@ -36,13 +37,15 @@ namespace Forays {
 		//  i think inherent attributes will be done like this:
 		//    prototype has all attrs... all attrs are copied to each, because it needs them in its own hemlock state...
 		//    and inherent ones are either named explicitly, OR done with a new 'indestructible' source in hemlock.
+		StatusTracker<Creature, int> a; // todo wrong type
+
 		//attacks
 		//spells
 		//AI decider
 
 		//target, inventory, attributes, spells, (maybe skills), exhaustion,
 		//time of last action / time at which hp recovery will happen, current path,
-		// target last known location, player visibility counter for stealth, 
+		// target last known location, player visibility counter for stealth,
 		// group
 
 		//todo, this will probably be just a getter, switching on species:
