@@ -5,10 +5,6 @@ VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForaysIntoNorrendrin", "ForaysIntoNorrendrin\ForaysIntoNorrendrin.csproj", "{36167BA9-6054-486C-8A8E-AA53AAA58623}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameComponents", "GameComponents\GameComponents.csproj", "{7BA4CBC5-A2EC-44DF-89AC-EF843A39F1B0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameComponentsTests", "GameComponentsTests\GameComponentsTests.csproj", "{CE2D2FF4-E867-4B56-9A71-37A8110FC01C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{36167BA9-6054-486C-8A8E-AA53AAA58623}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36167BA9-6054-486C-8A8E-AA53AAA58623}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36167BA9-6054-486C-8A8E-AA53AAA58623}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7BA4CBC5-A2EC-44DF-89AC-EF843A39F1B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BA4CBC5-A2EC-44DF-89AC-EF843A39F1B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BA4CBC5-A2EC-44DF-89AC-EF843A39F1B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BA4CBC5-A2EC-44DF-89AC-EF843A39F1B0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CE2D2FF4-E867-4B56-9A71-37A8110FC01C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE2D2FF4-E867-4B56-9A71-37A8110FC01C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE2D2FF4-E867-4B56-9A71-37A8110FC01C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE2D2FF4-E867-4B56-9A71-37A8110FC01C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
