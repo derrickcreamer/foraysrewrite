@@ -13,19 +13,6 @@ namespace Forays {
 	public class CreatureGroup {
 		public GroupType Type;
 		List<Creature> Members;
-	}
-	public enum CreatureType { Player, Goblin, Rat, GoblinKing, Cleric };
-	// Creature prototypes will be CreatureBase, which is Creature minus position, curHP, etc.
-	// A new creature can be cloned from any CreatureBase.
-	public class CreatureBase : GameObject {
-		public CreatureType Type;
-		public int MaxHP { get; set; }
-		public int MaxMP { get; set; }
-		public int MoveCost { get; set; }
-		public List<Spell> Spells;
-		public CreatureBase(GameUniverse g) : base(g) {
-
-		}
 	}*/
 	public class Creature : GameObject /*CreatureBase, IPhysicalObject*/ {
 		public Point? Position => Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
@@ -37,7 +24,20 @@ namespace Forays {
 		//  i think inherent attributes will be done like this:
 		//    prototype has all attrs... all attrs are copied to each, because it needs them in its own hemlock state...
 		//    and inherent ones are either named explicitly, OR done with a new 'indestructible' source in hemlock.
-		StatusTracker<Creature, int> a; // todo wrong type
+			// -- the above is no longer the plan. CreatureType in the status dict should work very well instead.
+		StatusTracker<Creature, CreatureType, Status, Skill, AiTrait, Counter> statusTracker;
+
+		public bool HasStatus(Status status) => statusTracker[status] > 0;
+		public int GetSkillValue(Skill skill) => statusTracker[skill];
+		public bool HasAiTrait(AiTrait trait) => statusTracker[trait] > 0;
+		public int GetCounterValue(Counter counter) => statusTracker[counter];
+
+		// todo, OR, indexer... one for Status which returns bool, and one for Counter or NumericalStatus or NumericalAttribute, which returns int. Pick one of these.
+
+		public bool this[Status status] => statusTracker[status] > 0;
+		public int this[Skill skill] => statusTracker[skill];
+		public bool this[AiTrait trait] => statusTracker[trait] > 0;
+		public int this[Counter counter] => statusTracker[counter];
 
 		//attacks
 		//spells
@@ -54,6 +54,13 @@ namespace Forays {
 		public Creature(GameUniverse g) : base(g) {
 			//
 			CurHP = 3;
+			//
+			statusTracker = StatusRules.GetRules().CreateStatusTracker(this);
+			Creature creature = null;
+			if(creature[Status.Stunned]){
+				int baseDamage = creature[Skill.Combat];
+				//...
+			}
 		}
 
 		//todo, this might be better in its own file:

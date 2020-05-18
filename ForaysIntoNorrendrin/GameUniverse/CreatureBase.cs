@@ -5,7 +5,7 @@ using UtilityCollections;
 using Hemlock;
 
 namespace Forays {
-	public enum CreatureType { Player, Goblin, Rat, GoblinKing, Cleric };
+	public enum CreatureType { Player, Goblin, Rat, GoblinKing, Cleric, LAST };
 	// Creature prototypes will be CreatureBase, which is Creature minus position, curHP, etc.
 	// A new creature can be cloned from any CreatureBase.
 	public class CreatureBase : GameObject {
