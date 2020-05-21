@@ -17,7 +17,7 @@ namespace Forays {
 	public class Creature : GameObject /*CreatureBase, IPhysicalObject*/ {
 		public Point? Position => Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
 
-		public int CurHP { get; set; }
+		public int CurHP;
 		//public int CurMP { get; set; }
 
 		//inherent attributes too

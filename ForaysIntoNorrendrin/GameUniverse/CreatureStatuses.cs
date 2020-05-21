@@ -9,6 +9,7 @@ namespace Forays {
     public enum AiTrait { Aggressive = Skill.LAST+1, KeepsDistance, LAST };
     public enum Counter { Lifespan = AiTrait.LAST+1, Shielded, LAST };
     //todo,spells+feats? although these must be tracked in order, mustn't they?
+    //    --probably duplicate that data just a bit for the player, so that creature type can imply spells, and they can also be tracked in order for the player.
 
     //...hmmm..... any utility in making CreatureType part of this? it could actually imply things based on THAT...
     //    ...although it might be awkward duplication to have the CreatureType in the dictionary and also as a standalone value...
@@ -20,7 +21,9 @@ namespace Forays {
 
     //spells,feats, species spawning info like group size, or restrictions on placement.
     // should the goal be to NOT ever check for specific CreatureType?
-    //     (though I think a few special exceptions might be okay, such as phantom clones)
+    //     (though I think a few special exceptions might be okay, such as phantom clones,
+    //          or a rule like "wandering wizard starts with 3 random spells" that'd be hard to encode into the enums.
+    //          Maybe just try to note when a creature type gets special rules, as a comment on the species definition?)
 
     public static class StatusRules{
         private static StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> rules;
