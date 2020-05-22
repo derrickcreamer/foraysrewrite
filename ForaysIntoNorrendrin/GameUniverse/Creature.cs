@@ -63,13 +63,10 @@ namespace Forays {
 			}
 		}
 
-		//todo, this might be better in its own file:
-		/*public static DefaultValueDictionary<CreatureType, Creature> CreatePrototypeCreatures(GameUniverse g) {
-			//todo, default or not? should it throw? the code in GameUniverse actually makes a default 1hp creature - probably do that.
-			// give it a good name though, like a mysterious spirit.
-			return new DefaultValueDictionary<CreatureType, Creature> {
-				[CreatureType.Goblin] = new Creature(g){ MaxHP = 10, MoveCost = 120, Type = CreatureType.Goblin }
-			}; //todo: this definitely needs a helper like the old code, to avoid duplicating type.
-		}*/
+			// i'm thinking Creature or CreatureBase or CreatureDefinition should have a static Create method that takes care of a few things....
+			//   It would hide the ctor, mostly because there might be a few subclasses of Creature, and the only thing that should care about THAT is serialization.
+			//   It MIGHT provide a few bool options for the classic stuff like 'schedule an event for this' or 'add this to the map'. Maybe, maybe not.
+			//
+
 	}
 }

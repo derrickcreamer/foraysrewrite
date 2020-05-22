@@ -4,20 +4,16 @@ using Hemlock;
 using static Forays.Status;
 
 namespace Forays {
-    public enum Status { Stunned = CreatureType.LAST+1, Poisoned, Spored, LAST };
+    public enum Status {
+        Stunned = CreatureType.LAST+1, Poisoned, Spored, CanOpenDoors, VulnerableToNeckSnap, LowLightVision,
+        LAST };
     public enum Skill { Combat = Status.LAST+1, Defense, Magic, Spirit, Stealth, LAST };
-    public enum AiTrait { Aggressive = Skill.LAST+1, KeepsDistance, LAST };
+    public enum AiTrait { Aggressive = Skill.LAST+1, KeepsDistance, UnderstandsDoors, LAST };
+    // todo, possible AI traits... 'understands doors' might be useful in combination with 'can open doors'...
+    //    could encourage the AI to wait at a door rather than wander, and might even allow an Ambusher trait where
     public enum Counter { Lifespan = AiTrait.LAST+1, Shielded, LAST };
     //todo,spells+feats? although these must be tracked in order, mustn't they?
     //    --probably duplicate that data just a bit for the player, so that creature type can imply spells, and they can also be tracked in order for the player.
-
-    //...hmmm..... any utility in making CreatureType part of this? it could actually imply things based on THAT...
-    //    ...although it might be awkward duplication to have the CreatureType in the dictionary and also as a standalone value...
-    //          ...so it's probably worth at least CONSIDERING whether the standalone value is necessary.
-    //                  - maybe it stays but becomes "original creature type" or something? that'd be a good sidestep, and useful too.
-
-    //    ... does that also mean I don't need species templates at all? let's find out...
-    //
 
     //spells,feats, species spawning info like group size, or restrictions on placement.
     // should the goal be to NOT ever check for specific CreatureType?
@@ -27,7 +23,7 @@ namespace Forays {
 
     public static class StatusRules{
         private static StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> rules;
-
+        // TODO NEXT >>>  decide how this works. Since StatusSystem is exactly the type we want as part of GameUniverse, seems good to make this part stateless and just return a new one each time.
         public static StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> GetRules(){
             if(rules != null) return rules;
 

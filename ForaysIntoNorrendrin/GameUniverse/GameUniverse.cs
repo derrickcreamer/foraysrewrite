@@ -16,6 +16,7 @@ namespace Forays {
 		public EventScheduler Q;
 		public const int MapHeight = 20;
 		public const int MapWidth = 30;
+		public const int TicksPerTurn = 120;
 		public RNG R;
 		public RNG MapRNG;
 		public Grid<Creature, Point> Creatures;
