@@ -25,19 +25,12 @@ namespace Forays {
 		//    prototype has all attrs... all attrs are copied to each, because it needs them in its own hemlock state...
 		//    and inherent ones are either named explicitly, OR done with a new 'indestructible' source in hemlock.
 			// -- the above is no longer the plan. CreatureType in the status dict should work very well instead.
-		StatusTracker<Creature, CreatureType, Status, Skill, AiTrait, Counter> statusTracker;
+		public StatusTracker<Creature, CreatureType, Status, Skill, AiTrait, Counter> StatusTracker;
 
-		public bool HasStatus(Status status) => statusTracker[status] > 0;
-		public int GetSkillValue(Skill skill) => statusTracker[skill];
-		public bool HasAiTrait(AiTrait trait) => statusTracker[trait] > 0;
-		public int GetCounterValue(Counter counter) => statusTracker[counter];
-
-		// todo, OR, indexer... one for Status which returns bool, and one for Counter or NumericalStatus or NumericalAttribute, which returns int. Pick one of these.
-
-		public bool this[Status status] => statusTracker[status] > 0;
-		public int this[Skill skill] => statusTracker[skill];
-		public bool this[AiTrait trait] => statusTracker[trait] > 0;
-		public int this[Counter counter] => statusTracker[counter];
+		public bool this[Status status] => StatusTracker[status] > 0;
+		public int this[Skill skill] => StatusTracker[skill];
+		public bool this[AiTrait trait] => StatusTracker[trait] > 0;
+		public int this[Counter counter] => StatusTracker[counter];
 
 		//attacks
 		//spells
@@ -48,6 +41,23 @@ namespace Forays {
 		// target last known location, player visibility counter for stealth,
 		// group
 
+		// Eventually I might need to declare that certain statuses are 'always refresh', which means I track the
+		//   EventScheduling and reuse it if it exists (by updating the delay on it). That means tracking, per creature,
+		//   a status->scheduling association...then, on add, it would use a new Hemlock feature to check whether it
+		//   _would_ be prevented... And then, this state would either need to be serialized, or I'd need to guarantee
+		//   that it could be reconstructed (by disallowing any non-refreshing instances of those statuses).
+		//   (problem with the always-refresh plan: my priority queue is O(n) for changing priority. Just try the 'event spam' version first.)
+
+		public bool ApplyStatus(Status status, int duration){
+			//todo, 'if status is always-refresh, look for existing scheduling'...
+			StatusInstance<Creature> si = StatusTracker.CreateStatusInstance(status);
+			if(StatusTracker.AddStatusInstance(si)){
+				Q.ScheduleWithRelativeInitiative(new StatusExpirationEvent(this, si), duration, RelativeInitiativeOrder.BeforeCurrent);
+				return true;
+			}
+			else return false;
+		}
+
 		//todo, this will probably be just a getter, switching on species:
 		// (but for now i need to set the player's Decider directly)
 		public CancelDecider Decider { get; set; }
@@ -55,12 +65,7 @@ namespace Forays {
 			//
 			CurHP = 3;
 			//
-			statusTracker = StatusRules.GetRules().CreateStatusTracker(this);
-			Creature creature = null;
-			if(creature[Status.Stunned]){
-				int baseDamage = creature[Skill.Combat];
-				//...
-			}
+			StatusTracker = StatusRules.GetRules().CreateStatusTracker(this);
 		}
 
 			// i'm thinking Creature or CreatureBase or CreatureDefinition should have a static Create method that takes care of a few things....

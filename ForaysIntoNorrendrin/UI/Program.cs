@@ -91,8 +91,9 @@ namespace ForaysUI {
 				//WriteStatusString(w, "PAUSED");
 				while(w.KeyPressed == false) {
 					Thread.Sleep(200);
-					WriteStatusString(w, "PAUSED: " + DateTime.Now.Second);
+					WriteStatusString(w, "PAUSED: " + DateTime.Now.Second.ToString() + " - Q TO QUIT");
 				}
+				if(w.GetKey() == Key.Q) break;
 			}
 			w.Exit();
 		}
@@ -146,8 +147,9 @@ namespace ForaysUI {
 					}
 					//if(g.Player.Position != null)
 						//w.Write(wHeight-3-g.Player.Position.Value.Y, g.Player.Position.Value.X, '@', Color4.DarkCyan);
+					if(g.Player[Status.Stunned]) lastMsg = "You fight your claustrophobia";
 					WriteStatusString(w, lastMsg);
-					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / 120).ToString().PadRight(wWidth), Color4.DarkGray);
+					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / GameUniverse.TicksPerTurn).ToString().PadRight(wWidth), Color4.DarkGray);
 					w.Write(wHeight - 1, wWidth/2 - 2, $"HP: {g.Player.CurHP}",Color4.Pink);
 					w.Write(wHeight - 1, wWidth - 5, $"D: {g.CurrentDepth}", Color4.CadetBlue);
 					foreach(var c in g.Creatures) {

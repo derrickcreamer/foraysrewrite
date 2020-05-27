@@ -22,18 +22,22 @@ namespace Forays {
 	public class CreatureDefinition : CreatureBase {
 		private CreatureDefinition() : base(null){}
 		// Declared, as opposed to calculated:
-		public List<Status> DeclaredStatuses; // todo, is this the best access modifier for all these?
-		public List<AiTrait> DeclaredAiTraits;
+		public List<Status> DeclaredStatuses;
 		public Dictionary<Counter, int> DeclaredCounters;
+		public List<AiTrait> DeclaredAiTraits;
+		public Dictionary<Skill, int> DeclaredSkills;
 		//public List<Spell> DeclaredSpells;
 		//todo etc.
 		//todo attacks
 		//todo, 'getcalculatedstatus' methods? only when needed though.
 
 		// Methods to check facts about the creature types:
-		public static bool HasDeclaredStatus(CreatureType type, Status status){
+		public static bool HasDeclaredStatus(CreatureType type, Status status){ //todo, keep this method (and add more) or get rid of it?
 			return defs[type].DeclaredStatuses?.Contains(status) == true;
 		}
+
+		public static CreatureDefinition GetDefinition(CreatureType type) => defs[type];
+		public static ICollection<CreatureDefinition> GetAllDefinitions() => defs.Values;
 
 		// Initialization of Creature definitions:
 		private static DefaultValueDictionary<CreatureType, CreatureDefinition> defs;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GameComponents;
 using GameComponents.DirectionUtility;
+using Hemlock;
 
 namespace Forays {
 	// CreatureAction is a base class for creature actions that'll use the creature's decider by default.
@@ -113,7 +114,7 @@ namespace Forays {
 				new WalkAction(Creature, dest).Execute();
 			}
 
-			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
+			Q.Schedule(new AiTurnEvent(Creature), Turns(1), Q.GetCurrentInitiative());
 		}
 	}
 
@@ -143,7 +144,7 @@ namespace Forays {
 			}
 			if(ChosenAction == null) {
 				//todo: it *might* be necessary to create & use a DoNothing action here, if important things happen during that action.
-				Q.Schedule(new PlayerTurnEvent(GameUniverse), 120, null); // todo, player initiative
+				Q.Schedule(new PlayerTurnEvent(GameUniverse), Turns(1), Q.GetCurrentInitiative()); // todo, player initiative
 				return;
 			}
 
@@ -170,11 +171,11 @@ namespace Forays {
 				}
 				else {
 					var time = result.Cost;
-					Q.Schedule(new PlayerTurnEvent(GameUniverse), time, null); //todo, player initiative
+					Q.Schedule(new PlayerTurnEvent(GameUniverse), time, Q.GetCurrentInitiative()); //todo, player initiative
 				}
 			}
 			else {
-				Q.Schedule(new PlayerTurnEvent(GameUniverse), 120, null); //todo, player initiative
+				Q.Schedule(new PlayerTurnEvent(GameUniverse), Turns(1), Q.GetCurrentInitiative()); //todo, player initiative
 			}
 			//todo, should this be fired for canceled actions? thinking no..
 			if(!result.Canceled)
@@ -183,7 +184,7 @@ namespace Forays {
 	}
 	public class TakeDamageEvent : Event<TakeDamageEvent.Result> {
 		public Creature Creature { get; set; }
-		public int Amount { get; set; }
+		public int Amount { get; set; } //todo, any reason to have these as properties? pretty sure only the ones that need to belong to interfaces (Creature, probably targeting stuff, etc.) will need to be properties.
 		// (it's possible that this event could eventually get a DamageSource property, or a DamageTypes collection, etc.)
 
 		public bool IsInvalid => Creature == null || Amount <= 0; //todo, duplicating this?
@@ -259,56 +260,26 @@ namespace Forays {
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(GameUniverse);
 				Creatures.Add(c, new Point(GameUniverse.MapRNG.GetNext(GameUniverse.MapWidth-2)+1, GameUniverse.MapRNG.GetNext(GameUniverse.MapHeight-2)+1));
-				Q.Schedule(new AiTurnEvent(c), 1200, null);
+				Q.Schedule(new AiTurnEvent(c), Turns(10), Q.GetCurrentInitiative());
 			}
+
+			if(GameUniverse.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
 			return Success();
 		}
 	}
-	public class StatusExpirationEvent : SimpleEvent { //todo, every bit of this class might be wrong, since it was just pasted in
+	public class StatusExpirationEvent : SimpleEvent {
 		public Creature Creature { get; set; }
-		public StatusExpirationEvent(Creature creature) : base(creature.GameUniverse) {
+		public StatusInstance<Creature> StatusInstance;
+
+		public StatusExpirationEvent(Creature creature, StatusInstance<Creature> statusInstance) : base(creature.GameUniverse) {
 			this.Creature = creature;
+			this.StatusInstance = statusInstance;
 		}
 
 		protected override void ExecuteSimpleEvent() {
-
 			//if(Creature.State == CreatureState.Dead) return;
-			// todo: All this actual AI code *probably* won't go directly in the event like this.
-			// It'll probably be a method on the Creature, and this event will just call it.
-			/*foreach(Creature c in Creatures[Creature.Position?.EnumeratePointsAtChebyshevDistance(1, true, false)]) {
-				if(c == Player) {
-					//todo, message about being fangoriously devoured
-					//Player.State = CreatureState.Dead;
-					//todo, what else?
-					return;
-				}
-			}*/
-			// Otherwise, just change state:
-			//if(Creature.State == CreatureState.Angry) Creature.State = CreatureState.Crazy;
-			//else if(Creature.State == CreatureState.Crazy) Creature.State = CreatureState.Angry;
-
-			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
-
-			List<Point> validPoints = Creature.Position.Value.EnumeratePointsWithinChebyshevDistance(1, false, false)
-				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();
-			Point dest = Creature.Position.Value;
-			if(validPoints.Count > 0)
-				dest = validPoints[R.GetNext(validPoints.Count)];
-
-			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
-				if(CreatureAt(dest) != Player) {
-					Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
-				}
-				else {
-					Notify(new NotifyPrintMessage{ Message = "The enemy hits you."}); //todo, remove this when each event autom. sends a notify
-					new AttackAction(Creature, Player).Execute();
-				}
-			}
-			else {
-				new WalkAction(Creature, dest).Execute();
-			}
-
-			Q.Schedule(new AiTurnEvent(Creature), 120, null); //todo, creature initiative
+			//if(Creature.Position == null) todo, any checking here for dead/offmap?
+			Creature.StatusTracker.RemoveStatusInstance(StatusInstance);
 		}
 	}
 }

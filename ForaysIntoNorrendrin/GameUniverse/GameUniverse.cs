@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using GameComponents;
+using Hemlock;
 using UtilityCollections;
 
 namespace Forays {
@@ -10,13 +11,14 @@ namespace Forays {
 	public enum Feat { Lunge, WhirlwindAttack, NeckSnap };
 	public enum Spell { Fireball, Blink, MagicMissile, DetectMovement };*/
 	public class GameUniverse {
+		public const int MapHeight = 20;
+		public const int MapWidth = 30;
+		public const int TicksPerTurn = 120;
+
 		public bool Suspend;
 		public bool GameOver;
 		public Creature Player;
 		public EventScheduler Q;
-		public const int MapHeight = 20;
-		public const int MapWidth = 30;
-		public const int TicksPerTurn = 120;
 		public RNG R;
 		public RNG MapRNG;
 		public Grid<Creature, Point> Creatures;
@@ -24,6 +26,7 @@ namespace Forays {
 		public TileType[,] Tiles; //temporarily a 2d array...
 		public int CurrentDepth;
 		public DungeonLevelType CurrentLevelType;
+		public StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> CreatureRules;
 		/*public DungeonMap Map;
 		public List<DungeonLevelType> LevelTypes;
 		public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
@@ -32,8 +35,7 @@ namespace Forays {
 		public List<Feat> PlayerFeats;
 		public int FinalLevelClock;
 		public int[] FinalLevelCultistCount;
-		public int FinalLevelDemonCount;
-		public DefaultValueDictionary<CreatureType, CreatureBase> Species;*/
+		public int FinalLevelDemonCount;*/
 		// tile defs
 		// item defs
 		// feature defs - probably static though?
@@ -76,10 +78,13 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			MapRNG = new RNG(R.GetNext());
 			Q = new EventScheduler();
 			Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight);
-			/*Species = new DefaultValueDictionary<CreatureType, CreatureBase>();
-			Species.GetDefaultValue = () => new CreatureBase(this) { MaxHP = 1, MoveCost = 120 }; //todo check
 
-			Map = new DungeonMap(this);*/
+			//todo...while loading the rules, do i need a hook so that the UI can insert any message overrides it wants to?
+			//hmmmmm.... is that what the Message/Effect split should be for? Basically, that the UI gets full control over the Message half?
+			//    This is very interesting...see how well this lines up with reality.
+			CreatureRules = StatusRules.GetRules(); // Also initializes creature definitions
+
+			/*Map = new DungeonMap(this);*/
 
 			DeadCreatures = new List<Creature>();
 
@@ -91,13 +96,15 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
 			Creatures.Add(Player, new Point(15, 8));
-			Q.Schedule(new PlayerTurnEvent(this), 120, null);
+			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
+			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(this);
 				Creatures.Add(c, new Point(MapRNG.GetNext(MapWidth-2)+1, MapRNG.GetNext(MapHeight-2)+1));
-				Q.Schedule(new AiTurnEvent(c), 1200, null);
+				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
+				Q.Schedule(new AiTurnEvent(c), TicksPerTurn * 10, initiative);
 			}
 		}
 		public void GenerateMap() {
@@ -126,6 +133,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		//Note that not everything on GameUniverse will be reflected here - just the most common & useful:
 		public Creature Player => GameUniverse.Player;
 		public EventScheduler Q => GameUniverse.Q;
+		public int Turns(int numTurns) => numTurns * GameUniverse.TicksPerTurn;
 		public RNG R => GameUniverse.R;
 		public Grid<Creature, Point> Creatures => GameUniverse.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Creatures[p];

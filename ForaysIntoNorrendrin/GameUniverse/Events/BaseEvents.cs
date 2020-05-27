@@ -45,7 +45,7 @@ namespace Forays {
 	public class ActionResult : EventResult, IActionResult {
 		public virtual bool Canceled { get; set; }
 		//todo, xml: this value should be ignored if InvalidEvent and/or Canceled
-		public virtual long Cost { get; set; } = 120; //todo, should probably use a value from the GameUniverse.
+		public virtual long Cost { get; set; } = GameUniverse.TicksPerTurn;
 	}
 	public class PassFailResult : ActionResult {
 		public virtual bool Succeeded { get; set; }
@@ -59,7 +59,7 @@ namespace Forays {
 		public ActionEvent(GameUniverse g) : base(g) { }
 		IActionResult IActionEvent.Execute() => Execute();
 		public virtual bool IsInvalid => false;
-		protected virtual long Cost => 120L; // todo, get from GameUniverse.
+		protected virtual long Cost => GameUniverse.TicksPerTurn;
 		protected virtual TResult Error() => new TResult() { InvalidEvent = true };
 		protected virtual TResult Cancel() => new TResult() { Canceled = true };
 		protected virtual TResult Done() => new TResult(){ Cost = Cost };
