@@ -77,23 +77,15 @@ namespace Forays {
 		}
 
 		protected override void ExecuteSimpleEvent() {
-
-			//if(Creature.State == CreatureState.Dead) return;
-			// todo: All this actual AI code *probably* won't go directly in the event like this.
-			// It'll probably be a method on the Creature, and this event will just call it.
-			/*foreach(Creature c in Creatures[Creature.Position?.EnumeratePointsAtChebyshevDistance(1, true, false)]) {
-				if(c == Player) {
-					//todo, message about being fangoriously devoured
-					//Player.State = CreatureState.Dead;
-					//todo, what else?
-					return;
-				}
-			}*/
-			// Otherwise, just change state:
-			//if(Creature.State == CreatureState.Angry) Creature.State = CreatureState.Crazy;
-			//else if(Creature.State == CreatureState.Crazy) Creature.State = CreatureState.Angry;
-
+			//todo, what checks whether creature is null? maybe the position check below can cover that too.
+			//todo, if creature is dead?
 			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
+
+			int timeTaken = Creature.ExecuteMonsterTurn();
+			Q.Schedule(new AiTurnEvent(Creature), timeTaken, Q.GetCurrentInitiative());
+
+			return; //todo clean up
+
 
 			List<Point> validPoints = Creature.Position.Value.EnumeratePointsWithinChebyshevDistance(1, false, false)
 				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();

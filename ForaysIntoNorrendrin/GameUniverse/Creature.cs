@@ -50,9 +50,9 @@ namespace Forays {
 
 		public bool ApplyStatus(Status status, int duration){
 			//todo, 'if status is always-refresh, look for existing scheduling'...
-			StatusInstance<Creature> si = StatusTracker.CreateStatusInstance(status);
-			if(StatusTracker.AddStatusInstance(si)){
-				Q.ScheduleWithRelativeInitiative(new StatusExpirationEvent(this, si), duration, RelativeInitiativeOrder.BeforeCurrent);
+			StatusInstance<Creature> inst = StatusTracker.CreateStatusInstance(status);
+			if(StatusTracker.AddStatusInstance(inst)){
+				Q.ScheduleWithRelativeInitiative(new StatusExpirationEvent(this, inst), duration, RelativeInitiativeOrder.BeforeCurrent);
 				return true;
 			}
 			else return false;
@@ -71,7 +71,33 @@ namespace Forays {
 			// i'm thinking Creature or CreatureBase or CreatureDefinition should have a static Create method that takes care of a few things....
 			//   It would hide the ctor, mostly because there might be a few subclasses of Creature, and the only thing that should care about THAT is serialization.
 			//   It MIGHT provide a few bool options for the classic stuff like 'schedule an event for this' or 'add this to the map'. Maybe, maybe not.
-			//
 
+		///<summary>Return value is the cost of the action taken</summary>
+		public int ExecuteMonsterTurn(){
+			return 0;
+			//hmm... a good amount of code goes at the start of each turn...
+			// ... and a bit of it is shared by the player.
+
+						// switch on state? Idle / Wandering / Searching / Hunting?
+			// but note that the implementation might have more subdivisions within these. Searching could be investigating a sound,
+			//   or trying to find the player after losing track. Hunting could be when the player is visible, or just while moving toward last_seen.
+
+			// Maybe there's a 'single-minded' flag here, or maybe not. It'd be for things that run the same AI all the time.
+
+			// is there actually an enum for this state? for now let's assume there is.
+
+			// if hunting, call HuntingAI or whatever it's called
+			// else
+			//   check whether the player might be spotted...
+			//   if we see the player, spend the turn shouting or something, and switch to Hunting
+			//   otherwise, searching? ...
+			//   otherwise, what things can switch something from idle/wandering to searching? sound and scent?
+			//   if none of that, then, wandering? or just idle?
+
+		}
+
+		private int Hunt(){
+			return 0;
+		}
 	}
 }
