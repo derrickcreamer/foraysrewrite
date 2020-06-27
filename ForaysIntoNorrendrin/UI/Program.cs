@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using UtilityCollections;
-using SunshineConsole;
 using GameComponents;
 using GameComponents.DirectionUtility;
 using OpenTK.Graphics;
 using System.Threading;
 using OpenTK.Input;
+using GameComponents.TKWindow;
 using Forays;
 
 namespace ForaysUI {
@@ -56,7 +56,7 @@ namespace ForaysUI {
 		const int wHeight = GameUniverse.MapHeight + 2;
 		const int wWidth = GameUniverse.MapWidth;
 		static GameUniverse g;
-		static ConsoleWindow w;
+		static GLWindow w;
 		//static int turnsDeadCounter = 10;
 		static Dir8? walkDir = null;
 		static string lastMsg;
@@ -64,7 +64,7 @@ namespace ForaysUI {
 		static void RunUI() {
 			g = new GameUniverse();
 			g.InitializeNewGame();
-			w = new ConsoleWindow(wHeight, wWidth, "Roguelike Rewrite Tech Demo");
+			w = ForaysWindow.Create();
 			g.OnNotify += HandleNotifications;
 			lastMsg = "Welcome!";
 			while(true) {
