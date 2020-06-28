@@ -12,6 +12,8 @@ using Forays;
 namespace ForaysUI {
 	class Program {
 		static void Main(string[] args) {
+			// So, Main isn't going to do much except decide which UI to call.
+
 			/*RNG r = new RNG(235634245);
 			for(int j=0;j<1000;++j)
 				r.GetNext(j+2);

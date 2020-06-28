@@ -4,7 +4,7 @@ using GameComponents.TKWindow;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace ForaysUI{
+namespace ForaysUI.ScreenUI{
     public class ForaysWindow : GLWindow{
         public Surface TextSurface;
         public Surface CursorSurface;

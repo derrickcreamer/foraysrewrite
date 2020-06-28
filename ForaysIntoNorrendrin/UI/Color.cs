@@ -1,14 +1,14 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace ForaysUI{
+namespace ForaysUI.ScreenUI{
     [StructLayout(LayoutKind.Sequential)] // should be the default but make it explicit. Should be exactly 64 bits.
     public struct ColorGlyph : IEquatable<ColorGlyph>{
         public readonly int GlyphIndex;
         public readonly Color ForegroundColor;
         public readonly Color BackgroundColor;
 
-        public ColorGlyph(int glyphIndex, Color color, Color bgColor){
+        public ColorGlyph(int glyphIndex, Color color, Color bgColor = Color.Black){
             GlyphIndex = glyphIndex;
             ForegroundColor = color;
             BackgroundColor = bgColor;
@@ -31,6 +31,6 @@ namespace ForaysUI{
         }
     }
     public enum Color : ushort{ // 2 bytes
-        Todo
+        Todo, Black
     };
 }

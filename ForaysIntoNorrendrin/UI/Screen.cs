@@ -1,8 +1,17 @@
 using System;
 
-namespace ForaysUI{
+namespace ForaysUI.ScreenUI{
+    // This class exists so that 'using static' grants easy access to this Screen:
+    public static class StaticScreen{
+        public static IScreen Screen;
+    }
+    ///<summary>Represents an abstract terminal-like display</summary>
     public interface IScreen{
         //todo - screen memory is apparently not directly exposed. There MIGHT need to be a getter.
+
+        void Write(int row, int column, int glyphIndex, Color color, Color bgColor = Color.Black);
+        //void Write(int row, int column, char ch, Color color, Color bgColor = Color.Black);
+        void Write(int row, int column, ColorGlyph cg);
 
         ///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen (if applicable)</summary>
         bool HoldUpdates {get;set;}
@@ -15,6 +24,9 @@ namespace ForaysUI{
 
         ///<summary>Move the blinking cursor to a new position. Does not change cursor visibility.</summary>
         void SetCursorPosition(int left, int top);
+
+        //todo... needed? would just ensure that everything in memory is actually DRAWN, and also let input events come in.
+        //void WindowUpdate();
 
         //todo - this one is interesting: GLUpdate calls WindowUpdate and therefore lets the gl window process events, returns false if exiting, ...
             // it DOES seem like a 'let input events be read' method could be useful, yeah.
@@ -34,6 +46,8 @@ namespace ForaysUI{
         Write string with color+bgcolor starting at position
 
         >>> is colorstring needed here? (is there a performance reason to have it?)
+            //checking... for the status bar, at least, it's not REALLY needed. It calculates how MANY rows each object takes,
+            //  but it uses no other info about the display until actually drawing them. Leaning toward refactor.
 
         >>> any utility in having a bool to hint whether to group same-color glyphs before writing them? (or, should that actually be, before drawing them to screen?)
 
