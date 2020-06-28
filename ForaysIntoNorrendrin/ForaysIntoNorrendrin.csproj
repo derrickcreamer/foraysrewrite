@@ -64,11 +64,11 @@
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\Tile.cs" />
-    <Compile Include="UI\Color.cs" />
-    <Compile Include="UI\GL.cs" />
+    <Compile Include="UI\ScreenUI\Color.cs" />
+    <Compile Include="UI\ScreenUI\GL.cs" />
     <Compile Include="UI\Program.cs" />
-    <Compile Include="UI\Screen.cs" />
-    <Compile Include="UI\ScreenUI.cs" />
+    <Compile Include="UI\ScreenUI\Screen.cs" />
+    <Compile Include="UI\ScreenUI\ScreenUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
