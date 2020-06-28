@@ -11,23 +11,21 @@ namespace ForaysUI.ScreenUI{
 
         public ForaysWindow(int w, int h, string title) : base(w, h, title){}
 
-        public static ForaysWindow Create(){
-            int COLS = 88; //todo move these
-            int ROWS = 28;
+        public static ForaysWindow Create(int cols, int rows){
             ToolkitOptions.Default.EnableHighResolution = false; //todo - actually test this line, since it might not apply any more.
             ForaysWindow w = new ForaysWindow(DisplayDevice.Default.Width, DisplayDevice.Default.Height, "Forays into Norrendrin");
             //todo icon
             //todo, create a RNG for the UI and use it here:
             w.TimerFramesOffset = -8888888;
-            w.SetWorldUnitsPerScreen(COLS, ROWS);
+            w.SetWorldUnitsPerScreen(cols, rows);
 
             w.TextSurface = Surface.Create(w, "todo embed",
                 TextureMinFilter.Nearest, TextureMagFilter.Linear, true,
                 ShaderCollection.GetMsdfFS(2048, 4), false, 2, 4, 4);
             w.TextSurface.texture.Sprite.Add(GetIbmFontSpriteType());
-            CellLayout.CreateGrid(w.TextSurface, COLS, ROWS);
-            w.TextSurface.InitializePositions(COLS*ROWS);
-            w.TextSurface.InitializeOtherDataForSingleLayout(COLS*ROWS, 0, 32, new List<float>{0.0f, 0.0f, 0.0f, 1.0f}, new List<float>{0.0f, 0.0f, 0.0f, 1.0f});
+            CellLayout.CreateGrid(w.TextSurface, cols, rows);
+            w.TextSurface.InitializePositions(cols*rows);
+            w.TextSurface.InitializeOtherDataForSingleLayout(cols*rows, 0, 32, new List<float>{0.0f, 0.0f, 0.0f, 1.0f}, new List<float>{0.0f, 0.0f, 0.0f, 1.0f});
 
             w.CursorSurface = Surface.Create(w, "todo assuming this is the same file",
                 TextureMinFilter.Nearest, TextureMagFilter.Linear, true,

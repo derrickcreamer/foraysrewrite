@@ -64,9 +64,14 @@
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\Tile.cs" />
-    <Compile Include="UI\ScreenUI\Color.cs" />
-    <Compile Include="UI\ScreenUI\GL.cs" />
     <Compile Include="UI\Program.cs" />
+    <Compile Include="UI\ScreenUI\Color.cs" />
+    <Compile Include="UI\ScreenUI\ConsoleInput.cs" />
+    <Compile Include="UI\ScreenUI\ConsoleScreen.cs" />
+    <Compile Include="UI\ScreenUI\GL.cs" />
+    <Compile Include="UI\ScreenUI\GLInput.cs" />
+    <Compile Include="UI\ScreenUI\GLScreen.cs" />
+    <Compile Include="UI\ScreenUI\Input.cs" />
     <Compile Include="UI\ScreenUI\Screen.cs" />
     <Compile Include="UI\ScreenUI\ScreenUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

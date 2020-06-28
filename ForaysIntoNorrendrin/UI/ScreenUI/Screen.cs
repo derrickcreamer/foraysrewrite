@@ -7,11 +7,15 @@ namespace ForaysUI.ScreenUI{
     }
     ///<summary>Represents an abstract terminal-like display</summary>
     public interface IScreen{
+        int Rows {get;}
+        int Cols {get;}
         //todo - screen memory is apparently not directly exposed. There MIGHT need to be a getter.
 
-        void Write(int row, int column, int glyphIndex, Color color, Color bgColor = Color.Black);
+        void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black);
         //void Write(int row, int column, char ch, Color color, Color bgColor = Color.Black);
-        void Write(int row, int column, ColorGlyph cg);
+        void Write(int row, int col, ColorGlyph cg);
+
+        void Write(int row, int col, string s, Color color = Color.Gray, Color bgColor = Color.Black);
 
         ///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen (if applicable)</summary>
         bool HoldUpdates {get;set;}
@@ -25,8 +29,15 @@ namespace ForaysUI.ScreenUI{
         ///<summary>Move the blinking cursor to a new position. Does not change cursor visibility.</summary>
         void SetCursorPosition(int left, int top);
 
-        //todo... needed? would just ensure that everything in memory is actually DRAWN, and also let input events come in.
-        //void WindowUpdate();
+        ///<summary>Called immediately before exiting the program. Allows terminals to be reset to original config.</summary>
+        void CleanUp();
+
+        ///<summary>Ensure that everything sent to the display is actually drawn, process input events,
+        /// and return false if the window has been closed, if applicable.</summary>
+        bool Update();
+
+        ///<summary>Update screen memory to fill the screen with black</summary>
+        void Clear();
 
         //todo - this one is interesting: GLUpdate calls WindowUpdate and therefore lets the gl window process events, returns false if exiting, ...
             // it DOES seem like a 'let input events be read' method could be useful, yeah.

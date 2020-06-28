@@ -10,9 +10,26 @@ using GameComponents.TKWindow;
 using Forays;
 
 namespace ForaysUI {
-	class Program {
+	public interface IForaysUI{
+		void Run(string[] args);
+		void Quit();
+	}
+	public static class Program {
+		public static bool Linux;
+		public static IForaysUI UI;
+
+		public static void Quit(){
+			UI?.Quit();
+			Environment.Exit(0);
+		}
 		static void Main(string[] args) {
-			// So, Main isn't going to do much except decide which UI to call.
+			{
+				int os = (int)Environment.OSVersion.Platform;
+				Linux = (os == 4 || os == 6 || os == 128);
+			}
+			UI = new ForaysUI.ScreenUI.ScreenUI();
+			UI.Run(args);
+			return;//todo clean up
 
 			/*RNG r = new RNG(235634245);
 			for(int j=0;j<1000;++j)
@@ -362,6 +379,9 @@ namespace ForaysUI {
 					return false; //todo...not yet sure whether this stays here, or is handled in the input loop.
 			}
 			return false;
+		}
+		public static string GetEmbeddedResourceFilePath(string filename){
+			return $"Forays.ForaysImages.{filename}"; //todo check
 		}
 	}
 }
