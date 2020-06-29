@@ -3,6 +3,7 @@ using System;
 namespace ForaysUI.ScreenUI{
     public class ConsoleScreen : IScreen
     {
+        //todo, track current colors here
 
         public ConsoleScreen(int rows, int cols){
             Rows = rows;

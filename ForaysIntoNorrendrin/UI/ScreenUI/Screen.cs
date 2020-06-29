@@ -17,8 +17,8 @@ namespace ForaysUI.ScreenUI{
 
         void Write(int row, int col, string s, Color color = Color.Gray, Color bgColor = Color.Black);
 
-        ///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen (if applicable)</summary>
-        bool HoldUpdates {get;set;}
+        ///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen</summary>
+        //todo bool HoldUpdates {get;set;}
         ///<summary>If true, the cursor should be blinking at the position indicated by CursorTop and CursorLeft</summary>
         bool CursorVisible {get;set;}
         ///<summary>Position of the blinking cursor relative to the left of the screen</summary>
@@ -35,6 +35,8 @@ namespace ForaysUI.ScreenUI{
         ///<summary>Ensure that everything sent to the display is actually drawn, process input events,
         /// and return false if the window has been closed, if applicable.</summary>
         bool Update();
+
+        //todo, holdupdates / resumeupdates methods?
 
         ///<summary>Update screen memory to fill the screen with black</summary>
         void Clear();

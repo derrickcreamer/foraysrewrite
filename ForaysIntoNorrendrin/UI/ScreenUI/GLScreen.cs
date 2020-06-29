@@ -22,7 +22,10 @@ namespace ForaysUI.ScreenUI{
         public bool CursorVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int CursorLeft { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int CursorTop { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public void CleanUp(){}
+        public void CleanUp(){
+            //todo, is this call correct?
+            Window?.Close();
+        }
         public void Clear(){
             //todo
         }
