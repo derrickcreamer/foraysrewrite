@@ -91,7 +91,6 @@ namespace ForaysUI.ScreenUI{
         }
         private void StartNewGame(){
             //todo, player name...check files, etc.
-            //figure out how to hook into the notifications
             GameUniverse g = new GameUniverse();
             g.InitializeNewGame(); //todo seed
             RunGame(g);
@@ -102,7 +101,7 @@ namespace ForaysUI.ScreenUI{
             RunGame(g);
         }
         private void RunGame(GameUniverse g){
-            //todo, notify stuff here
+            g.OnNotify += NotificationHandler.ReceiveNotification;
             //todo, try/catch? do I want a thing where I can get to the exceptions before they reach this point?
             g.Run();
             if(g.GameOver){
