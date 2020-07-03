@@ -3,16 +3,21 @@ using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 using System.IO;
 using Forays;
+using GameComponents;
 
 namespace ForaysUI.ScreenUI{
-    public class ScreenUI : IForaysUI{
+    public static class ScreenUI{
         const int Rows = 28;
         const int Cols = 88;
 
-        public bool GLMode;
-        public void Run(string[] args){
+        public static bool GLMode;
+        public static RNG RNG;
+
+        public static void Run(string[] args){
             //todo check ifdef and args to see whether this is GL mode
             GLMode = true;
+
+            RNG = new RNG((ulong)DateTime.Now.Ticks);
 
             if(GLMode){
                 StaticScreen.Screen = new GLScreen(Rows, Cols);
@@ -28,13 +33,13 @@ namespace ForaysUI.ScreenUI{
             ShowTitleScreen();
             ShowMainMenu();
         }
-        private void ShowTitleScreen(){
+        private static void ShowTitleScreen(){
             if(GLMode){
             }
             else{
             }
         }
-        private void ShowMainMenu(){
+        private static void ShowMainMenu(){
             const string version = "0.8.5"; //todo, move?
             const string header = "Forays into Norrendrin " + version;
             const string divider = "----------------------------"; // divider length should match header
@@ -89,19 +94,19 @@ namespace ForaysUI.ScreenUI{
                 }
             }
         }
-        private void StartNewGame(){
+        private static void StartNewGame(){
             //todo, player name...check files, etc.
             GameUniverse g = new GameUniverse();
             g.InitializeNewGame(); //todo seed
             RunGame(g);
         }
-        private void ResumeSavedGame(){
+        private static void ResumeSavedGame(){
             GameUniverse g = new GameUniverse();
             //todo: load from file here
             RunGame(g);
         }
-        private void RunGame(GameUniverse g){
-            g.OnNotify += NotificationHandler.ReceiveNotification;
+        private static void RunGame(GameUniverse g){
+            g.OnNotify += new NotificationHandler(g).ReceiveNotification;
             //todo, try/catch? do I want a thing where I can get to the exceptions before they reach this point?
             g.Run();
             if(g.GameOver){
@@ -111,13 +116,13 @@ namespace ForaysUI.ScreenUI{
                 //todo
             }
         }
-        private void ShowGameOverScreen(){
+        private static void ShowGameOverScreen(){
             //todo...needs GameUniverse here, right?
         }
-        private void ShowHighScores(){
+        private static void ShowHighScores(){
             //todo
         }
-        public void Quit(){ //todo rename this so it isn't confused with Program.Quit
+        public static void CleanUp(){
             Screen?.CleanUp();
         }
     }
