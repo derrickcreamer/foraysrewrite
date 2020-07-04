@@ -6,7 +6,15 @@ namespace Forays {
 	public abstract class Event<TResult> : GameObject, IEvent {
 		public Event(GameUniverse g) : base(g) { }
 		void IEvent.ExecuteEvent() { Execute(); }
-		public abstract TResult Execute();
+		protected abstract TResult ExecuteEvent();
+		public TResult Execute(){
+			GameUniverse.EventStack.Add(this);
+			TResult result = ExecuteEvent();
+			GameUniverse.EventStack.RemoveAt(GameUniverse.EventStack.Count-1);
+			//todo, if I ever need some events to wait until after the current one is done, probably do that by adding
+			//  a method to GameUniverse that'll push-execute-pop and then check for more waiting, & call it here.
+			return result;
+		}
 		public override T Notify<T>(T notification) {
 			if(notification is IEventNotify eventNotify) {
 				eventNotify.SetEvent(this); // Automatically associate this event with the notification when possible
@@ -16,11 +24,10 @@ namespace Forays {
 		public T Notify<T>() where T : new() => Notify(new T());
 	}
 	// SimpleEvent is for those rare event types that will never need a return value (like player and AI turns).
-	public abstract class SimpleEvent : Event<SimpleEvent.NullResult>, IEvent {
+	public abstract class SimpleEvent : Event<SimpleEvent.NullResult> {
 		public SimpleEvent(GameUniverse g) : base(g) { }
-		void IEvent.ExecuteEvent() => ExecuteSimpleEvent();
 		protected abstract void ExecuteSimpleEvent();
-		public sealed override NullResult Execute() {
+		protected sealed override NullResult ExecuteEvent() {
 			ExecuteSimpleEvent();
 			return null;
 		}
@@ -111,7 +118,7 @@ namespace Forays {
 		public abstract ICancelDecider Decider { get; }
 		//todo, xml: this happens after the validity check & cancel check
 		protected abstract TResult ExecuteAction();
-		public sealed override TResult Execute() {
+		protected sealed override TResult ExecuteEvent() {
 			if(IsInvalid) return Error();
 			if(!NoCancel && Decider?.Cancels(this) == true) return Cancel();
 			return ExecuteAction();

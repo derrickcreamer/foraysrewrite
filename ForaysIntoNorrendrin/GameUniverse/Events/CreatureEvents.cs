@@ -190,7 +190,7 @@ namespace Forays {
 			this.Creature = creature;
 			this.Amount = amount;
 		}
-		public override Result Execute() {
+		protected override Result ExecuteEvent() {
 			if(IsInvalid) return new Result { InvalidEvent = true }; //todo, duplicating this?
 			if(GameUniverse.DeadCreatures.Contains(Creature)) {
 				//could do other stuff here, and set CreatureWasAlreadyDead if that is ever relevant to callers.

@@ -19,6 +19,7 @@ namespace Forays {
 		public bool GameOver;
 		public Creature Player;
 		public EventScheduler Q;
+		public List<IEvent> EventStack;
 		public RNG R;
 		public RNG MapRNG;
 		public Grid<Creature, Point> Creatures;
@@ -77,6 +78,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			R = new RNG(seed ?? (ulong)DateTime.Now.Ticks);
 			MapRNG = new RNG(R.GetNext());
 			Q = new EventScheduler();
+			EventStack = new List<IEvent>();
 			Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight);
 
 			//todo...while loading the rules, do i need a hook so that the UI can insert any message overrides it wants to?
