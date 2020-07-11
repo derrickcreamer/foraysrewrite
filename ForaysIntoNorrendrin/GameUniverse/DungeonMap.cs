@@ -1,58 +1,105 @@
 ﻿using System;
 using System.Collections.Generic;
 using GameComponents;
+using GameComponents.DirectionUtility;
 using UtilityCollections;
 
 namespace Forays {
-	/*public enum MapLight { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
+	public enum MagicalLightState { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
 	public class DungeonMap : GameObject {
-		new public Grid<Creature, Point> Creatures;
-		public List<CreatureGroup> CreatureGroups;
-		new public Grid<Tile, Point> Tiles;
-		new public Grid<Item, Point> Items;
-		//todo: features here
-		public MapLight MapLight;
+		const int MapWidth = GameUniverse.MapWidth;
+		const int MapHeight = GameUniverse.MapHeight;
+
+		public DungeonLevelType CurrentLevelType; //todo temporary
+
+		public RNG MapRNG => GameUniverse.MapRNG;
+        [Obsolete("CAUTION: This is the regular RNG, not the mapgen RNG.")]
+		new public RNG R => GameUniverse.R;
+
+		public Grid<Creature, Point> Creatures;
+		//public List<CreatureGroup> CreatureGroups;
+		public PointArray<TileType> Tiles;
+
+		public MultiValueDictionary<Point, FeatureType> Features;
+
+		public Dictionary<Point, Trap> Traps;
+		public bool CellIsTrapped(Point p) => Traps.ContainsKey(p);
+		//todo: shrines. i think they'll be handled similarly to traps now, with a dictionary and a struct. (idols could get the same treatment, or not.)
+
+		///<summary>Used to mark cells that automatically fail LOS checks, as an optimization</summary>
+		public PointArray<bool> NeverInLineOfSight;
+
+		///<summary>Counts the number of light sources currently casting light into each cell.
+		/// (Currently, all light sources have equal strength, and cells are either lit or not lit.)</summary>
+		public PointArray<int> CellBrightness;
+
+		///<summary>Track which direction the player last exited each cell. Helps the AI track the player.</summary>
+		public PointArray<Dir8> DirectionPlayerExited;
+
+		//footsteps tracked here or elsewhere?
+		//aesthetic features here, or are those strictly presentation with no game effect?
+		//track burning objects here?
+		//items
+
+		public MagicalLightState MagicalLightState;
 		public int DangerModifier;
-		public EasyHashSet<Point> Seen; // todo: hashset isn't bad BUT a 2d array might be better..not sure.
+		public PointArray<bool> Seen;
+		//todo... does the 'seen' map need to track WHAT was seen? tile+trap+features + optionally creatures?
 
 		public DungeonMap(GameUniverse g) : base(g) {
-			const int width = 30; //todo
-			const int height = 20;
-			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < 30 && p.Y >= 0 && p.Y < 20; //todo
+			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight;
 			Creatures = new Grid<Creature, Point>(isInBounds);
-			Tile floor = new Tile(g){ Type = TileType.Floor }; //todo, this'll change
-			Tiles = new Grid<Tile, Point>(isInBounds) { GetDefaultElement = () => floor };
-			Items = new Grid<Item, Point>(isInBounds);
-			Seen = new EasyHashSet<Point>();
-			//need to create a map, and populate it...
-			// tiles and creatures, at least.
-			// floors & walls, and a few goblins, then?
-			// walls at edges, plus a 5% chance for others?
-			//
-			// great, now, does any of that happen in the ctor? prob not, right?
-			// this should be a gameobject, right?
-			// Unless it's going to be populated by something else...
+			Tiles = new PointArray<TileType>(MapWidth, MapHeight);
+			Features = new MultiValueDictionary<Point, FeatureType>(); //todo, don't allow dupes, right?
+			Traps = new Dictionary<Point, Trap>();
+			NeverInLineOfSight = new PointArray<bool>(MapWidth, MapHeight);
+			CellBrightness = new PointArray<int>(MapWidth, MapHeight);
+			DirectionPlayerExited = new PointArray<Dir8>(MapWidth, MapHeight);
+			//todo, more here?
+			//Items = new Grid<Item, Point>(isInBounds);
+			Seen = new PointArray<bool>(MapWidth, MapHeight);
+		}
+		public bool CellIsPassable(Point p){ // will get optional flags param if needed
+			//check everything that could block a cell, which currently is probably just the tile type
+			TileType type = Tiles[p];
+			return TileDefinition.IsPassable(type);
+		}
+		public bool CellIsOpaque(Point p){ //todo, maybe cache this and recalculate when a tile changes or a feature is added/removed.
+			TileType type = Tiles[p];
+			if(TileDefinition.IsOpaque(type)) return true;
+			if(Features.AnyValues(p)){
+				foreach(FeatureType feature in Features[p]){
+					if(FeatureDefinition.IsOpaque(feature)) return true;
+				}
+			}
+			return false;
+		}
 
-			//todo, figure out tile prototypes eventually
+		public void GenerateMap() {
+			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
+			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;
+			int waterRarity = CurrentLevelType == DungeonLevelType.Cramped ? 50 : 8;
+			for(int x=0;x<MapWidth;++x)
+				for(int y = 0; y<MapHeight; ++y) {
+					if(x == 0 || y == 0 || x == MapWidth-1 || y == MapHeight-1)
+						Tiles[x,y] = TileType.Wall;
+					else if(MapRNG.OneIn(wallRarity))
+						Tiles[x,y] = TileType.Wall;
+					else if(MapRNG.OneIn(waterRarity))
+						Tiles[x,y] = TileType.Water;
+					else
+						Tiles[x,y] = TileType.Floor;
+				}
+			Tiles[MapWidth / 3, MapHeight / 3] = TileType.Staircase;
 
-			for(int i=0;i<width;++i)
-				for(int j=0;j<height;++j)
-					if(i == 0 || j == 0 || i == width-1 || j == height-1 || R.OneIn(20))
-						Tiles.Add(new Tile(g){ Type = TileType.Wall }, new Point(i, j));
-					else if(R.OneIn(50))
-						Creatures.Add(new Creature(g){ Type = CreatureType.Goblin }, new Point(i, j)); //todo
-		}*/
+			int numEnemies = MapRNG.GetNext(9);
+			for(int i = 0; i<numEnemies; ++i) {
+				Creature c = new Creature(GameUniverse);
+				Creatures.Add(c, new Point(MapRNG.GetNext(MapWidth-2)+1, MapRNG.GetNext(MapHeight-2)+1));
+				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
+				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
+			}
 
-		/*
-								all groups
-								all features
-								all burning objects
-								all aesthetic features
-								current footsteps
-								locations seen
-								light map
-								direction exited (AI helper)
-
-										 */
-	//}
+		}
+	}
 }

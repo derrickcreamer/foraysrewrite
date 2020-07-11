@@ -35,7 +35,7 @@ namespace Forays {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
 			}
-			bool moved = Creatures.Move(Creature, Destination);
+			bool moved = Map.Creatures.Move(Creature, Destination);
 			if(moved) return Success();
 			else return Failure();
 		}
@@ -241,21 +241,21 @@ namespace Forays {
 			if(Creature.TileTypeAt(Creature.Position.Value) != TileType.Staircase) return Failure();
 			//todo, Grid.Clear method?
 			//todo, repeated code here:
-			GameUniverse.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);
+			Map.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);
 			GameUniverse.CurrentDepth++;
-			GameUniverse.CurrentLevelType = GameUniverse.MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
-			GameUniverse.GenerateMap();
+			Map.CurrentLevelType = GameUniverse.MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
+			Map.GenerateMap();
 
-			Creatures.Add(Player, new Point(15, 8));
+			Map.Creatures.Add(Player, new Point(15, 8));
 
 			int numEnemies = GameUniverse.MapRNG.GetNext(8 + GameUniverse.CurrentDepth);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(GameUniverse);
-				Creatures.Add(c, new Point(GameUniverse.MapRNG.GetNext(GameUniverse.MapWidth-2)+1, GameUniverse.MapRNG.GetNext(GameUniverse.MapHeight-2)+1));
+				Map.Creatures.Add(c, new Point(GameUniverse.MapRNG.GetNext(GameUniverse.MapWidth-2)+1, GameUniverse.MapRNG.GetNext(GameUniverse.MapHeight-2)+1));
 				Q.Schedule(new AiTurnEvent(c), Turns(10), Q.GetCurrentInitiative());
 			}
 
-			if(GameUniverse.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
+			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
 			return Success();
 		}
 	}

@@ -11,26 +11,30 @@ namespace Forays {
 	public enum Feat { Lunge, WhirlwindAttack, NeckSnap };
 	public enum Spell { Fireball, Blink, MagicMissile, DetectMovement };*/
 	public class GameUniverse {
-		public const int MapHeight = 20;
-		public const int MapWidth = 30;
+		public const int MapHeight = 22;
+		public const int MapWidth = 66;
 		public const int TicksPerTurn = 120;
 
-		public bool Suspend;
+		public bool Suspend = true;
 		public bool GameOver;
+
 		public Creature Player;
-		public EventScheduler Q;
+
+		public EventScheduler Q; // seems likely that i'll combine these, plus a queue to be executed immediately...
 		public List<IEvent> EventStack;
+
 		public RNG R;
 		public RNG MapRNG;
-		public Grid<Creature, Point> Creatures;
+
 		public List<Creature> DeadCreatures; // (from this turn only) (name?)
-		public TileType[,] Tiles; //temporarily a 2d array...
-		public int CurrentDepth;
-		public DungeonLevelType CurrentLevelType;
-		public StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> CreatureRules;
-		/*public DungeonMap Map;
+
 		public List<DungeonLevelType> LevelTypes;
-		public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
+		public int CurrentDepth;
+		//public DungeonLevelType CurrentLevelType{get;set;} //todo, this should eventually use the LevelTypes list
+		public DungeonMap Map;
+
+		public StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> CreatureRules;
+		/*public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
 		public bool FeatGainedFromCurrentShrineSet;
 		public int SpellbooksGenerated;
 		public List<Feat> PlayerFeats;
@@ -65,7 +69,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			if(DeadCreatures.Count > 0) {
 				foreach(Creature c in DeadCreatures) {
 					//any notify here?
-					Creatures.Remove(c);
+					Map.Creatures.Remove(c);
 				}
 				DeadCreatures.Clear();
 			}
@@ -73,58 +77,28 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public void InitializeNewGame(ulong? seed = null)
 		{ // NEXT: (maybe.) fix the init here - is the Map actually created yet?
 
-			//hm, should Suspend be true on create?
-
 			R = new RNG(seed ?? (ulong)DateTime.Now.Ticks);
 			MapRNG = new RNG(R.GetNext());
 			Q = new EventScheduler();
 			EventStack = new List<IEvent>();
-			Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight);
+			Map = new DungeonMap(this);
+			CurrentDepth = 1;
 
 			//todo...while loading the rules, do i need a hook so that the UI can insert any message overrides it wants to?
 			//hmmmmm.... is that what the Message/Effect split should be for? Basically, that the UI gets full control over the Message half?
 			//    This is very interesting...see how well this lines up with reality.
 			CreatureRules = StatusRules.GetRules(); // Also initializes creature definitions
 
-			/*Map = new DungeonMap(this);*/
-
 			DeadCreatures = new List<Creature>();
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
-			CurrentDepth = 1;
-			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
-			GenerateMap();
-
 			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
-			Creatures.Add(Player, new Point(15, 8));
+			Map.Creatures.Add(Player, new Point(15, 8));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
 
-			int numEnemies = MapRNG.GetNext(9);
-			for(int i = 0; i<numEnemies; ++i) {
-				Creature c = new Creature(this);
-				Creatures.Add(c, new Point(MapRNG.GetNext(MapWidth-2)+1, MapRNG.GetNext(MapHeight-2)+1));
-				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
-				Q.Schedule(new AiTurnEvent(c), TicksPerTurn * 10, initiative);
-			}
-		}
-		public void GenerateMap() {
-			Tiles = new TileType[MapWidth, MapHeight];
-			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;
-			int waterRarity = CurrentLevelType == DungeonLevelType.Cramped ? 50 : 8;
-			for(int x=0;x<MapWidth;++x)
-				for(int y = 0; y<MapHeight; ++y) {
-					if(x == 0 || y == 0 || x == MapWidth-1 || y == MapHeight-1)
-						Tiles[x,y] = TileType.Wall;
-					else if(MapRNG.OneIn(wallRarity))
-						Tiles[x,y] = TileType.Wall;
-					else if(MapRNG.OneIn(waterRarity))
-						Tiles[x,y] = TileType.Water;
-					else
-						Tiles[x,y] = TileType.Floor;
-				}
-			Tiles[MapWidth / 3, MapHeight / 3] = TileType.Staircase;
+			Map.GenerateMap();
 		}
 	}
 	public class GameObject {
@@ -137,9 +111,10 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public EventScheduler Q => GameUniverse.Q;
 		public int Turns(int numTurns) => numTurns * GameUniverse.TicksPerTurn;
 		public RNG R => GameUniverse.R;
-		public Grid<Creature, Point> Creatures => GameUniverse.Creatures;
-		public Creature CreatureAt(Point p) => GameUniverse.Creatures[p];
-		public TileType TileTypeAt(Point p) => GameUniverse.Tiles[p.X, p.Y];
+		public DungeonMap Map => GameUniverse.Map;
+		//public Grid<Creature, Point> Creatures => GameUniverse.Creatures;
+		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
+		public TileType TileTypeAt(Point p) => GameUniverse.Map.Tiles[p.X, p.Y];
 		/*public Grid<Creature, Point> Creatures => GameUniverse.Map.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
 		public Grid<Tile, Point> Tiles => GameUniverse.Map.Tiles;
