@@ -88,8 +88,8 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			//hmmmmm.... is that what the Message/Effect split should be for? Basically, that the UI gets full control over the Message half?
 			//    This is very interesting...see how well this lines up with reality.
 			CreatureRules = StatusRules.GetRules(); // Also initializes creature definitions
-
 			DeadCreatures = new List<Creature>();
+			ItemDefinition.InitializeDefinitions();
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
@@ -122,8 +122,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public Grid<Item, Point> Items => GameUniverse.Map.Items;
 		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];*/
 	}
-	public class NotifyPrintMessage {
-		public string Message;
-		//what else will go here? will this type actually be used long-term? not sure.
+	public class NotifyPrintMessage { //todo...this won't even work without pulling ALL name data into GameUniverse.
+		public string Message; // Therefore, this will need to be dropped in favor of effectstart/effectend-type notifications.
 	}
 }

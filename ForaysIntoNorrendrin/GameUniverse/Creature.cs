@@ -14,11 +14,10 @@ namespace Forays {
 		public GroupType Type;
 		List<Creature> Members;
 	}*/
-	public class Creature : GameObject /*CreatureBase, IPhysicalObject*/ {
+	public class Creature : CreatureBase /*CreatureBase, IPhysicalObject*/ {
 		public Point? Position => Map.Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
 
-		public int CurHP;
-		//public int CurMP { get; set; }
+		public int CurrentHealth;
 
 		//inherent attributes too
 		//  i think inherent attributes will be done like this:
@@ -63,7 +62,7 @@ namespace Forays {
 		public CancelDecider Decider { get; set; }
 		public Creature(GameUniverse g) : base(g) {
 			//
-			CurHP = 3;
+			CurrentHealth = 3;
 			//
 			StatusTracker = StatusRules.GetRules().CreateStatusTracker(this);
 		}

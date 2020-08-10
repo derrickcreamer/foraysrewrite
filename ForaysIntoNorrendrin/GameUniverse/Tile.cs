@@ -16,11 +16,11 @@ namespace Forays {
 	public struct Trap{
 		public readonly TrapType Type;
 		public readonly bool SafeForPlayer;
-		public readonly bool TypeKnownToPlayer;
+		public readonly bool TypeRevealedToPlayer;
 		public Trap(TrapType type, bool safe, bool typeKnown){
 			Type = type;
 			SafeForPlayer = safe;
-			TypeKnownToPlayer = typeKnown;
+			TypeRevealedToPlayer = typeKnown;
 		}
 	}
 

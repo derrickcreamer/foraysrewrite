@@ -196,8 +196,8 @@ namespace Forays {
 				//could do other stuff here, and set CreatureWasAlreadyDead if that is ever relevant to callers.
 				return new Result { CreatureIsNowDead = true };
 			}
-			Creature.CurHP -= Amount;
-			if(Creature.CurHP <= 0) {
+			Creature.CurrentHealth -= Amount;
+			if(Creature.CurrentHealth <= 0) {
 				if(Creature == Player){
 					//...
 					GameUniverse.GameOver = true;
@@ -205,7 +205,7 @@ namespace Forays {
 				//todo, notify creature died here
 				GameUniverse.DeadCreatures.Add(Creature);
 			}
-			return new Result { CreatureIsNowDead = Creature.CurHP <= 0 };
+			return new Result { CreatureIsNowDead = Creature.CurrentHealth <= 0 };
 		}
 	}
 	public class AttackAction : CreatureAction<AttackAction.Result> {
@@ -257,6 +257,65 @@ namespace Forays {
 
 			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
 			return Success();
+		}
+	}
+	public class UseItemAction : CreatureAction<PassFailResult> {
+		public Item Item {get;set;}
+
+		//todo...regarding IsInvalid...i feel like maybe invalid events should always throw if
+		//  they're actually executed. It would improve the 'notify on every GameEvent start/end' plan.
+		//Note that this also means that maybe IsInvalid should be part of ALL Events, not just Actions.
+		public override bool IsInvalid => base.IsInvalid || Item == null;
+
+		public UseItemAction(Creature creature, Item item) : base(creature){
+			Item = item;
+		}
+		protected override PassFailResult ExecuteAction(){
+			//todo
+			//execute 'item effect event'
+			// targeting happens now? because, for an orb, this is really 'throw'...
+			// and what about wands?
+			//	 Maybe each is actually separate? so WandEffectEvent?
+			//	 ...And it would NOT assume that a creature is using the wand, but it WOULD assume that
+			//        the wand is aiming *from* one specific cell *to* another specific cell.
+			//(does that one have a Success?)
+			// either return a result based on that one, or just a Success.
+			//
+			//todo
+			//scrolls & potions, just use. Scrolls make noise first.
+			//orbs can be thrown but can't really be used directly, unless using them means breaking them.
+			//wands (and flint&steel) need targeting first... so the question is WHICH thing has the
+			//  CancelDecider callback that lets you actually choose the target for a wand...
+			switch(ItemDefinition.GetConsumableDefinition(Item.Type).Kind){
+				case ConsumableKind.Potion:
+				new PotionEffectEvent(Item, Creature).Execute();
+				break;
+				case ConsumableKind.Scroll:
+				//todo, make noise (6)
+				new ScrollEffectEvent(Item, Creature).Execute();
+				break;
+				case ConsumableKind.Orb:
+				//todo, see above...what, if anything, goes here?
+				break;
+				case ConsumableKind.Wand:
+				//todo, targeting etc.
+				break;
+				default:
+				switch(Item.Type){
+					case ItemType.BlastFungus:
+					//todo, does nothing...needs to be thrown instead.
+					break;
+					case ItemType.FlintAndSteel:
+					break;
+					case ItemType.MagicTrinket: //todo, does nothing, probably remove from this list
+					break;
+					case ItemType.RollOfBandages:
+					break;
+				}
+				break;
+			}
+			//todo, remove item from inventory, and remove from game?...
+			return Success(); //todo, maybe not necessary
 		}
 	}
 	public class StatusExpirationEvent : SimpleEvent {

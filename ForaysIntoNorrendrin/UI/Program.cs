@@ -163,7 +163,7 @@ namespace ForaysUI {
 					if(g.Player[Status.Stunned]) lastMsg = "You fight your claustrophobia";
 					WriteStatusString(w, lastMsg);
 					w.Write(wHeight - 1, 0, (g.Q.CurrentTick / GameUniverse.TicksPerTurn).ToString().PadRight(wWidth), Color4.DarkGray);
-					w.Write(wHeight - 1, wWidth/2 - 2, $"HP: {g.Player.CurHP}",Color4.Pink);
+					w.Write(wHeight - 1, wWidth/2 - 2, $"HP: {g.Player.CurrentHealth}",Color4.Pink);
 					w.Write(wHeight - 1, wWidth - 5, $"D: {g.CurrentDepth}", Color4.CadetBlue);
 					foreach(var c in g.Creatures) {
 						char ch = 'C';

@@ -26,6 +26,8 @@ namespace Forays {
 		public bool CellIsTrapped(Point p) => Traps.ContainsKey(p);
 		//todo: shrines. i think they'll be handled similarly to traps now, with a dictionary and a struct. (idols could get the same treatment, or not.)
 
+		public Grid<Item, Point> Items;
+
 		///<summary>Used to mark cells that automatically fail LOS checks, as an optimization</summary>
 		public PointArray<bool> NeverInLineOfSight;
 
@@ -38,6 +40,8 @@ namespace Forays {
 
 		//footsteps tracked here or elsewhere?
 		//aesthetic features here, or are those strictly presentation with no game effect?
+			// I think those are in-game. Those are something that, let's say, an AI-controlled player might consider,
+			// much like the number of times a wand has been used. Those aren't things that the AI or the UI should need to track.
 		//track burning objects here?
 		//items
 
@@ -52,11 +56,11 @@ namespace Forays {
 			Tiles = new PointArray<TileType>(MapWidth, MapHeight);
 			Features = new MultiValueDictionary<Point, FeatureType>(); //todo, don't allow dupes, right?
 			Traps = new Dictionary<Point, Trap>();
+			Items = new Grid<Item, Point>(isInBounds);
 			NeverInLineOfSight = new PointArray<bool>(MapWidth, MapHeight);
 			CellBrightness = new PointArray<int>(MapWidth, MapHeight);
 			DirectionPlayerExited = new PointArray<Dir8>(MapWidth, MapHeight);
 			//todo, more here?
-			//Items = new Grid<Item, Point>(isInBounds);
 			Seen = new PointArray<bool>(MapWidth, MapHeight);
 		}
 		public bool CellIsPassable(Point p){ // will get optional flags param if needed
@@ -99,6 +103,19 @@ namespace Forays {
 				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
 			}
+
+			/* for shrine placement:
+		int count = 50;
+		for(int i=0;i<NUM_LEVELS;++i){
+			int depthChance = (NUM_LEVELS - i);
+			int countOnThisLevel = 0;
+			for(int j=0;j<count;++j){
+				if(OneIn(depthChance)) countOnThisLevel++;
+			}
+			Console.WriteLine("Depth " + (i+1).ToString().PadLeft(2) + " has " + countOnThisLevel.ToString());
+			count -= countOnThisLevel;
+		}
+		*/
 
 		}
 	}
