@@ -5,7 +5,8 @@ using static Forays.Status;
 
 namespace Forays {
     public enum Status {
-        Stunned = CreatureType.LAST+1, Poisoned, Spored, CanOpenDoors, VulnerableToNeckSnap, LowLightVision,
+        Stunned = CreatureType.LAST+1, Poisoned, Spored, CanOpenDoors, VulnerableToNeckSnap, LowLightVision, Stoneform, PseudoVampiric, BrutishStrength,
+        Roots, Hasted, SilenceAura, ShadowCloak, MysticMind,
         LAST };
     public enum Skill { Combat = Status.LAST+1, Defense, Magic, Spirit, Stealth, LAST }; //todo, might want to reorder these so all the bools and ints are grouped together?
     public enum AiTrait { Aggressive = Skill.LAST+1, KeepsDistance, UnderstandsDoors, LAST };

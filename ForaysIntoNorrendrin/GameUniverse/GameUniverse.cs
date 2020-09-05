@@ -125,4 +125,37 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 	public class NotifyPrintMessage { //todo...this won't even work without pulling ALL name data into GameUniverse.
 		public string Message; // Therefore, this will need to be dropped in favor of effectstart/effectend-type notifications.
 	}
+	public static class ExtensionsForRNG{ // until I get around to putting these in the RNG class itself
+		public static int Roll(this RNG rng, int sides){
+			if(sides < 1) return 0;
+			return rng.GetNext(sides) + 1;
+		}
+		public static int Roll(this RNG rng, int dice, int sides){
+			if(sides < 1) return 0;
+			int total = 0;
+			for(int i=0;i<dice;++i)
+				total += rng.GetNext(sides) + 1;
+			return total;
+		}
+		public static int Between(this RNG rng, int a, int b){ //inclusive
+			int min, max;
+			if(a < b){
+				min = a;
+				max = b;
+			}
+			else{
+				min = b;
+				max = a;
+			}
+			// 'between 2 and 7' can return 6 numbers, so get 0-5 first, then add:
+			return rng.GetNext(max - min + 1) + min;
+		}
+		public static bool PercentChance(this RNG rng, int x){
+			return x > rng.GetNext(100);
+		}
+		public static bool FractionalChance(this RNG rng, int x, int outOfY){
+			if(x >= outOfY) return true;
+			return x > rng.GetNext(outOfY);
+		}
+	}
 }

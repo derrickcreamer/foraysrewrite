@@ -7,7 +7,7 @@ namespace ForaysUI.ScreenUI.Notifications{
     public class GameUIObject : GameObject{
         public GameUIObject(GameUniverse g) : base(g){}
 
-        public RNG ScreenRNG => ScreenUI.RNG;
+        public RNG ScreenRNG => ScreenUIMain.RNG;
 
         // To hopefully avoid any unintended usage:
         [Obsolete("CAUTION: This is the GameUniverse's RNG, not the UI's RNG.")]

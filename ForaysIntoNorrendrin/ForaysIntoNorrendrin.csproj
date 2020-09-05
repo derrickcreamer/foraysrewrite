@@ -61,6 +61,7 @@
     <Compile Include="GameUniverse\DungeonMap.cs" />
     <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
     <Compile Include="GameUniverse\Events\BaseEvents.cs" />
+    <Compile Include="GameUniverse\Events\ItemEvents.cs" />
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\PointArray.cs" />
@@ -76,6 +77,9 @@
     <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
     <Compile Include="UI\ScreenUI\GL\GLScreen.cs" />
     <Compile Include="UI\ScreenUI\NotificationHandlers\NotificationHandler.cs" />
+    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\ChooseAction.cs" />
+    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\TurnEnd.cs" />
+    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\TurnStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -42,6 +42,7 @@ namespace Forays {
                 {
                     User.ApplyStatus(Status.Roots, Turns(20 + R.Roll(20)));
                     //todo, call the appropriate event here to check whether the user just landed on a trap.
+                    // (or, maybe all of these statuses cause a check to happen automatically...)
                 }
                 break;
                 case ItemType.PotionOfHaste:

@@ -4,9 +4,10 @@ using static ForaysUI.ScreenUI.StaticInput;
 using System.IO;
 using Forays;
 using GameComponents;
+using ForaysUI.ScreenUI.Notifications;
 
 namespace ForaysUI.ScreenUI{
-    public static class ScreenUI{
+    public static class ScreenUIMain{
         const int Rows = 28;
         const int Cols = 88;
 

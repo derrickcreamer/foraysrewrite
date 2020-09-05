@@ -8,13 +8,14 @@ using System.Threading;
 using OpenTK.Input;
 using GameComponents.TKWindow;
 using Forays;
+using ForaysUI.ScreenUI;
 
 namespace ForaysUI {
 	public static class Program {
 		public static bool Linux;
 
 		public static void Quit(){
-			ScreenUI.CleanUp();
+			ScreenUIMain.CleanUp();
 			Environment.Exit(0);
 		}
 		static void Main(string[] args) {
@@ -22,7 +23,7 @@ namespace ForaysUI {
 				int os = (int)Environment.OSVersion.Platform;
 				Linux = (os == 4 || os == 6 || os == 128);
 			}
-			ScreenUI.Run(args);
+			ScreenUIMain.Run(args);
 			return;//todo clean up
 
 			/*RNG r = new RNG(235634245);
