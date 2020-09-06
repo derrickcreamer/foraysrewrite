@@ -15,7 +15,7 @@ namespace ForaysUI.ScreenUI{
         //void Write(int row, int column, char ch, Color color, Color bgColor = Color.Black);
         void Write(int row, int col, ColorGlyph cg);
 
-        void Write(int row, int col, string s, Color color = Color.Gray, Color bgColor = Color.Black);
+        void Write(int row, int col, string str, Color color = Color.Gray, Color bgColor = Color.Black);
 
         ///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen</summary>
         //todo bool HoldUpdates {get;set;}

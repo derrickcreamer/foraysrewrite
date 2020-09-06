@@ -27,16 +27,16 @@ namespace ForaysUI.ScreenUI{
                     }
             }*/
         }
-
         public void SetCursorPosition(int left, int top){
             throw new NotImplementedException();
         }
-
         public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
             throw new NotImplementedException();
         }
-
         public void Write(int row, int col, ColorGlyph cg){
+            throw new NotImplementedException();
+        }
+        public void Write(int row, int col, string str, Color color, Color bgColor = Color.Black){
             throw new NotImplementedException();
         }
         public void CleanUp(){
@@ -46,6 +46,9 @@ namespace ForaysUI.ScreenUI{
                 SetCursorPosition(0,0);
                 CursorVisible = true;
             }
+        }
+        public void ResetColors(){
+            //todo
         }
     }
 }
