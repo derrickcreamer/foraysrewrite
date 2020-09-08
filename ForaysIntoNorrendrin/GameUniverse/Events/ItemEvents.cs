@@ -9,7 +9,7 @@ namespace Forays {
     public class PotionEffectEvent : ItemEvent {
         public Creature User {get;set;}
         public PotionEffectEvent(Item item, Creature user) : base(item){ User = user; }
-        protected override SimpleEvent.NullResult ExecuteEvent(){
+        protected override SimpleEvent.NullResult Execute(){
             //todo, invalid if not potion? and if no user.
             if(Item == null || User == null) throw new InvalidOperationException(""); //todo
             switch(Item.Type){
@@ -73,7 +73,7 @@ namespace Forays {
     public class ScrollEffectEvent : ItemEvent {
         public Creature User {get;set;}
         public ScrollEffectEvent(Item item, Creature user) : base(item){ User = user; }
-        protected override SimpleEvent.NullResult ExecuteEvent(){
+        protected override SimpleEvent.NullResult Execute(){
             //todo, invalid if not potion? and if no user.
             if(Item == null || User == null) throw new InvalidOperationException(""); //todo
             switch(Item.Type){
@@ -190,7 +190,7 @@ namespace Forays {
     public class OrbBreakEvent : ItemEvent {
         public Point Position {get;set;}
         public OrbBreakEvent(Item item, Point position) : base(item){ Position = position; }
-        protected override SimpleEvent.NullResult ExecuteEvent(){
+        protected override SimpleEvent.NullResult Execute(){
             //todo, invalid if not orb? and if OOB?
             if(Item == null || false) throw new InvalidOperationException(""); //todo
             switch(Item.Type){
@@ -254,7 +254,7 @@ namespace Forays {
             SourcePosition = source;
             TargetPosition = target;
         }
-        protected override SimpleEvent.NullResult ExecuteEvent(){
+        protected override SimpleEvent.NullResult Execute(){
             //todo, invalid if not wand? and if OOB?
             if(Item == null || false || false) throw new InvalidOperationException(""); //todo
             switch(Item.Type){

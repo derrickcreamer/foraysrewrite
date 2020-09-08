@@ -20,8 +20,7 @@ namespace Forays {
 
 		public Creature Player;
 
-		public EventScheduler Q; // seems likely that i'll combine these, plus a queue to be executed immediately...
-		public List<IEvent> EventStack;
+		public EventQueue Q;
 
 		public RNG R;
 		public RNG MapRNG;
@@ -79,8 +78,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			R = new RNG(seed ?? (ulong)DateTime.Now.Ticks);
 			MapRNG = new RNG(R.GetNext());
-			Q = new EventScheduler();
-			EventStack = new List<IEvent>();
+			Q = new EventQueue();
 			Map = new DungeonMap(this);
 			CurrentDepth = 1;
 
@@ -108,7 +106,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public virtual T Notify<T>(T notification) => GameUniverse.Notify(notification);
 		//Note that not everything on GameUniverse will be reflected here - just the most common & useful:
 		public Creature Player => GameUniverse.Player;
-		public EventScheduler Q => GameUniverse.Q;
+		public EventQueue Q => GameUniverse.Q;
 		public int Turns(int numTurns) => numTurns * GameUniverse.TicksPerTurn;
 		public RNG R => GameUniverse.R;
 		public DungeonMap Map => GameUniverse.Map;

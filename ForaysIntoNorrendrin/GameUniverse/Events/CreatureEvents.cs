@@ -7,7 +7,7 @@ using Hemlock;
 
 namespace Forays {
 	// CreatureAction is a base class for creature actions that'll use the creature's decider by default.
-	public abstract class CreatureAction<TResult> : EasyAction<TResult> where TResult : ActionResult, new() {
+	public abstract class CreatureAction<TResult> : Event<TResult> where TResult : EventResult, new() { //todo, should this be renamed now that 'Action' is a less important distinction?
 		public virtual Creature Creature { get; set; }
 		public CreatureAction(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
 		public override ICancelDecider Decider => Creature?.Decider;
@@ -27,10 +27,10 @@ namespace Forays {
 		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
 		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
-		public override bool IsInvalid => Creature == null || base.IsInvalid
-			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth
+		public override bool IsInvalid => base.IsInvalid
+			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth //todo, is there a bounds check method somewhere?
 			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
-		protected override PassFailResult ExecuteAction() {
+		protected override PassFailResult Execute() {
 			if(OutOfRange || IsBlockedByTerrain || CreatureAt(Destination) != null) {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
@@ -99,11 +99,11 @@ namespace Forays {
 				}
 				else {
 					Notify(new NotifyPrintMessage{ Message = "The enemy hits you."}); //todo, remove this when each event autom. sends a notify
-					new AttackAction(Creature, Player).Execute();
+					Q.Execute(new AttackAction(Creature, Player));
 				}
 			}
 			else {
-				new WalkAction(Creature, dest).Execute();
+				Q.Execute(new WalkAction(Creature, dest));
 			}
 
 			Q.Schedule(new AiTurnEvent(Creature), Turns(1), Q.GetCurrentInitiative());
@@ -154,9 +154,6 @@ namespace Forays {
 			IActionResult result = null;
 			if(ChosenAction is WalkAction || ChosenAction is AttackAction || ChosenAction is DescendAction /*|| ChosenAction is FireballEvent*/) {
 				result = ChosenAction.Execute();
-				if(result.InvalidEvent) {
-					throw new InvalidOperationException($"Invalid event passed to player turn action [{ChosenAction.GetType().ToString()}]");
-				}
 				if(result.Canceled) {
 					Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
 					//todo, does this reschedule at 0, or just loop and ask again?
@@ -174,12 +171,12 @@ namespace Forays {
 				Notify(new NotifyTurnEnd { ActionResult = result });
 		}
 	}
-	public class TakeDamageEvent : Event<TakeDamageEvent.Result> {
+	public class TakeDamageEvent : Event<TakeDamageEvent.Result> { //todo, should all these become CreatureEvents now?
 		public Creature Creature { get; set; }
 		public int Amount { get; set; } //todo, any reason to have these as properties? pretty sure only the ones that need to belong to interfaces (Creature, probably targeting stuff, etc.) will need to be properties.
 		// (it's possible that this event could eventually get a DamageSource property, or a DamageTypes collection, etc.)
 
-		public bool IsInvalid => Creature == null || Amount <= 0; //todo, duplicating this?
+		public override bool IsInvalid => Creature == null || Amount <= 0; //todo, duplicating this?
 
 		public class Result : EventResult {
 			//public bool CreatureWasAlreadyDead { get; set; } (might be used one day, might not)
@@ -190,8 +187,7 @@ namespace Forays {
 			this.Creature = creature;
 			this.Amount = amount;
 		}
-		protected override Result ExecuteEvent() {
-			if(IsInvalid) return new Result { InvalidEvent = true }; //todo, duplicating this?
+		protected override Result Execute() {
 			if(GameUniverse.DeadCreatures.Contains(Creature)) {
 				//could do other stuff here, and set CreatureWasAlreadyDead if that is ever relevant to callers.
 				return new Result { CreatureIsNowDead = true };
@@ -215,18 +211,18 @@ namespace Forays {
 		public override bool IsInvalid => base.IsInvalid || Target == null;
 		public bool IsOutOfRange => Creature?.Position?.ChebyshevDistanceFrom(Target.Position.Value) > 1; //todo, null check etc.
 
-		public class Result : ActionResult {
+		public class Result : EventResult {
 			//todo
 			//attack hit, etc
 		}
 
 		public AttackAction(Creature creature, Creature target) : base(creature) { this.Target = target; }
-		protected override Result ExecuteAction() {
+		protected override Result Execute() {
 			if(IsOutOfRange) return Failure();
 
 			if(R.CoinFlip()) return Failure(); //todo, would return AttackMissed, not failure
 
-			new TakeDamageEvent(Target, 2).Execute();
+			Q.Execute(new TakeDamageEvent(Target, 2)); //todo, make Execute part of GameObject, right?
 
 			return Success();
 		}
@@ -237,7 +233,7 @@ namespace Forays {
 		protected override long Cost => 0;
 
 		public DescendAction(Creature creature) : base(creature){ }
-		protected override PassFailResult ExecuteAction() {
+		protected override PassFailResult Execute() {
 			if(Creature.TileTypeAt(Creature.Position.Value) != TileType.Staircase) return Failure();
 			//todo, Grid.Clear method?
 			//todo, repeated code here:
@@ -270,7 +266,7 @@ namespace Forays {
 		public UseItemAction(Creature creature, Item item) : base(creature){
 			Item = item;
 		}
-		protected override PassFailResult ExecuteAction(){
+		protected override PassFailResult Execute(){
 			//todo
 			//execute 'item effect event'
 			// targeting happens now? because, for an orb, this is really 'throw'...
@@ -288,11 +284,11 @@ namespace Forays {
 			//  CancelDecider callback that lets you actually choose the target for a wand...
 			switch(ItemDefinition.GetConsumableDefinition(Item.Type).Kind){
 				case ConsumableKind.Potion:
-				new PotionEffectEvent(Item, Creature).Execute();
+				Q.Execute(new PotionEffectEvent(Item, Creature));
 				break;
 				case ConsumableKind.Scroll:
 				//todo, make noise (6)
-				new ScrollEffectEvent(Item, Creature).Execute();
+				Q.Execute(new ScrollEffectEvent(Item, Creature));
 				break;
 				case ConsumableKind.Orb:
 				//todo, see above...what, if anything, goes here?

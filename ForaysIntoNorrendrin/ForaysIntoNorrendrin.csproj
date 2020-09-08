@@ -59,6 +59,7 @@
     <Compile Include="GameUniverse\CreatureBase.cs" />
     <Compile Include="GameUniverse\CreatureStatuses.cs" />
     <Compile Include="GameUniverse\DungeonMap.cs" />
+    <Compile Include="GameUniverse\EventQueue.cs" />
     <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
     <Compile Include="GameUniverse\Events\BaseEvents.cs" />
     <Compile Include="GameUniverse\Events\ItemEvents.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="UI\ScreenUI\Console\ConsoleScreen.cs" />
     <Compile Include="UI\ScreenUI\GL\GL.cs" />
     <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
+    <Compile Include="UI\ScreenUI\GL\GLColor.cs" />
     <Compile Include="UI\ScreenUI\GL\GLScreen.cs" />
     <Compile Include="UI\ScreenUI\NotificationHandlers\NotificationHandler.cs" />
     <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\ChooseAction.cs" />
