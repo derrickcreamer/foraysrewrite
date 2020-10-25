@@ -16,7 +16,7 @@ namespace Forays {
 	public interface IItemUseEvent { } //todo, not final
 	public class NotifyItemHadNoEffect : EventNotify<IItemUseEvent> { } //todo: this isn't used yet, nor is it final
 
-	public class WalkAction : CreatureAction<PassFailResult> {
+	public class WalkAction : CreatureAction<PassFailResult> { //todo, this should just be MoveAction, with some kind of movement type enum, right?
 		public Point Destination { get; set; }
 		public bool IgnoreRange { get; set; } = false; //todo, should i have a naming convention for 'arg' properties vs. calculated properties?
 													   // ...such as IgnoreRange vs. OutOfRange. if i had a convention it might suggest 'IgnoreRange' and 'IsOutOfRange' - would that work for most?
@@ -113,21 +113,10 @@ namespace Forays {
 	public class PlayerTurnEvent : SimpleEvent {
 		public IActionEvent ChosenAction { get; set; } = null;
 
-		public class NotifyTurnStart : EventNotify<PlayerTurnEvent> { }
-		public class NotifyChooseAction : EventNotify<PlayerTurnEvent> { }
-		public class NotifyTurnEnd : EventNotify<PlayerTurnEvent> {
-			public IActionResult ActionResult { get; set; }
-		}
-
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
 		protected override void ExecuteSimpleEvent() {
-			Notify<NotifyTurnStart>();
 			//if(Player.State == CreatureState.Dead) return;
-			Notify<NotifyChooseAction>();
-			//todo, i wonder if it would save time, or be confusing, if I had THIS form and also another form for convenience...
-			//  ...maybe there's still only one going out, but from in here we can Notify(this, SimpleNotification.PlayerTurnStarted); ?
-			//  seems like it would run into the naming problems like before, but it would be a bit easier otherwise.
 
 			if(GameUniverse.Suspend) {
 				// (this should either reschedule, or use some kind of "don't remove the current event" feature on the queue...
@@ -166,9 +155,6 @@ namespace Forays {
 			else {
 				Q.Schedule(new PlayerTurnEvent(GameUniverse), Turns(1), Q.GetCurrentInitiative()); //todo, player initiative
 			}
-			//todo, should this be fired for canceled actions? thinking no..
-			if(!result.Canceled)
-				Notify(new NotifyTurnEnd { ActionResult = result });
 		}
 	}
 	public class TakeDamageEvent : Event<TakeDamageEvent.Result> { //todo, should all these become CreatureEvents now?

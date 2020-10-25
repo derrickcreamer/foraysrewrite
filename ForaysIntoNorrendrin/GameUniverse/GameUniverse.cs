@@ -85,7 +85,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			//todo...while loading the rules, do i need a hook so that the UI can insert any message overrides it wants to?
 			//hmmmmm.... is that what the Message/Effect split should be for? Basically, that the UI gets full control over the Message half?
 			//    This is very interesting...see how well this lines up with reality.
-			CreatureRules = StatusRules.GetRules(); // Also initializes creature definitions
+			CreatureRules = new StatusRules(); // Also initializes creature definitions
 			DeadCreatures = new List<Creature>();
 			ItemDefinition.InitializeDefinitions();
 
