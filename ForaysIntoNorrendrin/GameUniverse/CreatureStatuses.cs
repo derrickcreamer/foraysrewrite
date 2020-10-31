@@ -45,7 +45,7 @@ namespace Forays {
             }
             foreach(Status status in Enum.GetValues(typeof(Status))){
                 this[status].Aggregator = this.Bool;
-                //statuses get marked as bool... A whole bunch of them need Notify done as below:
+                //statuses get marked as bool... A whole bunch of them need the callback done as below:
                 // (will these eventually happen for all of them, for the UI's sake? not sure...performance?)
 
                 this[status].Messages.Increased = StatusStartCallback;

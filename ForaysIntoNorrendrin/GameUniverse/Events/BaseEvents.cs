@@ -19,15 +19,8 @@ namespace Forays {
 		TResult IEventQueueEvent<TResult>.Execute() => Execute();
 		protected virtual long Cost => GameUniverse.TicksPerTurn;
 		// If present, will be consulted while the event is executing:
-		public virtual ICancelDecider Decider { get; set; }
+		public virtual ICancelDecider CancelDecider { get; set; }
 		public virtual bool NoCancel { get; set; }
-		public override T Notify<T>(T notification) {
-			if(notification is IEventNotify eventNotify) {
-				eventNotify.SetEvent(this); // Automatically associate this event with the notification when possible
-			}
-			return base.Notify(notification);
-		}
-		public T Notify<T>() where T : new() => Notify(new T());
 
 		//todo, rearrange for readability
 
@@ -84,34 +77,21 @@ namespace Forays {
 	// performing that action. It's used by both the AI and the UI to back out of ill-advised actions.
 	//todo, xml: this should return false for types it doesn't recognize
 	public interface ICancelDecider {
-		bool Cancels(object action);
+		bool Cancels(GameObject action);
 	}
 	public abstract class CancelDecider : GameObject, ICancelDecider {
 		public CancelDecider(GameUniverse g) : base(g) { }
 
 		// todo, xml comment here to explain purpose
-		public virtual bool? WillCancel(object action) => null;
-		public abstract bool Cancels(object action);
+		public virtual bool? WillCancel(GameObject action) => null;
+		public abstract bool Cancels(GameObject action);
 	}
-	public class PlayerCancelDecider : CancelDecider { //todo, make sure this is still right, and still needed
+	public class PlayerCancelDecider : CancelDecider {
 		public PlayerCancelDecider(GameUniverse g) : base(g) { }
 
-		public class NotifyDecide { //todo, name? maybe notify decide cancellation?
-			public object Action; //todo, name?
-			public bool CancelAction;
-		}
-		public override bool Cancels(object action) {
-			var result = Notify(new NotifyDecide { Action = action });
-			return result.CancelAction;
-		}
-	}
-	// This interface just makes EventNotify<T> easier to work with internally.
-	public interface IEventNotify {
-		void SetEvent(object o);
-	}
-	// This base class doesn't do anything on the UI side - it just makes defining these a bit easier.
-	public class EventNotify<T> : IEventNotify {
-		public T Event { get; set; }
-		void IEventNotify.SetEvent(object o) { Event = (T)o; }
+        ///<summary>Invoked to decide whether to cancel each action taken by the player</summary>
+		public Func<GameObject, bool> DecideCancel;
+
+		public override bool Cancels(GameObject action) => DecideCancel?.Invoke(action) ?? false;
 	}
 }

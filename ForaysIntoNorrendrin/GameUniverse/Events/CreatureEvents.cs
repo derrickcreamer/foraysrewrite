@@ -10,11 +10,11 @@ namespace Forays {
 	public abstract class CreatureAction<TResult> : Event<TResult> where TResult : EventResult, new() { //todo, should this be renamed now that 'Action' is a less important distinction?
 		public virtual Creature Creature { get; set; }
 		public CreatureAction(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
-		public override ICancelDecider Decider => Creature?.Decider;
+		public override ICancelDecider CancelDecider => Creature?.CancelDecider;
 		public override bool IsInvalid => Creature == null || Creature.Position == null;
 	}
-	public interface IItemUseEvent { } //todo, not final
-	public class NotifyItemHadNoEffect : EventNotify<IItemUseEvent> { } //todo: this isn't used yet, nor is it final
+	public interface IItemUseEvent { } //todo, not final. The idea here is that some actions might share interfaces that are easy to work with (for the UI),
+	// such as item-related actions, or actions involving a choice of target.
 
 	public class WalkAction : CreatureAction<PassFailResult> { //todo, this should just be MoveAction, with some kind of movement type enum, right?
 		public Point Destination { get; set; }
@@ -41,35 +41,6 @@ namespace Forays {
 		}
 	}
 
-	/*public class FireballEvent : CreatureEvent<ActionResult> {
-
-		public class NotifyExplosion : EventNotify<FireballEvent> {
-			public int CurrentRadius { get; set; }
-		}
-
-		public Point? Target { get; set; }
-
-		public FireballEvent(Creature caster, Point? target) : base(caster) {
-			this.Target = target;
-		}
-
-		protected override ActionResult ExecuteFinal() {
-			if(Target == null) {
-				//todo "you waste the spell"
-				return Done();
-			}
-			for(int i = 0; i<=2; ++i) {
-				//todo, animation? here's an attempt:
-				Notify(new NotifyExplosion { CurrentRadius = i });
-				foreach(Creature c in Creatures[Target.Value.EnumeratePointsAtManhattanDistance(i, true)]) {
-					//c.State = CreatureState.Dead;
-					//todo, does anything else need to be done here?
-				}
-			}
-			return Done();
-		}
-	}*/
-
 	public class AiTurnEvent : SimpleEvent {
 		public Creature Creature { get; set; }
 		public AiTurnEvent(Creature creature) : base(creature.GameUniverse) {
@@ -95,10 +66,10 @@ namespace Forays {
 
 			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
 				if(CreatureAt(dest) != Player) {
-					Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
+					//Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
 				}
 				else {
-					Notify(new NotifyPrintMessage{ Message = "The enemy hits you."}); //todo, remove this when each event autom. sends a notify
+					//Notify(new NotifyPrintMessage{ Message = "The enemy hits you."});
 					Q.Execute(new AttackAction(Creature, Player));
 				}
 			}
@@ -184,7 +155,7 @@ namespace Forays {
 					//...
 					GameUniverse.GameOver = true;
 				}
-				//todo, notify creature died here
+				//todo, notify creature died here - new GameEvent?
 				GameUniverse.DeadCreatures.Add(Creature);
 			}
 			return new Result { CreatureIsNowDead = Creature.CurrentHealth <= 0 };

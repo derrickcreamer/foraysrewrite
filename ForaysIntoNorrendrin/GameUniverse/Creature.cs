@@ -59,7 +59,7 @@ namespace Forays {
 
 		//todo, this will probably be just a getter, switching on species:
 		// (but for now i need to set the player's Decider directly)
-		public CancelDecider Decider { get; set; }
+		public CancelDecider CancelDecider { get; set; }
 		public Creature(GameUniverse g) : base(g) {
 			//
 			CurrentHealth = 3;

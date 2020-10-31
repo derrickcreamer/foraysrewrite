@@ -18,7 +18,7 @@ namespace Forays{
         public Action<GameObject, EventResult> AfterEventExecute;
 
         public TResult Execute<TResult>(Event<TResult> ev) where TResult : EventResult, new() {
-			if(!ev.NoCancel && ev.Decider?.Cancels(ev) == true){
+			if(!ev.NoCancel && ev.CancelDecider?.Cancels(ev) == true){
                 return new TResult { Canceled = true };
             }
             EventStack.Add(ev);

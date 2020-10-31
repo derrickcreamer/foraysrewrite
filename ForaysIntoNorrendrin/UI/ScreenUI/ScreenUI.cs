@@ -108,8 +108,8 @@ namespace ForaysUI.ScreenUI{
         }
         private static void RunGame(GameUniverse g){
             g.Q.BeforeEventExecute
+            (g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = null;//todo set here
             //todo, add status start/end stuff here
-            g.OnNotify += new NotificationHandler(g).ReceiveNotification;
             //todo, try/catch? do I want a thing where I can get to the exceptions before they reach this point?
             g.Run();
             if(g.GameOver){

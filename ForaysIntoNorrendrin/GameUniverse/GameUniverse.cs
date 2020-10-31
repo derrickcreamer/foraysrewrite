@@ -52,11 +52,6 @@ unIDed color for all consumables <<< see above
 actor, tile, and item prototypes or definitions <<< WhateverBase should work nicely here
 */
 
-		public event System.Action<object> OnNotify;
-		public T Notify<T>(T notification) {
-			OnNotify?.Invoke(notification);
-			return notification;
-		}
 		public void Run() {
 			Suspend = false;
 			while(!Suspend && !GameOver) {
@@ -67,7 +62,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public void CleanUpGameState() { // name? "checkfor..." ? "state based actions"?
 			if(DeadCreatures.Count > 0) {
 				foreach(Creature c in DeadCreatures) {
-					//any notify here?
+					//any notify here? maybe this actually becomes its own GameEvent?
 					Map.Creatures.Remove(c);
 				}
 				DeadCreatures.Clear();
@@ -91,7 +86,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
-			Player = new Creature(this) { Decider = new PlayerCancelDecider(this) };
+			Player = new Creature(this) { CancelDecider = new PlayerCancelDecider(this) };
 			Map.Creatures.Add(Player, new Point(15, 8));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
@@ -103,7 +98,6 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public GameUniverse GameUniverse;
 		public GameObject(GameUniverse g) { GameUniverse = g; }
 
-		public virtual T Notify<T>(T notification) => GameUniverse.Notify(notification);
 		//Note that not everything on GameUniverse will be reflected here - just the most common & useful:
 		public Creature Player => GameUniverse.Player;
 		public EventQueue Q => GameUniverse.Q;
@@ -119,9 +113,6 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public Tile TileAt(Point p) => GameUniverse.Map.Tiles[p];
 		public Grid<Item, Point> Items => GameUniverse.Map.Items;
 		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];*/
-	}
-	public class NotifyPrintMessage { //todo...this won't even work without pulling ALL name data into GameUniverse.
-		public string Message; // Therefore, this will need to be dropped in favor of effectstart/effectend-type notifications.
 	}
 	public static class ExtensionsForRNG{ // until I get around to putting these in the RNG class itself
 		public static int Roll(this RNG rng, int sides){
