@@ -32,7 +32,7 @@ namespace Forays {
 		//public DungeonLevelType CurrentLevelType{get;set;} //todo, this should eventually use the LevelTypes list
 		public DungeonMap Map;
 
-		public StatusSystem<Creature, CreatureType, Status, Skill, AiTrait, Counter> CreatureRules;
+		public StatusRules CreatureRules;
 		/*public DefaultValueDictionary<TileType, ShrineStatus> ShrineStatuses;
 		public bool FeatGainedFromCurrentShrineSet;
 		public int SpellbooksGenerated;

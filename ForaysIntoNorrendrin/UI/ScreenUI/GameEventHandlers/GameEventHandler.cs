@@ -1,6 +1,9 @@
 using System;
 using Forays;
 using GameComponents;
+using GameComponents.DirectionUtility;
+using static ForaysUI.ScreenUI.StaticScreen;
+using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI.EventHandlers{
     ///<summary>Base class for UI types that make heavy use of the GameUniverse</summary>
@@ -14,46 +17,41 @@ namespace ForaysUI.ScreenUI.EventHandlers{
         new public RNG R => base.R;
     }
     ///<summary>todo</summary>
-    public class GameEventHandler : GameUIObject{
+    public class GameEventHandler : GameUIObject{ //todo...unsure about how this will eventually be broken up and reorganized.
 
         public GameEventHandler(GameUniverse g) : base(g){
         }
-        // old code from old class, for reference. delete later, todo:
-        /*public void ReceiveNotification(object o){
-            switch(o){
-                case NotifyPrintMessage n:
-                //just buffer?
-                break;
-                case PlayerTurnEvent.NotifyTurnStart n:
-                    PlayerTurnStart.Handle(n);
-                //hmm, so this gets its own file...
-                //it uses Screen...and GameUniverse consts and state data...
-                //probably tells the message buffer to print...
-                // (could check old code for more, but that's probably most of it)
-                break;
-                case PlayerTurnEvent.NotifyChooseAction n:
-                    PlayerChooseAction.Handle(n);
-                //needs to refer to some kind of state for walkDir etc.
-                //uses Input
-                //gameuniverse
-                break;
-                case PlayerTurnEvent.NotifyTurnEnd n:
-                    PlayerTurnEnd.Handle(n);
-                //might print messages for failed actions?
-                //gu
-                break;
-                case PlayerCancelDecider.NotifyDecide n:
-                //another switch probably... handles targeting as well as regular cancels
-                break;
-            }
-        }*/
-        public void BeforeGameEvent(GameObject gameEvent){
+        public void BeforeGameEvent(GameObject gameEvent){ //todo, fix tabs/spaces in the whole project
             switch(gameEvent){
                 case PlayerTurnEvent e:
                 //
                 //todo hold updates
                 //draw:
                 //...map
+					for(int i = 0; i < GameUniverse.MapHeight; i++) {
+						for(int j = 0; j < GameUniverse.MapWidth; j++) {
+							char ch = ' ';
+							Color color = Color.Gray;
+							switch(this.TileTypeAt(new Point(j, i))) {
+								case TileType.Floor:
+									ch = '.';
+									break;
+								case TileType.Wall:
+									ch = '#';
+									break;
+								case TileType.Water:
+									ch = '~';
+									color = Color.Cyan;
+									break;
+								case TileType.Staircase:
+									ch = '>';
+									color = Color.White;
+									break;
+							}
+
+							Screen.Write(i, j, ch, color);
+						}
+					}
                     //
                 //...environmental desc
                 //...messages (don't forget to flush message buffer)
@@ -61,12 +59,30 @@ namespace ForaysUI.ScreenUI.EventHandlers{
                 //...additional UI
                 //todo resume updates
                 //window update, set suspend if false...
+                if(!Screen.Update()){
+                    GameUniverse.Suspend = true;
+                    return;
+                }
+                //
                 //
                 //and then CHOOSE ACTION HERE. Set e.ChosenAction!
+                ConsoleKeyInfo key = Input.ReadKey(); //todo, just wait for a keypress here for now
+                if(key.Key == ConsoleKey.W){
+                    e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.N));
+                }
                 break;
             }
         }
         public void AfterGameEvent(GameObject gameEvent, EventResult eventResult){
+        }
+        public bool DecideCancel(GameObject action){
+            return false;//todo
+        }
+        public void OnStatusStart(Creature creature, Status status){
+            //todo
+        }
+        public void OnStatusEnd(Creature creature, Status status){
+            //todo
         }
     }
 }

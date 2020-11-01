@@ -39,12 +39,6 @@ namespace Forays {
 			return result;
 		}
 	}
-
-	//todo, put the old comment for ActionEvent somewhere if needed:
-		// ActionEvents are events that an entity performs as part of its turn. They have a (time) cost
-	//   that determines how quickly that entity will receive another turn.
-
-
 	// SimpleEvent is for those rare event types that will never need a return value (like player and AI turns).
 	public abstract class SimpleEvent : Event<SimpleEvent.NullResult> {
 		public SimpleEvent(GameUniverse g) : base(g) { }
@@ -55,17 +49,8 @@ namespace Forays {
 		}
 		public class NullResult : EventResult { }
 	}
-	// IActionResult and IActionEvent are used by the 'player turn' action. The UI supplies an IActionEvent that
-	// can be executed to return an IActionResult, so the next turn can be scheduled at the correct time.
-	public interface IActionResult {
-		bool Canceled { get; }
-		long Cost { get; }
-	}
-	public interface IActionEvent {
-		IActionResult Execute();
-	}
 	// EventResult is the base class for Event results, with cancellation & cost info ready if needed.
-	public class EventResult : IActionResult {
+	public class EventResult {
 		public virtual bool Canceled { get; set; }
 		//todo, xml: this value should be ignored if Canceled
 		public virtual long Cost { get; set; } = GameUniverse.TicksPerTurn;

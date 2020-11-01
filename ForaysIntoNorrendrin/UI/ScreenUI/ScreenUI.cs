@@ -4,7 +4,7 @@ using static ForaysUI.ScreenUI.StaticInput;
 using System.IO;
 using Forays;
 using GameComponents;
-using ForaysUI.ScreenUI.Notifications;
+using ForaysUI.ScreenUI.EventHandlers;
 
 namespace ForaysUI.ScreenUI{
     public static class ScreenUIMain{
@@ -107,9 +107,12 @@ namespace ForaysUI.ScreenUI{
             RunGame(g);
         }
         private static void RunGame(GameUniverse g){
-            g.Q.BeforeEventExecute
-            (g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = null;//todo set here
-            //todo, add status start/end stuff here
+            GameEventHandler eventHandler = new GameEventHandler(g);
+            g.Q.BeforeEventExecute = eventHandler.BeforeGameEvent;
+            g.Q.AfterEventExecute = eventHandler.AfterGameEvent;
+            (g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = eventHandler.DecideCancel;
+            g.CreatureRules.OnStatusStart = eventHandler.OnStatusStart;
+            g.CreatureRules.OnStatusEnd = eventHandler.OnStatusEnd;
             //todo, try/catch? do I want a thing where I can get to the exceptions before they reach this point?
             g.Run();
             if(g.GameOver){

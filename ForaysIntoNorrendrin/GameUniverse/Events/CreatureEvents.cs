@@ -82,7 +82,8 @@ namespace Forays {
 	}
 
 	public class PlayerTurnEvent : SimpleEvent {
-		public IActionEvent ChosenAction { get; set; } = null;
+		//todo xml: must be Event<TResult>
+		public GameObject ChosenAction { get; set; } = null;
 
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
@@ -94,37 +95,22 @@ namespace Forays {
 				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
 				return;
 			}
-			if(ChosenAction == null) {
-				//todo: it *might* be necessary to create & use a DoNothing action here, if important things happen during that action.
-				Q.Schedule(new PlayerTurnEvent(GameUniverse), Turns(1), Q.GetCurrentInitiative()); // todo, player initiative
-				return;
+			EventResult result = null;
+			switch(ChosenAction){
+				// This section has some duplication because of how the type parameters to Q.Execute work:
+				case WalkAction action: result = Q.Execute(action); break;
+				case AttackAction action: result = Q.Execute(action); break;
+				case DescendAction action: result = Q.Execute(action); break;
+				//todo, etc...
+				default: break;
 			}
-
-			//then check the result of the hook and make sure a valid event was chosen
-
-			//then execute
-
-			/*switch(choice.ChosenAction) {
-				case WalkEvent e:
-					//todo, probably THIS one will be used if i'm going to check whether the player is actually the actor here.
-					break;
-				case FireballEvent e:
-					break;
-			}*/
-			IActionResult result = null;
-			if(ChosenAction is WalkAction || ChosenAction is AttackAction || ChosenAction is DescendAction /*|| ChosenAction is FireballEvent*/) {
-				result = ChosenAction.Execute();
-				if(result.Canceled) {
-					Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
-					//todo, does this reschedule at 0, or just loop and ask again?
-				}
-				else {
-					var time = result.Cost;
-					Q.Schedule(new PlayerTurnEvent(GameUniverse), time, Q.GetCurrentInitiative()); //todo, player initiative
-				}
+			if(result?.Canceled == true){
+				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
+				//todo, does this reschedule at 0, or just loop and ask again?
 			}
-			else {
-				Q.Schedule(new PlayerTurnEvent(GameUniverse), Turns(1), Q.GetCurrentInitiative()); //todo, player initiative
+			else{
+				var time = result?.Cost ?? Turns(1);
+				Q.Schedule(new PlayerTurnEvent(GameUniverse), time, Q.GetCurrentInitiative()); //todo, player initiative
 			}
 		}
 	}

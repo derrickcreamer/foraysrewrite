@@ -10,7 +10,7 @@ namespace ForaysUI.ScreenUI{
         int Rows {get;}
         int Cols {get;}
         //todo - screen memory is apparently not directly exposed. There MIGHT need to be a getter.
-
+        // todo - is row from the top or bottom?
         void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black);
         //void Write(int row, int column, char ch, Color color, Color bgColor = Color.Black);
         void Write(int row, int col, ColorGlyph cg);
