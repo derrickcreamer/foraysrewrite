@@ -13,7 +13,7 @@ namespace Forays {
 		public DungeonLevelType CurrentLevelType; //todo temporary
 
 		public RNG MapRNG => GameUniverse.MapRNG;
-        [Obsolete("CAUTION: This is the regular RNG, not the mapgen RNG.")]
+		[Obsolete("CAUTION: This is the regular RNG, not the mapgen RNG.")]
 		new public RNG R => GameUniverse.R;
 
 		public Grid<Creature, Point> Creatures;

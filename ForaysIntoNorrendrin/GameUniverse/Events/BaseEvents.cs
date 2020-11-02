@@ -74,7 +74,7 @@ namespace Forays {
 	public class PlayerCancelDecider : CancelDecider {
 		public PlayerCancelDecider(GameUniverse g) : base(g) { }
 
-        ///<summary>Invoked to decide whether to cancel each action taken by the player</summary>
+		///<summary>Invoked to decide whether to cancel each action taken by the player</summary>
 		public Func<GameObject, bool> DecideCancel;
 
 		public override bool Cancels(GameObject action) => DecideCancel?.Invoke(action) ?? false;
