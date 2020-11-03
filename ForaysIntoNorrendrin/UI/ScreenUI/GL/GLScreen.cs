@@ -1,5 +1,4 @@
 using System;
-using GameComponents.TKWindow;
 
 namespace ForaysUI.ScreenUI{
 	public class GLScreen : IScreen{

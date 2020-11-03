@@ -60,13 +60,13 @@
     <Compile Include="GameUniverse\CreatureStatuses.cs" />
     <Compile Include="GameUniverse\DungeonMap.cs" />
     <Compile Include="GameUniverse\EventQueue.cs" />
-    <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
-    <Compile Include="GameUniverse\Events\BaseEvents.cs" />
-    <Compile Include="GameUniverse\Events\ItemEvents.cs" />
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\PointArray.cs" />
     <Compile Include="GameUniverse\Tile.cs" />
+    <Compile Include="GameUniverse\Events\BaseEvents.cs" />
+    <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
+    <Compile Include="GameUniverse\Events\ItemEvents.cs" />
     <Compile Include="UI\Program.cs" />
     <Compile Include="UI\ScreenUI\Color.cs" />
     <Compile Include="UI\ScreenUI\Input.cs" />
@@ -78,16 +78,16 @@
     <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
     <Compile Include="UI\ScreenUI\GL\GLColor.cs" />
     <Compile Include="UI\ScreenUI\GL\GLScreen.cs" />
-    <Compile Include="UI\ScreenUI\NotificationHandlers\NotificationHandler.cs" />
-    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\ChooseAction.cs" />
-    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\TurnEnd.cs" />
-    <Compile Include="UI\ScreenUI\NotificationHandlers\PlayerTurn\TurnStart.cs" />
+    <Compile Include="UI\ScreenUI\GameEventHandlers\GameEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\ScreenUI\GL\vga9_msdf.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
