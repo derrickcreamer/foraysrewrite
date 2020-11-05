@@ -53,7 +53,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(row+1, col, header, Color.Todo);
 				Screen.Write(row+2, col, divider, Color.Todo);
 				bool savedGame = File.Exists("forays.sav");
-				string startOrResume = savedGame? "[a] Start a new game" : "[a] Resume saved game";
+				string startOrResume = savedGame? "[a] Resume saved game" : "[a] Start a new game";
 				Screen.Write(row+4, col+4, startOrResume);
 				Screen.Write(row+5, col+4, "[b] How to play");
 				Screen.Write(row+6, col+4, "[c] High scores"); //todo, replays?

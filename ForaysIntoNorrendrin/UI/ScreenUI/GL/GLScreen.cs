@@ -17,7 +17,7 @@ namespace ForaysUI.ScreenUI{
 
 		public bool HoldUpdates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool Update() => Window.WindowUpdate();
-		public bool CursorVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool CursorVisible { get { return false; } set{} } //todo
 		public int CursorLeft { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public int CursorTop { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public void CleanUp(){
