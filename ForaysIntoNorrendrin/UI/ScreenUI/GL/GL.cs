@@ -19,18 +19,16 @@ namespace ForaysUI.ScreenUI{
 			w.TimerFramesOffset = -8888888;
 			w.SetWorldUnitsPerScreen(cols, rows);
 
-			//todo, restore this once TKWindow is fixed to allow embedded: w.TextSurface = Surface.Create(w, @"Forays.UI.ScreenUI.GL.vga9_msdf.png",
-			w.TextSurface = Surface.Create(w, @"vga9_msdf.png",
-				TextureMinFilter.Nearest, TextureMagFilter.Linear, /*todo, revert to true*/ false,
+			w.TextSurface = Surface.Create(w, @"Forays.UI.ScreenUI.GL.vga9_msdf.png",
+				TextureMinFilter.Nearest, TextureMagFilter.Linear, TextureLoadSource.FromEmbedded, null,
 				ShaderCollection.GetMsdfFS(2048, 4), false, 2, 4, 4);
 			w.TextSurface.texture.Sprite.Add(GetIbmFontSpriteType());
 			CellLayout.CreateGrid(w.TextSurface, cols, rows);
 			w.TextSurface.InitializePositions(cols*rows);
 			w.TextSurface.InitializeOtherDataForSingleLayout(cols*rows, 0, 32, new List<float>{0.0f, 0.0f, 0.0f, 1.0f}, new List<float>{0.0f, 0.0f, 0.0f, 1.0f});
 
-			//todo, restore this once TKWindow is fixed to allow embedded: w.CursorSurface = Surface.Create(w, @"Forays.UI.ScreenUI.GL.vga9_msdf.png",
-			w.CursorSurface = Surface.Create(w, @"vga9_msdf.png",
-				TextureMinFilter.Nearest, TextureMagFilter.Linear, /*todo, revert to true*/ false,
+			w.CursorSurface = Surface.Create(w, @"Forays.UI.ScreenUI.GL.vga9_msdf.png",
+				TextureMinFilter.Nearest, TextureMagFilter.Linear, TextureLoadSource.FromEmbedded, null,
 				ShaderCollection.GetMsdfFS(2048, 4), false, 2, 4, 4); //todo could be a bit off, but probably works
 			w.CursorSurface.texture.Sprite = w.TextSurface.texture.Sprite; // Share the sprite definition as well as the texture index
 			CellLayout.CreateGrid(w.CursorSurface, 1, 1); //todo, cell height? will cursor be done with transparency at all, or just overlay with white?
