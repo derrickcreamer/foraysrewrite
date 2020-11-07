@@ -49,9 +49,10 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 									break;
 							}
 
-							Screen.Write(i, j, ch, color);
+							Screen.Write(GameUniverse.MapHeight-1-i, j, ch, color); //todo, decide whether Y goes up or down...
 						}
 					}
+					Screen.Write(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
 					//
 				//...environmental desc
 				//...messages (don't forget to flush message buffer)
@@ -59,10 +60,10 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 				//...additional UI
 				//todo resume updates
 				//window update, set suspend if false...
-				if(!Screen.Update()){
+				/*if(!Screen.Update()){
 					GameUniverse.Suspend = true;
 					return;
-				}
+				}*/
 				//
 				//
 				ChooseAction(e);
@@ -89,8 +90,35 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 		}
 		private void ChooseAction(PlayerTurnEvent e){
 				ConsoleKeyInfo key = Input.ReadKey(); //todo, just wait for a keypress here for now
-				if(key.Key == ConsoleKey.W){
+				switch(key.Key){
+					case ConsoleKey.UpArrow:
+					case ConsoleKey.NumPad8:
 					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.N));
+					break;
+					case ConsoleKey.RightArrow:
+					case ConsoleKey.NumPad6:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.E));
+					break;
+					case ConsoleKey.LeftArrow:
+					case ConsoleKey.NumPad4:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.W));
+					break;
+					case ConsoleKey.DownArrow:
+					case ConsoleKey.NumPad2:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.S));
+					break;
+					case ConsoleKey.NumPad9:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.NE));
+					break;
+					case ConsoleKey.NumPad3:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.SE));
+					break;
+					case ConsoleKey.NumPad1:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.SW));
+					break;
+					case ConsoleKey.NumPad7:
+					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.NW));
+					break;
 				}
 			// todo, old code pasted:
 			/*

@@ -73,7 +73,7 @@ namespace Forays {
 
 		///<summary>Return value is the cost of the action taken</summary>
 		public int ExecuteMonsterTurn(){
-			return 0;
+			return Turns(1);
 			//hmm... a good amount of code goes at the start of each turn...
 			// ... and a bit of it is shared by the player.
 

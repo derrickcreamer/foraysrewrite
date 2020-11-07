@@ -40,9 +40,15 @@ namespace Forays {
 		}
 	}
 	// SimpleEvent is for those rare event types that will never need a return value (like player and AI turns).
-	public abstract class SimpleEvent : Event<SimpleEvent.NullResult> {
-		public SimpleEvent(GameUniverse g) : base(g) { }
+	public abstract class SimpleEvent : Event<SimpleEvent.NullResult>, IEvent {
+		public SimpleEvent(GameUniverse g) : base(g){
+			NoCancel = true;
+		}
 		protected abstract void ExecuteSimpleEvent();
+		// Reimplement IEvent.ExecuteEvent in order to make use of EventQueue features:
+		void IEvent.ExecuteEvent(){
+			Q.Execute(this);
+		}
 		protected sealed override NullResult Execute() {
 			ExecuteSimpleEvent();
 			return null;

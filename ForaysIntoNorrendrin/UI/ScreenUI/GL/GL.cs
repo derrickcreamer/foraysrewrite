@@ -14,6 +14,7 @@ namespace ForaysUI.ScreenUI{
 		public static ForaysWindow Create(int cols, int rows){
 			ToolkitOptions.Default.EnableHighResolution = false; //todo - actually test this line, since it might not apply any more.
 			ForaysWindow w = new ForaysWindow(DisplayDevice.Default.Width, DisplayDevice.Default.Height, "Forays into Norrendrin");
+			w.VSync = VSyncMode.Off;
 			//todo icon
 			//todo, create a RNG for the UI and use it here:
 			w.TimerFramesOffset = -8888888;
