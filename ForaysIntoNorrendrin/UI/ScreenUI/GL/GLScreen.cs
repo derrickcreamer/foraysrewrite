@@ -3,6 +3,8 @@ using System;
 namespace ForaysUI.ScreenUI{
 	public class GLScreen : IScreen{
 		public ForaysWindow Window;
+		private bool cursorVisible;
+		private int cursorLeft, cursorTop;
 
 		public GLScreen(int rows, int cols){
 			Rows = rows;
@@ -11,15 +13,39 @@ namespace ForaysUI.ScreenUI{
 		}
 		public int Rows {get;set;}
 		public int Cols {get;set;}
-		public void UpdateCursor(bool makeVisible){
-			//todo
+		public void UpdateCursor(bool blinkOn){
+			Window.CursorSurface.Disabled = !blinkOn;
+			if(blinkOn)
+				Window.CursorSurface.SetOffsetInWorldUnits(cursorLeft, cursorTop);
 		}
-
 		public bool HoldUpdates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool Update() => Window.WindowUpdate();
-		public bool CursorVisible { get { return false; } set{} } //todo
-		public int CursorLeft { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public int CursorTop { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool CursorVisible{
+			get => cursorVisible;
+			set{
+				if(cursorVisible == value) return;
+				cursorVisible = value;
+				UpdateCursor(value);
+			}
+		}
+		public int CursorLeft{
+			get => cursorLeft;
+			set{
+				if(cursorLeft == value) return;
+				cursorLeft = value;
+				if(cursorVisible)
+					Window.CursorSurface.SetOffsetInWorldUnits(cursorLeft, cursorTop);
+			}
+		}
+		public int CursorTop{
+			get => cursorTop;
+			set{
+				if(cursorTop == value) return;
+				cursorTop = value;
+				if(cursorVisible)
+					Window.CursorSurface.SetOffsetInWorldUnits(cursorLeft, cursorTop);
+			}
+		}
 		public void CleanUp(){
 			//todo, is this call correct?
 			Window?.Close();
@@ -32,7 +58,11 @@ namespace ForaysUI.ScreenUI{
 		}
 
 		public void SetCursorPosition(int left, int top){
-			throw new NotImplementedException();
+			if(cursorLeft == left && cursorTop == top) return;
+			cursorLeft = left;
+			cursorTop = top;
+			if(cursorVisible)
+				Window.CursorSurface.SetOffsetInWorldUnits(cursorLeft, cursorTop);
 		}
 
 		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){

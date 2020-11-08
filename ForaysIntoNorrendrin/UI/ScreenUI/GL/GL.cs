@@ -26,15 +26,15 @@ namespace ForaysUI.ScreenUI{
 			w.TextSurface.texture.Sprite.Add(GetIbmFontSpriteType());
 			CellLayout.CreateGrid(w.TextSurface, cols, rows);
 			w.TextSurface.InitializePositions(cols*rows);
-			w.TextSurface.InitializeOtherDataForSingleLayout(cols*rows, 0, 32, new List<float>{0.0f, 0.0f, 0.0f, 1.0f}, new List<float>{0.0f, 0.0f, 0.0f, 1.0f});
+			w.TextSurface.InitializeOtherDataForSingleLayout(cols*rows, 0, 32, Color.Black.GetRGBA(), Color.Black.GetRGBA());
 
 			w.CursorSurface = Surface.Create(w, @"Forays.UI.ScreenUI.GL.vga9_msdf.png",
 				TextureMinFilter.Nearest, TextureMagFilter.Linear, TextureLoadSource.FromEmbedded, null,
 				ShaderCollection.GetMsdfFS(2048, 4), false, 2, 4, 4); //todo could be a bit off, but probably works
 			w.CursorSurface.texture.Sprite = w.TextSurface.texture.Sprite; // Share the sprite definition as well as the texture index
-			CellLayout.CreateGrid(w.CursorSurface, 1, 1); //todo, cell height? will cursor be done with transparency at all, or just overlay with white?
+			CellLayout.CreateGrid(w.CursorSurface, 1, 1, 0.8f, 0.125f, 0.0f, 0.75f); //todo, tweak later
 			w.CursorSurface.InitializePositions(1);
-			w.CursorSurface.InitializeOtherDataForSingleLayout(1, 0, 0, new List<float>{1.0f, 1.0f, 1.0f, 1.0f}, new List<float>{0.0f, 0.0f, 0.0f, 1.0f}); //todo, get floats from color?
+			w.CursorSurface.InitializeOtherDataForSingleLayout(1, 0, 0, Color.Gray.GetRGBA(), Color.Black.GetRGBA());
 			w.CursorSurface.Disabled = true; //todo check
 
 			GL.Enable(EnableCap.Blend); //todo verify needed
@@ -44,7 +44,6 @@ namespace ForaysUI.ScreenUI{
 			w.ViewportSizeRules = null; //todo add viewport rules
 			w.NoShrinkToFit = false;
 
-			//todo input handlers here?
 			//todo, closing handler?
 
 			w.Visible = true;

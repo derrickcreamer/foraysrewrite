@@ -49,11 +49,12 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 									break;
 							}
 
-							Screen.Write(GameUniverse.MapHeight-1-i, j, ch, color); //todo, decide whether Y goes up or down...
+							Screen.Write(GameUniverse.MapHeight-1-i, j, ch, color);
 						}
 					}
 					Screen.Write(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
 					//
+				Screen.SetCursorPosition(Player.Position.Value.X, GameUniverse.MapHeight-1-Player.Position.Value.Y); //todo map offset etc.
 				//...environmental desc
 				//...messages (don't forget to flush message buffer)
 				//...status area
