@@ -22,7 +22,7 @@ namespace ForaysUI.ScreenUI{
 		public ConsoleKeyInfo ReadKey(bool showCursor = true){
 			if(showCursor) Screen.CursorVisible = true; // todo, this might not be right...
 			while(true){
-				if(!Screen.Update()) Program.Quit();
+				if(!Screen.WindowUpdate()) Program.Quit();
 				if(Screen.CursorVisible){
 					TimeSpan elapsed = Screen.Window.Timer.Elapsed;
 					Screen.UpdateCursor(elapsed.Milliseconds < 500); //todo test

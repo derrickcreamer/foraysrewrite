@@ -17,29 +17,29 @@ namespace ForaysUI.ScreenUI{
 
 		void Write(int row, int col, string str, Color color = Color.Gray, Color bgColor = Color.Black);
 
-		///<summary>If true, updates to the IScreen data will not be immediately drawn to the screen</summary>
-		//todo bool HoldUpdates {get;set;}
+		///<summary>Ensure that everything sent to the display is actually drawn, process input events,
+		/// and return false if the window has been closed, if applicable.</summary>
+		bool WindowUpdate();
+		///<summary>After calling HoldUpdates, changes to the IScreen data will not be drawn to the screen until ResumeUpdates is called</summary>
+		void HoldUpdates();
+		///<summary>After calling HoldUpdates, calling ResumeUpdates will send all changes to the screen, and resume normal operation afterward</summary>
+		void ResumeUpdates();
+
 		///<summary>If true, the cursor should be blinking at the position indicated by CursorTop and CursorLeft</summary>
 		bool CursorVisible {get;set;}
 		///<summary>Row position of the blinking cursor</summary>
 		int CursorRow {get;set;}
 		///<summary>Column position of the blinking cursor</summary>
 		int CursorCol {get;set;}
-
 		///<summary>Move the blinking cursor to a new position. Does not change cursor visibility.</summary>
 		void SetCursorPosition(int row, int col);
+
+		///<summary>Update screen memory to fill the screen with black</summary>
+		void Clear();
 
 		///<summary>Called immediately before exiting the program. Allows terminals to be reset to original config.</summary>
 		void CleanUp();
 
-		///<summary>Ensure that everything sent to the display is actually drawn, process input events,
-		/// and return false if the window has been closed, if applicable.</summary>
-		bool Update();
-
-		//todo, holdupdates / resumeupdates methods?
-
-		///<summary>Update screen memory to fill the screen with black</summary>
-		void Clear();
 
 		//todo - this one is interesting: GLUpdate calls WindowUpdate and therefore lets the gl window process events, returns false if exiting, ...
 			// it DOES seem like a 'let input events be read' method could be useful, yeah.

@@ -11,11 +11,28 @@ namespace ForaysUI.ScreenUI{
 		}
 		public int Rows {get;set;}
 		public int Cols {get;set;}
-		public bool HoldUpdates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public bool Update() => true;
+		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
+			throw new NotImplementedException();
+		}
+		public void Write(int row, int col, ColorGlyph cg){
+			throw new NotImplementedException();
+		}
+		public void Write(int row, int col, string str, Color color, Color bgColor = Color.Black){
+			throw new NotImplementedException();
+		}
+		public bool WindowUpdate() => true;
+		public void HoldUpdates(){
+
+		}
+		public void ResumeUpdates(){
+
+		}
 		public bool CursorVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public int CursorRow { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public int CursorCol { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public void SetCursorPosition(int row, int col){
+			throw new NotImplementedException();
+		}
 		public void Clear(){
 			CursorVisible = false; //todo
 			/*for(int i=0;i<Global.SCREEN_H;++i){
@@ -26,18 +43,6 @@ namespace ForaysUI.ScreenUI{
 							memory[i,j].bgcolor = Color.Black;
 					}
 			}*/
-		}
-		public void SetCursorPosition(int row, int col){
-			throw new NotImplementedException();
-		}
-		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
-			throw new NotImplementedException();
-		}
-		public void Write(int row, int col, ColorGlyph cg){
-			throw new NotImplementedException();
-		}
-		public void Write(int row, int col, string str, Color color, Color bgColor = Color.Black){
-			throw new NotImplementedException();
 		}
 		public void CleanUp(){
 			if(Program.Linux){
