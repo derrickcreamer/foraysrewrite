@@ -1,22 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using OpenTK.Input;
 
 namespace ForaysUI.ScreenUI{
 	public class GLInput : IInput{
-		public bool KeyPressed;
-		public ConsoleKeyInfo LastKey;
+		public Queue<ConsoleKeyInfo> KeyBuffer;
 		public GLScreen Screen;
 
 		public GLInput(){
+			KeyBuffer = new Queue<ConsoleKeyInfo>();
 			Screen = StaticScreen.Screen as GLScreen;
 			if(Screen == null) throw new InvalidOperationException("StaticScreen.Screen must be GLScreen");
 			Screen.Window.KeyDown += KeyDownHandler;
 		}
-		public bool KeyIsAvailable => KeyPressed;
+		public bool KeyIsAvailable => KeyBuffer.Count > 0;
 		public void FlushInput(){
 			Screen.Window.ProcessEvents();
-			KeyPressed = false;
+			KeyBuffer.Clear();
 		}
 		public ConsoleKeyInfo ReadKey(bool showCursor = true){
 			if(showCursor) Screen.CursorVisible = true; // todo, this might not be right...
@@ -27,16 +28,15 @@ namespace ForaysUI.ScreenUI{
 					Screen.UpdateCursor(elapsed.Milliseconds < 500); //todo test
 				}
 				Thread.Sleep(10); //todo configurable?
-				if(KeyPressed){
+				if(KeyBuffer.Count > 0){
 					Screen.CursorVisible = false;
-					KeyPressed = false;
 					//todo rebindings?
-					return LastKey;
+					ConsoleKeyInfo lastKey = KeyBuffer.Dequeue();
+					return lastKey;
 				}
 			}
 		}
 		public void KeyDownHandler(object sender, KeyboardKeyEventArgs args){
-			if(KeyPressed) return;
 			ConsoleKey ck = GetConsoleKey(args.Key);
 			if(ck != ConsoleKey.NoName){
 				bool alt = Screen.Window.KeyIsDown(Key.LAlt) || Screen.Window.KeyIsDown(Key.RAlt);
@@ -46,8 +46,7 @@ namespace ForaysUI.ScreenUI{
 					Screen.Window.ToggleFullScreen(); //todo, keeping this here or not?
 				}
 				else{
-					KeyPressed = true;
-					LastKey = new ConsoleKeyInfo(GetChar(ck,shift),ck,shift,alt,ctrl);
+					KeyBuffer.Enqueue(new ConsoleKeyInfo(GetChar(ck,shift),ck,shift,alt,ctrl));
 				}
 			}
 			//todo MouseUI.RemoveHighlight();
