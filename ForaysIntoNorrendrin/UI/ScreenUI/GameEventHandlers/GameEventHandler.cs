@@ -54,7 +54,7 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 					}
 					Screen.Write(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
 					//
-				Screen.SetCursorPosition(Player.Position.Value.X, GameUniverse.MapHeight-1-Player.Position.Value.Y); //todo map offset etc.
+				Screen.SetCursorPosition(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X); //todo map offset etc.
 				//...environmental desc
 				//...messages (don't forget to flush message buffer)
 				//...status area

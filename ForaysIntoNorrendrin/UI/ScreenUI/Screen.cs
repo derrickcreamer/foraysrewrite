@@ -21,13 +21,13 @@ namespace ForaysUI.ScreenUI{
 		//todo bool HoldUpdates {get;set;}
 		///<summary>If true, the cursor should be blinking at the position indicated by CursorTop and CursorLeft</summary>
 		bool CursorVisible {get;set;}
-		///<summary>Position of the blinking cursor relative to the left of the screen</summary>
-		int CursorLeft {get;set;}
-		///<summary>Position of the blinking cursor relative to the top of the screen</summary>
-		int CursorTop {get;set;}
+		///<summary>Row position of the blinking cursor</summary>
+		int CursorRow {get;set;}
+		///<summary>Column position of the blinking cursor</summary>
+		int CursorCol {get;set;}
 
 		///<summary>Move the blinking cursor to a new position. Does not change cursor visibility.</summary>
-		void SetCursorPosition(int left, int top);
+		void SetCursorPosition(int row, int col);
 
 		///<summary>Called immediately before exiting the program. Allows terminals to be reset to original config.</summary>
 		void CleanUp();

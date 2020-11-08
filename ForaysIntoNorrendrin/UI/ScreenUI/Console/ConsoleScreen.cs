@@ -14,8 +14,8 @@ namespace ForaysUI.ScreenUI{
 		public bool HoldUpdates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool Update() => true;
 		public bool CursorVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public int CursorLeft { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public int CursorTop { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public int CursorRow { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public int CursorCol { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public void Clear(){
 			CursorVisible = false; //todo
 			/*for(int i=0;i<Global.SCREEN_H;++i){
@@ -27,7 +27,7 @@ namespace ForaysUI.ScreenUI{
 					}
 			}*/
 		}
-		public void SetCursorPosition(int left, int top){
+		public void SetCursorPosition(int row, int col){
 			throw new NotImplementedException();
 		}
 		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
