@@ -12,36 +12,56 @@ namespace ForaysUI.ScreenUI{
 		public GLScreen(int rows, int cols){
 			Rows = rows;
 			Cols = cols;
-			firstChangedIdx = lastChangedIdx = -1;
+			ResetChangedIndices();
 			screenMemory = new ColorGlyph[Rows*Cols];
 			Window = ForaysWindow.Create(cols, rows);
 		}
 		public int Rows {get;set;}
 		public int Cols {get;set;}
 		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
-			float[][] colors = new float[2][];
-			colors[0] = color.GetRGBA();
-			colors[1] = bgColor.GetRGBA();
 			int idx = col + row*Cols;
-			Window.UpdateOtherSingleVertex(Window.TextSurface, idx, glyphIndex, colors);
+			if(screenMemory[idx].Equals(glyphIndex, color, bgColor)) return;
+			screenMemory[idx] = new ColorGlyph(glyphIndex, color, bgColor);
+			if(firstChangedIdx > idx) firstChangedIdx = idx;
+			if(lastChangedIdx < idx) lastChangedIdx = idx;
+			if(!holdUpdates) SendDataToWindow();
 		}
 		public void Write(int row, int col, ColorGlyph cg){
-			float[][] colors = new float[2][];
-			colors[0] = cg.ForegroundColor.GetRGBA();
-			colors[1] = cg.BackgroundColor.GetRGBA();
 			int idx = col + row*Cols;
-			Window.UpdateOtherSingleVertex(Window.TextSurface, idx, cg.GlyphIndex, colors);
+			if(screenMemory[idx].Equals(cg)) return;
+			screenMemory[idx] = cg;
+			if(firstChangedIdx > idx) firstChangedIdx = idx;
+			if(lastChangedIdx < idx) lastChangedIdx = idx;
+			if(!holdUpdates) SendDataToWindow();
 		}
 		public void Write(int row, int col, string str, Color color = Color.Gray, Color bgColor = Color.Black){
-			int count = str.Length;
+			int count;
+			if(col + str.Length > Cols) count = Cols - col; // Cut off too-long strings
+			else count = str.Length;
+			int startIdx = col + row*Cols;
+			for(int n=0;n<count;++n){
+				int idx = startIdx + n;
+				int glyphIndex = (int)str[n];
+				if(screenMemory[idx].Equals(glyphIndex, color, bgColor))
+					continue;
+				screenMemory[idx] = new ColorGlyph(glyphIndex, color, bgColor);
+				if(firstChangedIdx > idx) firstChangedIdx = idx;
+				if(lastChangedIdx < idx) lastChangedIdx = idx;
+			}
+			if(!holdUpdates) SendDataToWindow();
+		}
+		private void SendDataToWindow(){
+			if(lastChangedIdx == -1) return;
+			int count = lastChangedIdx - firstChangedIdx + 1;
 			int[] sprites = new int[count];
 			float[][] colors = new float[2][];
 			colors[0] = new float[4 * count];
 			colors[1] = new float[4 * count];
-			float[] fgRgba = color.GetRGBA();
-			float[] bgRgba = bgColor.GetRGBA();
 			for(int n=0;n<count;++n){
-				sprites[n] = (int)str[n];
+				ColorGlyph cg = screenMemory[firstChangedIdx + n];
+				float[] fgRgba = cg.ForegroundColor.GetRGBA();
+				float[] bgRgba = cg.BackgroundColor.GetRGBA();
+				sprites[n] = cg.GlyphIndex;
 				int idx4 = n * 4;
 				colors[0][idx4] = fgRgba[0];
 				colors[0][idx4 + 1] = fgRgba[1];
@@ -52,8 +72,12 @@ namespace ForaysUI.ScreenUI{
 				colors[1][idx4 + 2] = bgRgba[2];
 				colors[1][idx4 + 3] = bgRgba[3];
 			}
-			int startIdx = col + row*Cols;
-			Window.UpdateOtherVertexArray(Window.TextSurface, sprites, colors, startIdx);
+			Window.UpdateOtherVertexArray(Window.TextSurface, sprites, colors, firstChangedIdx);
+			ResetChangedIndices();
+		}
+		private void ResetChangedIndices(){
+			firstChangedIdx = int.MaxValue;
+			lastChangedIdx = -1;
 		}
 		public bool WindowUpdate() => Window.WindowUpdate();
 		public void HoldUpdates(){
@@ -61,7 +85,7 @@ namespace ForaysUI.ScreenUI{
 		}
 		public void ResumeUpdates(){
 			holdUpdates = false;
-			//todo
+			SendDataToWindow();
 		}
 		public void UpdateCursor(bool blinkOn){
 			Window.CursorSurface.Disabled = !blinkOn;
@@ -102,10 +126,10 @@ namespace ForaysUI.ScreenUI{
 				Window.CursorSurface.SetOffsetInWorldUnits(cursorCol, cursorRow);
 		}
 		public void Clear(){
-			float[][] colors = new float[2][];
-			colors[0] = Color.Gray.GetRGBA();
-			colors[1] = Color.Black.GetRGBA();
-			Window.TextSurface.InitializeOtherDataForSingleLayout(Rows*Cols, 0, 32, colors);
+			screenMemory = new ColorGlyph[Rows*Cols];
+			firstChangedIdx = 0;
+			lastChangedIdx = Rows*Cols - 1;
+			if(!holdUpdates) SendDataToWindow();
 		}
 		public void CleanUp(){
 			//todo, is this call correct?

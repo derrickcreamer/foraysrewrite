@@ -24,10 +24,7 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 		public void BeforeGameEvent(GameObject gameEvent){
 			switch(gameEvent){
 				case PlayerTurnEvent e:
-				//
-				//todo hold updates
-				//draw:
-				//...map
+					Screen.HoldUpdates();
 					for(int i = 0; i < GameUniverse.MapHeight; i++) {
 						for(int j = 0; j < GameUniverse.MapWidth; j++) {
 							char ch = ' ';
@@ -53,13 +50,14 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 						}
 					}
 					Screen.Write(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
-					//
-				Screen.SetCursorPosition(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X); //todo map offset etc.
+					Screen.SetCursorPosition(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X); //todo map offset etc.
 				//...environmental desc
 				//...messages (don't forget to flush message buffer)
 				//...status area
 				//...additional UI
-				//todo resume updates
+
+				Screen.ResumeUpdates();
+
 				//window update, set suspend if false...
 				/*if(!Screen.Update()){
 					GameUniverse.Suspend = true;

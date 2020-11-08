@@ -20,6 +20,9 @@ namespace ForaysUI.ScreenUI{
 		public bool Equals(ColorGlyph other){
 			return GlyphIndex == other.GlyphIndex && ForegroundColor == other.ForegroundColor && BackgroundColor == other.BackgroundColor;
 		}
+		public bool Equals(int glyphIndex, Color color, Color bgColor){
+			return GlyphIndex == glyphIndex && ForegroundColor == color && BackgroundColor == bgColor;
+		}
 		public override int GetHashCode(){
 			// If I assume that the sign bit will always end up 0 and I don't bother fixing that, then there are 31 bits to work with.
 			// Since there will probably be fewer than 512 colors, let's take only 9 bits from each Color.
@@ -31,6 +34,6 @@ namespace ForaysUI.ScreenUI{
 		}
 	}
 	public enum Color : ushort{ // 2 bytes
-		Todo, Black, Gray, Cyan, White,  //todo reorder
+		Black, Gray, Cyan, White, Todo  //todo reorder
 	};
 }
