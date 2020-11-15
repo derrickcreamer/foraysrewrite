@@ -46,6 +46,11 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 									break;
 							}
 
+							if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
+								ch = 'g';
+								color = Color.Todo;
+							}
+
 							Screen.Write(GameUniverse.MapHeight-1-i, j, ch, color);
 						}
 					}

@@ -98,7 +98,7 @@ namespace Forays {
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
-				Creature c = new Creature(GameUniverse);
+				Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
 				Creatures.Add(c, new Point(MapRNG.GetNext(MapWidth-2)+1, MapRNG.GetNext(MapHeight-2)+1));
 				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
