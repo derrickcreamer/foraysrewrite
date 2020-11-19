@@ -1,146 +1,14 @@
 //todo, copyright/license on all files
 using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace ForaysUtilities {
+namespace ForaysUI {
 
 	/// <summary>
 	/// A multi-line word-wrapping string buffer.
 	/// </summary>
 	public class StringWrapBuffer {
-		public StringWrapBuffer(int maxLines,int maxLength) : this(maxLines,maxLength,new char[] {'-'},new char[] {' '}) { }
-
-		/// <param name="maxLines">If set to 0 or less, there's no limit to the number of lines.</param>
-		/// <param name="maxLength">Must be 1 or greater.</param>
-		/// <param name="retainedSeparators">Separator characters that should be kept when they divide two words.
-		/// For an example with '!' as a retained separator, "nine!three" becomes "nine!" and "three".</param>
-		/// <param name="discardedSeparators">Separator characters that should be discarded when they divide two words (during word wrap only).
-		/// For an example with '!' as a discarded separator, "seven!four" becomes "seven" and "four".</param>
-		public StringWrapBuffer(int maxLines,int maxLength,IEnumerable<char> retainedSeparators,IEnumerable<char> discardedSeparators) {
-			this.maxLines = maxLines;
-			if(maxLength < 1) throw new ArgumentOutOfRangeException("maxLength",maxLength,"Max length must be at least 1.");
-			this.maxLength = maxLength;
-			this.contents = new List<string>();
-			this.createNewLine = true;
-			this.reservedWrapData = null;
-			this.reservedSpace = 0;
-			if(retainedSeparators == null) {
-				this.retainedSeparators = new char[0];
-			}
-			else {
-				this.retainedSeparators = new HashSet<char>(retainedSeparators);
-			}
-			if(discardedSeparators == null) {
-				this.discardedSeparators = new char[0];
-			}
-			else {
-				this.discardedSeparators = new HashSet<char>(discardedSeparators);
-			}
-		}
-		public void Add(string s) {
-			if(string.IsNullOrEmpty(s)) return;
-			if(createNewLine) {
-				s = RemoveLeadingDiscardedSeparators(s);
-				if(s != "") {
-					createNewLine = false;
-					if(contents.Count == maxLines && reservedSpace > 0 && reservedWrapData != null) {
-						var reserveSplit = SplitOverflow(reservedWrapData,maxLength - reservedSpace);
-						reservedWrapData = null;
-						contents[contents.Count - 1] = reserveSplit[0]; //this string is resplit to make room for reserved space
-						reserveSplit[1] = RemoveLeadingDiscardedSeparators(reserveSplit[1]);
-						contents.Add(reserveSplit[1] + s); //if there's overflow from *that* line, it gets added before our new addition.
-					}
-					else {
-						reservedWrapData = null;
-						contents.Add(s);
-					}
-					CheckForBufferOverflow();
-					CheckForLineOverflow();
-				}
-			}
-			else {
-				contents[contents.Count - 1] += s;
-				CheckForLineOverflow();
-			}
-		}
-
-		/// <summary>
-		/// Empties the buffer, and returns the just-removed contents.
-		/// </summary>
-		public List<string> Clear() {
-			var previousContents = Contents;
-			contents = new List<string>();
-			createNewLine = true;
-			reservedWrapData = null;
-			return previousContents;
-		}
-
-		/// <summary>
-		/// A list of all (non-empty) strings in the buffer.
-		/// </summary>
-		public List<string> Contents => new List<string>(contents);
-
-		/// <summary>
-		/// The maximum length of a single line in the buffer.
-		/// (Note that changing this value will NOT affect any lines that have already wrapped; it will only affect the current line and future lines.)
-		/// </summary>
-		public int MaxLength {
-			get { return maxLength; }
-			set {
-				if(value < 1) throw new ArgumentOutOfRangeException("value",value,"Max length must be at least 1.");
-				if(value - reservedSpace <= 0) throw new ArgumentOutOfRangeException("value",value,"Max length must be greater than ReservedSpace.");
-				if(maxLength != value) {
-					maxLength = value;
-					CheckForLineOverflow();
-				}
-			}
-		}
-
-		/// <summary>
-		/// The maximum number of lines in the buffer. If zero or a negative number, there is no limit.
-		/// (Note: ReservedSpace is not respected during MaxLines changes.)
-		/// </summary>
-		public int MaxLines {
-			get { return maxLines; }
-			set {
-				if(maxLines != value) {
-					if(value > 0 && value < contents.Count) reservedWrapData = null;
-					maxLines = value;
-					CheckForBufferOverflow();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Changes word wrap behavior on the final line of the buffer.
-		/// When the final line wraps, the wrapping will reserve this many characters (at the end) before deciding where to split the string.
-		/// (Note that this value changes HOW word wrap happens on the final line. It does not change WHEN word wrap happens -- it does not reduce the max length.)
-		/// </summary>
-		public int ReservedSpace {
-			get { return reservedSpace; }
-			set {
-				if(value < 0) throw new ArgumentOutOfRangeException("value",value,"Reserved space cannot be negative.");
-				if(maxLength - value <= 0) throw new ArgumentOutOfRangeException("value",value,"Reserved space must be less than MaxLength.");
-				reservedSpace = value;
-			}
-		}
-
-		/// <summary>
-		/// If there are characters in the reserved space, this method will cause the current line to wrap
-		/// in accordance with the reserved space. (This method will affect the current line even
-		/// if it isn't the final line.)
-		/// </summary>
-		public void ConfirmReservedSpace() {
-			if(contents.Count > 0 && contents[contents.Count - 1].Length > maxLength - reservedSpace) {
-				string line = reservedWrapData ?? contents[contents.Count - 1];
-				var reservedSplit = SplitOverflow(line,maxLength - reservedSpace);
-				reservedWrapData = null;
-				contents[contents.Count - 1] = reservedSplit[0];
-				createNewLine = true;
-				Add(reservedSplit[1]);
-			}
-		}
-
 		/// <summary>
 		/// Whenever the buffer overflows beyond its capacity, listeners to this event will receive the current contents of the buffer, not including any overflow.
 		/// Afterward, those contents will be emptied, and the buffer will now contain only the remaining overflow.
@@ -149,70 +17,143 @@ namespace ForaysUtilities {
 
 		protected int maxLines;
 		protected int maxLength;
-		protected ICollection<char> retainedSeparators;
-		protected ICollection<char> discardedSeparators;
-		protected List<string> contents;
-		protected bool createNewLine;
-		protected string reservedWrapData;
 		protected int reservedSpace;
+		protected HashSet<char> retainedSeparators;
+		protected HashSet<char> discardedSeparators;
+		protected List<string> previousLines;
+		protected StringBuilder currentLine;
+
+		/// <summary>Constructs a StringWrapBuffer with '-' (hyphen) as a retained separator, and ' ' (space) as a discarded separator.</summary>
+		/// <param name="maxLines">If set to less than 1, lines will wrap but the buffer will never be full.</param>
+		/// <param name="maxLength">Maximum length of a single line in the buffer. Lines that exceed this length will be wrapped based on specified separators. Must be 1 or greater.</param>
+		/// <param name="reservedSpace">
+		/// Changes word wrap behavior on the final line of the buffer.
+		/// When the final line wraps, the wrapping will reserve this many characters (at the end) before deciding where to split the string.
+		/// (Note that this value changes HOW word wrap happens on the final line, but does not change WHEN word wrap happens, because it does not actually reduce the max length.)</param>
+		public StringWrapBuffer(int maxLines,int maxLength, int reservedSpace = 0) : this(maxLines,maxLength,reservedSpace,new char[] {'-'},new char[] {' '}) { }
+
+		/// <param name="maxLines">If set to less than 1, lines will wrap but the buffer will never be full.</param>
+		/// <param name="maxLength">Maximum length of a single line in the buffer. Lines that exceed this length will be wrapped based on specified separators. Must be 1 or greater.</param>
+		/// <param name="reservedSpace">
+		/// Changes word wrap behavior on the final line of the buffer.
+		/// When the final line wraps, the wrapping will reserve this many characters (at the end) before deciding where to split the string.
+		/// (Note that this value changes HOW word wrap happens on the final line, but does not change WHEN word wrap happens, because it does not actually reduce the max length.)</param>
+		/// <param name="retainedSeparators">Separator characters that should be kept when they divide two words.
+		/// For an example with '!' as a retained separator, "nine!three" becomes "nine!" and "three".</param>
+		/// <param name="discardedSeparators">Separator characters that should be discarded when they divide two words (during word wrap only).
+		/// For an example with '~' as a discarded separator, "seven~four" becomes "seven" and "four".</param>
+		public StringWrapBuffer(int maxLines,int maxLength,int reservedSpace,ICollection<char> retainedSeparators,ICollection<char> discardedSeparators) {
+			this.maxLines = maxLines;
+			if(maxLength < 1) throw new ArgumentOutOfRangeException(nameof(maxLength),maxLength,"Max length must be at least 1.");
+			this.maxLength = maxLength;
+			currentLine = new StringBuilder(maxLength * 2);
+			previousLines = new List<string>();
+			if(retainedSeparators?.Count > 0) {
+				this.retainedSeparators = new HashSet<char>(retainedSeparators);
+			}
+			if(discardedSeparators?.Count > 0) {
+				this.discardedSeparators = new HashSet<char>(discardedSeparators);
+			}
+		}
+
+		/// <summary>
+		/// The maximum length of a single line in the buffer.
+		/// </summary>
+		public int MaxLength => maxLength;
+
+		/// <summary>
+		/// The maximum number of lines in the buffer. If zero or a negative number, there is no limit.
+		/// </summary>
+		public int MaxLines => maxLines;
+
+		/// <summary>
+		/// Changes word wrap behavior on the final line of the buffer.
+		/// When the final line wraps, the wrapping will reserve this many characters (at the end) before deciding where to split the string.
+		/// (Note that this value changes HOW word wrap happens on the final line, but does not change WHEN word wrap happens, because it does not actually reduce the max length.)
+		/// </summary>
+		public int ReservedSpace => reservedSpace;
+
+		/// <summary>
+		/// A list of all (non-empty) strings in the buffer.
+		/// </summary>
+		public List<string> GetContents() {
+			var lines = new List<string>(previousLines);
+			string current = currentLine.ToString();
+			if(!string.IsNullOrEmpty(current)) lines.Add(current);
+			return lines;
+		}
+		/// <summary>
+		/// Empties the buffer, and returns the just-removed contents.
+		/// </summary>
+		public List<string> Clear() {
+			List<string> previousContents = previousLines;
+			previousContents.Add(currentLine.ToString());
+			previousLines = new List<string>();
+			currentLine.Clear();
+			return previousContents;
+		}
+		public void Add(string s) {
+			if(string.IsNullOrEmpty(s)) return;
+			currentLine.Append(s);
+			CheckForLineOverflow();
+		}
+		/// <summary>
+		/// If there are characters in the reserved space at the end of the current line, this method will cause the current line to wrap
+		/// in accordance with the reserved space.
+		/// </summary>
+		/// <param name="lastLineOnly">If false, this method reserves space at the end of the current line *regardless* of how many lines are
+		/// currently in the buffer. If true, this method only does anything if the current line is the final line before the buffer fills.</param>
+		/// <param name="overrideReservedSpace">If not null, this value is used instead of the ReservedSpace specified when this object was constructed.</param>
+		public void EnsureReservedSpace(bool lastLineOnly, int? overrideReservedSpace = null) {
+			if(lastLineOnly && previousLines.Count + 1 < maxLines) return;
+			int startIdx = maxLength - (overrideReservedSpace ?? this.reservedSpace);
+			if(startIdx <= 0) throw new InvalidOperationException("Can't reserve more space than maxLength");
+			while(currentLine.ToString().Length > startIdx) {
+				// Split the current line, and add the first part to this.previousLines.
+				SplitOverflow(startIdx);
+				// Check whether the buffer is now full:
+				if(maxLines >= 1 && previousLines.Count == maxLines) {
+					BufferFull?.Invoke(previousLines);
+					previousLines.Clear();
+				}
+			}
+		}
 		protected void CheckForLineOverflow() {
-			while(!createNewLine && contents[contents.Count - 1].Length > maxLength) {
-				createNewLine = true; //no matter what, THIS line is done -- no more will be added to it.
-				var maxSplit = SplitOverflow(contents[contents.Count - 1],maxLength);
-				maxSplit[1] = RemoveLeadingDiscardedSeparators(maxSplit[1]);
-				if(maxSplit[1] != "") { //if the default overflow would be printed...
-					if(reservedSpace > 0 && contents.Count == maxLines) { //if this is the last line (and if reserved space matters)...
-						var reservedSplit = SplitOverflow(contents[contents.Count - 1],maxLength - reservedSpace); //calculate the reserved space split.
-						contents[contents.Count - 1] = reservedSplit[0];
-						Add(reservedSplit[1]);
-					}
-					else {
-						contents[contents.Count - 1] = maxSplit[0];
-						Add(maxSplit[1]);
-					}
-				}
-				else { //if the default overflow won't be printed, make note of the original string for reserved-space purposes.
-					reservedWrapData = contents[contents.Count - 1];
-					contents[contents.Count - 1] = maxSplit[0];
+			while(currentLine.ToString().Length > maxLength) {
+				// Split the current line, and add the first part to this.previousLines.
+				// Start at an index equal to maxLength, unless this line will fill the buffer:
+				int startIdx = (previousLines.Count + 1 == maxLines)? maxLength-reservedSpace : maxLength;
+				SplitOverflow(startIdx);
+				// Check whether the buffer is now full:
+				if(maxLines >= 1 && previousLines.Count == maxLines) {
+					BufferFull?.Invoke(previousLines);
+					previousLines.Clear();
 				}
 			}
 		}
-		protected string RemoveLeadingDiscardedSeparators(string s) {
-			int idx = -1;
-			for(int i = 0;i<s.Length;++i) {
-				if(discardedSeparators.Contains(s[i])) {
-					idx = i;
-				}
-				else {
-					break;
-				}
-			}
-			if(idx == -1) return s;
-			return s.Substring(idx + 1);
+		protected void SplitOverflow(int startIdx) {
+			int splitIdx, numDiscardedSeparators;
+			FindSplitIdx(currentLine.ToString(), startIdx, out splitIdx, out numDiscardedSeparators);
+			previousLines.Add(currentLine.ToString(0, splitIdx));
+			currentLine.Remove(0, splitIdx + numDiscardedSeparators);
 		}
-		protected void CheckForBufferOverflow() {
-			if(maxLines < 1) return;
-			while(contents.Count > maxLines) {
-				var fullBuffer = contents.GetRange(0,maxLines);
-				contents = contents.GetRange(maxLines,contents.Count - maxLines);
-				BufferFull?.Invoke(fullBuffer);
-			}
-		}
-		protected string[] SplitOverflow(string s,int startIdx) {
-			int overflowIdx = FindSplitIdx(s,startIdx);
-			return new string[] { s.Substring(0,overflowIdx),s.Substring(overflowIdx) };
-		}
-		protected int FindSplitIdx(string s, int startIdx) {
+		protected void FindSplitIdx(string s, int startIdx, out int splitIdx, out int numDiscardedSeparators) {
 			if(startIdx >= s.Length) startIdx = s.Length - 1;
+			numDiscardedSeparators = 0;
 			for(int tentativeIdx = startIdx;true;--tentativeIdx) { //at each step, we check tentativeIdx and tentativeIdx-1.
 				if(tentativeIdx <= 0) { //if 0 is reached, there are no separators in this string.
-					return startIdx;
+					splitIdx = startIdx;
+					return;
 				}
-				if(retainedSeparators.Contains(s[tentativeIdx - 1])) { //a retained separator on the left of the tentativeIdx is always a valid split.
-					return tentativeIdx;
+				if(retainedSeparators?.Contains(s[tentativeIdx - 1]) == true) { //a retained separator on the left of the tentativeIdx is always a valid split.
+					splitIdx = tentativeIdx;
+					return;
 				}
-				if(!discardedSeparators.Contains(s[tentativeIdx - 1]) && discardedSeparators.Contains(s[tentativeIdx])) { //don't stop at the first discarded separator.
-					return tentativeIdx;
+				// Note that idx-1 is checked for retained separators, while idx is checked for discarded ones:
+				if(discardedSeparators?.Contains(s[tentativeIdx]) == true) {
+					splitIdx = tentativeIdx;
+					numDiscardedSeparators = 1; // Could extend this later to look for multiple discarded separators.
+					return;
 				}
 			}
 		}
