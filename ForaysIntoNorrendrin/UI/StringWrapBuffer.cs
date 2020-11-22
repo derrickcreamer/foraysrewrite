@@ -86,9 +86,10 @@ namespace ForaysUI {
 		/// Empties the buffer, and returns the just-removed contents.
 		/// </summary>
 		public List<string> Clear() {
-			List<string> previousContents = previousLines;
-			previousContents.Add(currentLine.ToString());
-			previousLines = new List<string>();
+			List<string> previousContents = this.previousLines;
+			string current = currentLine.ToString();
+			if(!string.IsNullOrEmpty(current)) previousContents.Add(current);
+			this.previousLines = new List<string>();
 			currentLine.Clear();
 			return previousContents;
 		}

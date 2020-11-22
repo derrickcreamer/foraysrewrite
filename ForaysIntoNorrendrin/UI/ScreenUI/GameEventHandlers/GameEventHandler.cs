@@ -29,25 +29,26 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 									break;
 								case TileType.Water:
 									ch = '~';
-									color = Color.Cyan;
+									color = Color.Blue;
 									break;
 								case TileType.Staircase:
 									ch = '>';
-									color = Color.White;
+									color = Color.RandomBreached;
 									break;
 							}
 
 							if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
 								ch = 'g';
-								color = Color.Todo;
+								color = Color.Green;
 							}
 
-							Screen.Write(GameUniverse.MapHeight-1-i, j, ch, color);
+							DrawToMap(i, j, ch, color);
 						}
 					}
-					Screen.Write(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
-					Screen.SetCursorPosition(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X); //todo map offset etc.
+					DrawToMap(Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
+					SetCursorPositionOnMap(Player.Position.Value.Y, Player.Position.Value.X);
 				//...environmental desc
+				Messages.Print(false);
 				//...messages (don't forget to flush message buffer)
 				//    AND, add a 'MessageForCanceledAction' somewhere. THIS is what gets shown if you try to walk into a wall. No need to add it to the buffer normally. Probably has a bool showRepeats.
 				//...status area
@@ -66,8 +67,27 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 				break;
 			}
 		}
+		const int MAP_OFFSET_ROWS = 3;
+		const int MAP_OFFSET_COLS = 0;
+		private static void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
+			=> Screen.Write(GameUniverse.MapHeight-1-row+MAP_OFFSET_ROWS, col+MAP_OFFSET_COLS, glyphIndex, color);
+		private static void SetCursorPositionOnMap(int row, int col)
+			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MAP_OFFSET_ROWS, col+MAP_OFFSET_COLS);
 		public void AfterGameEvent(GameObject gameEvent, EventResult eventResult){
 			// todo, print messages based on results here
+			switch(gameEvent){
+				case WalkAction e:
+					if(eventResult.Canceled && e.IsBlockedByTerrain){
+						//todo, get terrain name
+						Messages.Add("There is a wall in the way"); // todo, this should use the CancelMessage thing instead
+					}
+					break;
+				case AttackAction e:
+					if(true){ //todo check actor, target, check result, etc.
+						Messages.AddIfEitherVisible("You strike! ", e.Creature, e.Target);
+					}
+					break;
+			}
 		}
 		public bool DecideCancel(GameObject action){
 			//todo, for targeting:
@@ -89,7 +109,11 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 				switch(key.Key){
 					case ConsoleKey.UpArrow:
 					case ConsoleKey.NumPad8:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.N));
+					Creature c = CreatureAt(Player.Position.Value.PointInDir(Dir8.N));
+					if(c != null)
+						e.ChosenAction = new AttackAction(Player, c);
+					else
+						e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.N));
 					break;
 					case ConsoleKey.RightArrow:
 					case ConsoleKey.NumPad6:

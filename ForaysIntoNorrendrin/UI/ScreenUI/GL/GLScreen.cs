@@ -10,6 +10,7 @@ namespace ForaysUI.ScreenUI{
 		private ColorGlyph[] screenMemory;
 
 		public GLScreen(int rows, int cols){
+			GLColors.Initialize();
 			Rows = rows;
 			Cols = cols;
 			ResetChangedIndices();
@@ -21,6 +22,9 @@ namespace ForaysUI.ScreenUI{
 		public void Write(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black){
 			int idx = col + row*Cols;
 			if(screenMemory[idx].Equals(glyphIndex, color, bgColor)) return;
+			color = color.ResolveColor(); // Random colors won't match at first, but
+			bgColor = bgColor.ResolveColor(); // might match after being resolved, so check again:
+			if(screenMemory[idx].Equals(glyphIndex, color, bgColor)) return;
 			screenMemory[idx] = new ColorGlyph(glyphIndex, color, bgColor);
 			if(firstChangedIdx > idx) firstChangedIdx = idx;
 			if(lastChangedIdx < idx) lastChangedIdx = idx;
@@ -29,7 +33,10 @@ namespace ForaysUI.ScreenUI{
 		public void Write(int row, int col, ColorGlyph cg){
 			int idx = col + row*Cols;
 			if(screenMemory[idx].Equals(cg)) return;
-			screenMemory[idx] = cg;
+			Color color = cg.ForegroundColor.ResolveColor(); // Random colors won't match at first, but
+			Color bgColor = cg.BackgroundColor.ResolveColor(); // might match after being resolved, so check again:
+			if(screenMemory[idx].Equals(cg.GlyphIndex, color, bgColor)) return;
+			screenMemory[idx] = new ColorGlyph(cg.GlyphIndex, color, bgColor);
 			if(firstChangedIdx > idx) firstChangedIdx = idx;
 			if(lastChangedIdx < idx) lastChangedIdx = idx;
 			if(!holdUpdates) SendDataToWindow();
@@ -44,7 +51,10 @@ namespace ForaysUI.ScreenUI{
 				int glyphIndex = (int)str[n];
 				if(screenMemory[idx].Equals(glyphIndex, color, bgColor))
 					continue;
-				screenMemory[idx] = new ColorGlyph(glyphIndex, color, bgColor);
+				Color charColor = color.ResolveColor(); // Random colors won't match at first, but
+				Color charBgColor = bgColor.ResolveColor(); // might match after being resolved, so check again:
+				if(screenMemory[idx].Equals(glyphIndex, charColor, charBgColor)) return;
+				screenMemory[idx] = new ColorGlyph(glyphIndex, charColor, charBgColor);
 				if(firstChangedIdx > idx) firstChangedIdx = idx;
 				if(lastChangedIdx < idx) lastChangedIdx = idx;
 			}

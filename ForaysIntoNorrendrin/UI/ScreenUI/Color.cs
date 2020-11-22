@@ -34,6 +34,20 @@ namespace ForaysUI.ScreenUI{
 		}
 	}
 	public enum Color : ushort{ // 2 bytes
-		Black, Gray, Cyan, White, DarkGray, Yellow, Todo  //todo reorder
+		// Normal colors
+		Black, White, Gray, Red, Green, Blue, Yellow, Magenta, Cyan,
+		DarkGray, DarkRed, DarkGreen, DarkBlue, DarkYellow, DarkMagenta, DarkCyan,
+		// UI colors
+		OutOfSight, TerrainDarkGray, DarkerGray, HealthBar, StatusEffectBar, EnvironmentDescription,
+		DarkEnvironmentDescription, DarkerRed, DarkerMagenta, ForestGreen, DarkForestGreen, Transparent,
+		//todo, maybe UI colors should have UI names, not color names like DarkerRed.
+		//todo...maybe UI colors are user-settable?
+		// so they'd have default values (and Reset) but could be set to whatever RGB.
+		// Random game element colors
+		RandomFire, RandomIce, RandomLightning, RandomBreached, RandomExplosion,
+		RandomGlowingFungus, RandomTorch, RandomDoom, RandomConfusion,
+		// Random colors
+		RandomDark, RandomBright, RandomRGB, RandomDRGB, RandomRGBW,
+		RandomCMY, RandomDCMY, RandomCMYW, RandomRainbow, RandomAny,
 	};
 }

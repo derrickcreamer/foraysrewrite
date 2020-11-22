@@ -50,8 +50,8 @@ namespace ForaysUI.ScreenUI{
 				Screen.Clear();
 				const int row = 8;
 				const int col = (Cols - headerLength) / 2;
-				Screen.Write(row+1, col, header, Color.Todo);
-				Screen.Write(row+2, col, divider, Color.Todo);
+				Screen.Write(row+1, col, header, Color.Yellow);
+				Screen.Write(row+2, col, divider, Color.Green);
 				bool savedGame = File.Exists("forays.sav");
 				string startOrResume = savedGame? "[a] Resume saved game" : "[a] Start a new game";
 				Screen.Write(row+4, col+4, startOrResume);
