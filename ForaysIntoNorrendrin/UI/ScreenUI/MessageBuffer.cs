@@ -90,14 +90,14 @@ namespace ForaysUI{
 		}
 		protected void DisplayLines(List<string> lines, bool morePrompt, bool addToLog) {
 			bool repeated = false;
-			string xCount = null; // A string like " (x2)" or " (x127)"
+			string xCount = null; // A string like "(x2)" or "(x127)"
 			if(lines.Count == 1){ // Only check for repeats if printing a single line
 				string previousLine = null;
 				if(currentRepeatedString != null) previousLine = currentRepeatedString;
 				else if(log.Count > 0) previousLine = log[log.Count - 1];
 
 				if(previousLine != null && lines[0] == previousLine){
-					xCount = " (x" + (repetitionCount + 2) + ")";
+					xCount = "(x" + (repetitionCount + 2) + ")";
 					// Repeat this line only if the "x2" part fits. Don't forget to make room for the "[more]" if needed:
 					int max = morePrompt? MAX_LENGTH-MORE.Length : MAX_LENGTH;
 					repeated = (previousLine.Length + xCount.Length <= MAX_LENGTH);
