@@ -5,7 +5,6 @@ using ForaysUI.ScreenUI;
 using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 namespace ForaysUI{
-	public enum LineRepeatBehavior { CombineWithCount, RefreshWithoutCount, SeparateRepeats, DiscardRepeats };
 	public class MessageBuffer : GameUIObject {
 		public bool OmniscienceEnabled; //todo, will this remain here?
 
@@ -69,13 +68,6 @@ namespace ForaysUI{
 				if(requireMorePrompt) Print(true);
 			}
 		}
-		/// <param name="lineRepeatBehavior">Determines behavior if this line matches the previously logged line.</param>
-		public void AddEntireLine(string message, LineRepeatBehavior lineRepeatBehavior){
-			//todo, repeat?
-			buffer.WrapCurrentLine(false);
-			buffer.Add(Capitalize(message));
-			buffer.WrapCurrentLine(true);
-		}
 		public void Print(bool requireMorePrompt) {
 			if(requireMorePrompt) buffer.EnsureReservedSpace(false);
 			DisplayLines(buffer.Clear(), requireMorePrompt, true);
@@ -97,7 +89,6 @@ namespace ForaysUI{
 			}
 		}
 		protected void DisplayLines(List<string> lines, bool morePrompt, bool addToLog) {
-			//todo, there was a line here that called RemoveTrailingSpaces on every line...why?
 			bool repeated = false;
 			string xCount = null; // A string like " (x2)" or " (x127)"
 			if(lines.Count == 1){ // Only check for repeats if printing a single line
@@ -151,25 +142,6 @@ namespace ForaysUI{
 				char[] c = s.ToCharArray();
 				c[0] = char.ToUpper(c[0]);
 				return new string(c);
-		}
-		/// <summary>
-		/// Get the nth-from-last message. (Therefore, 0 is the most recent.)
-		/// </summary>
-		protected string GetPreviousMessage(int n) {
-			if(log.Count - 1 - n < 0) return "";
-			return log[log.Count - 1 - n];
-		}
-		protected void AddToLog(IEnumerable<string> lines) {
-			foreach(string s in lines) log.Add(s);
-		}
-		protected static string RemoveTrailingSpaces(string s) {
-			int idx = s.Length;
-			for(int i=s.Length - 1;i>=0;--i) {
-				if(s[i] == ' ') idx = i;
-				else break;
-			}
-			if(idx == s.Length) return s;
-			return s.Substring(0,idx);
 		}
 	}
 }
