@@ -68,8 +68,11 @@
     <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
     <Compile Include="GameUniverse\Events\ItemEvents.cs" />
     <Compile Include="UI\Program.cs" />
+    <Compile Include="UI\StringWrapBuffer.cs" />
     <Compile Include="UI\ScreenUI\Color.cs" />
+    <Compile Include="UI\ScreenUI\GameUIObject.cs" />
     <Compile Include="UI\ScreenUI\Input.cs" />
+    <Compile Include="UI\ScreenUI\MessageBuffer.cs" />
     <Compile Include="UI\ScreenUI\Screen.cs" />
     <Compile Include="UI\ScreenUI\ScreenUI.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleInput.cs" />

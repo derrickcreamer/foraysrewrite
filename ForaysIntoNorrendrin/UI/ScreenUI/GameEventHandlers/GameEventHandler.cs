@@ -6,20 +6,11 @@ using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI.EventHandlers{
-	///<summary>Base class for UI types that make heavy use of the GameUniverse</summary>
-	public class GameUIObject : GameObject{
-		public GameUIObject(GameUniverse g) : base(g){}
-
-		public RNG ScreenRNG => ScreenUIMain.RNG;
-
-		// To hopefully avoid any unintended usage:
-		[Obsolete("CAUTION: This is the GameUniverse's RNG, not the UI's RNG.")]
-		new public RNG R => base.R;
-	}
 	///<summary>todo</summary>
 	public class GameEventHandler : GameUIObject{ //todo...unsure about how this will eventually be broken up and reorganized.
-
+		public MessageBuffer Messages;
 		public GameEventHandler(GameUniverse g) : base(g){
+			Messages = new MessageBuffer(g);
 		}
 		public void BeforeGameEvent(GameObject gameEvent){
 			switch(gameEvent){
@@ -58,6 +49,7 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 					Screen.SetCursorPosition(GameUniverse.MapHeight-1-Player.Position.Value.Y, Player.Position.Value.X); //todo map offset etc.
 				//...environmental desc
 				//...messages (don't forget to flush message buffer)
+				//    AND, add a 'MessageForCanceledAction' somewhere. THIS is what gets shown if you try to walk into a wall. No need to add it to the buffer normally. Probably has a bool showRepeats.
 				//...status area
 				//...additional UI
 

@@ -108,27 +108,41 @@ namespace ForaysUI {
 			if(lastLineOnly && previousLines.Count + 1 < maxLines) return;
 			int startIdx = maxLength - (overrideReservedSpace ?? this.reservedSpace);
 			if(startIdx <= 0) throw new InvalidOperationException("Can't reserve more space than maxLength");
-			while(currentLine.ToString().Length > startIdx) {
+			while(currentLine.Length > startIdx) {
 				// Split the current line, and add the first part to this.previousLines.
 				SplitOverflow(startIdx);
-				// Check whether the buffer is now full:
-				if(maxLines >= 1 && previousLines.Count == maxLines) {
-					BufferFull?.Invoke(previousLines);
-					previousLines.Clear();
-				}
+				CheckForBufferOverflow();
+			}
+		}
+		/// <summary>
+		/// Finishes the current line - no more will be added to the current line. Further strings will be added on a new line.
+		/// If the current line is the final line in the buffer, the reserved space will be considered and some portion of this line might be wrapped to the new line.
+		/// </summary>
+		/// <param name="wrapIfEmpty">If false, nothing will happen if the current line is empty.</param>
+		public void WrapCurrentLine(bool wrapIfEmpty) {
+			// If current line is in reserved space (last line + long enough string), do this like a normal overflow:
+			if(previousLines.Count + 1 == maxLines && currentLine.Length > maxLength-reservedSpace){
+				SplitOverflow(maxLength - reservedSpace);
+				CheckForBufferOverflow();
+			}
+			else{ // Otherwise, skip the splitting code:
+				previousLines.Add(currentLine.ToString());
+				currentLine.Clear();
 			}
 		}
 		protected void CheckForLineOverflow() {
-			while(currentLine.ToString().Length > maxLength) {
+			while(currentLine.Length > maxLength) {
 				// Split the current line, and add the first part to this.previousLines.
 				// Start at an index equal to maxLength, unless this line will fill the buffer:
 				int startIdx = (previousLines.Count + 1 == maxLines)? maxLength-reservedSpace : maxLength;
 				SplitOverflow(startIdx);
-				// Check whether the buffer is now full:
-				if(maxLines >= 1 && previousLines.Count == maxLines) {
-					BufferFull?.Invoke(previousLines);
-					previousLines.Clear();
-				}
+				CheckForBufferOverflow();
+			}
+		}
+		protected void CheckForBufferOverflow() {
+			if(maxLines >= 1 && previousLines.Count == maxLines) {
+				BufferFull?.Invoke(previousLines);
+				previousLines.Clear();
 			}
 		}
 		protected void SplitOverflow(int startIdx) {

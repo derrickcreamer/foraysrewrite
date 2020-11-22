@@ -34,6 +34,6 @@ namespace ForaysUI.ScreenUI{
 		}
 	}
 	public enum Color : ushort{ // 2 bytes
-		Black, Gray, Cyan, White, Todo  //todo reorder
+		Black, Gray, Cyan, White, DarkGray, Yellow, Todo  //todo reorder
 	};
 }
