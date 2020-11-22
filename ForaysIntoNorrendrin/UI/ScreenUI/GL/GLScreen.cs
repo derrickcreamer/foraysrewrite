@@ -5,7 +5,7 @@ namespace ForaysUI.ScreenUI{
 		public ForaysWindow Window;
 		private bool cursorVisible;
 		private int cursorRow, cursorCol;
-		private bool holdUpdates;
+		private int holdUpdatesCount;
 		private int firstChangedIdx, lastChangedIdx;
 		private ColorGlyph[] screenMemory;
 
@@ -28,7 +28,7 @@ namespace ForaysUI.ScreenUI{
 			screenMemory[idx] = new ColorGlyph(glyphIndex, color, bgColor);
 			if(firstChangedIdx > idx) firstChangedIdx = idx;
 			if(lastChangedIdx < idx) lastChangedIdx = idx;
-			if(!holdUpdates) SendDataToWindow();
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		public void Write(int row, int col, ColorGlyph cg){
 			int idx = col + row*Cols;
@@ -39,7 +39,7 @@ namespace ForaysUI.ScreenUI{
 			screenMemory[idx] = new ColorGlyph(cg.GlyphIndex, color, bgColor);
 			if(firstChangedIdx > idx) firstChangedIdx = idx;
 			if(lastChangedIdx < idx) lastChangedIdx = idx;
-			if(!holdUpdates) SendDataToWindow();
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		public void Write(int row, int col, string str, Color color = Color.Gray, Color bgColor = Color.Black){
 			int count;
@@ -58,7 +58,7 @@ namespace ForaysUI.ScreenUI{
 				if(firstChangedIdx > idx) firstChangedIdx = idx;
 				if(lastChangedIdx < idx) lastChangedIdx = idx;
 			}
-			if(!holdUpdates) SendDataToWindow();
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		private void SendDataToWindow(){
 			if(lastChangedIdx == -1) return;
@@ -91,11 +91,13 @@ namespace ForaysUI.ScreenUI{
 		}
 		public bool WindowUpdate() => Window.WindowUpdate();
 		public void HoldUpdates(){
-			holdUpdates = true;
+			holdUpdatesCount++;
 		}
-		public void ResumeUpdates(){
-			holdUpdates = false;
-			SendDataToWindow();
+		public void ResumeUpdates(bool forceResume = false){
+			if(forceResume) holdUpdatesCount = 0;
+			else if(holdUpdatesCount > 0) holdUpdatesCount--;
+
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		public void UpdateCursor(bool blinkOn){
 			Window.CursorSurface.Disabled = !blinkOn;
@@ -139,17 +141,16 @@ namespace ForaysUI.ScreenUI{
 			screenMemory = new ColorGlyph[Rows*Cols];
 			firstChangedIdx = 0;
 			lastChangedIdx = Rows*Cols - 1;
-			if(!holdUpdates) SendDataToWindow();
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		public void Clear(int startRow, int startCol, int height, int width){
-			bool oldHoldUpdates = holdUpdates;
-			holdUpdates = true; //todo, use the stack version here
+			holdUpdatesCount++;
 			string blankLine = "".PadRight(width);
 			for(int n=0;n<height;++n){
 				Write(startRow + n, startCol, blankLine, Color.Black);
 			}
-			holdUpdates = oldHoldUpdates;
-			if(!holdUpdates) SendDataToWindow();
+			holdUpdatesCount--;
+			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
 		public void CleanUp(){
 			//todo, is this call correct?

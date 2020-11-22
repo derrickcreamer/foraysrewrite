@@ -46,7 +46,7 @@ namespace ForaysUI.ScreenUI{
 			const string divider = "----------------------------"; // divider length should match header
 			const int headerLength = 28;
 			while(true){
-				//Screen.HoldUpdates = true; //todo... how do I tell this to resume properly? see SSC.
+				Screen.HoldUpdates();
 				Screen.Clear();
 				const int row = 8;
 				const int col = (Cols - headerLength) / 2;
@@ -63,6 +63,7 @@ namespace ForaysUI.ScreenUI{
 					Screen.Write(i + row+4, col+5, i + 'a', Color.Cyan);
 					//todo mouse UI button
 				}
+				Screen.ResumeUpdates();
 				//Screen.SetCursorPosition(10, 10); //todo...was this originally a workaround?
 					// test what happens if the cursor is on the final row+col when asking for input.
 				ConsoleKeyInfo command = Input.ReadKey(false);

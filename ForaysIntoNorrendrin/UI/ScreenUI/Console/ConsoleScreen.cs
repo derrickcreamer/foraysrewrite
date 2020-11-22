@@ -24,7 +24,7 @@ namespace ForaysUI.ScreenUI{
 		public void HoldUpdates(){
 
 		}
-		public void ResumeUpdates(){
+		public void ResumeUpdates(bool forceResume = false){
 
 		}
 		public bool CursorVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

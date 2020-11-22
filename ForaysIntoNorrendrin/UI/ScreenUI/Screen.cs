@@ -20,10 +20,13 @@ namespace ForaysUI.ScreenUI{
 		///<summary>Ensure that everything sent to the display is actually drawn, process input events,
 		/// and return false if the window has been closed, if applicable.</summary>
 		bool WindowUpdate();
-		///<summary>After calling HoldUpdates, changes to the IScreen data will not be drawn to the screen until ResumeUpdates is called</summary>
-		void HoldUpdates(); //todo, what about making this a stack/counter-based thing, where nested calls to Hold+Resume don't do anything until the main one is popped?
-		///<summary>After calling HoldUpdates, calling ResumeUpdates will send all changes to the screen, and resume normal operation afterward</summary>
-		void ResumeUpdates();
+		///<summary>After calling HoldUpdates, changes to the IScreen data will not be drawn to the screen until ResumeUpdates is called. This uses a
+		/// stack-like concept: if HoldUpdates is called multiple times, the screen won't update until ResumeUpdates is called the same number of times.</summary>
+		void HoldUpdates();
+		///<summary>After calling HoldUpdates, calling ResumeUpdates will send all changes to the screen, and resume normal operation afterward. This uses a
+		/// stack-like concept: if HoldUpdates is called multiple times, the screen won't update until ResumeUpdates is called the same number of times.</summary>
+		/// <param name="forceResume">If forceResume is true, return to the default state and immediately resume updates.</param>
+		void ResumeUpdates(bool forceResume = false);
 
 		///<summary>If true, the cursor should be blinking at the position indicated by CursorTop and CursorLeft</summary>
 		bool CursorVisible {get;set;}
