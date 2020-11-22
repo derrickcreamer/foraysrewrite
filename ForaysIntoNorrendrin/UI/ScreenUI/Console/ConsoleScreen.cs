@@ -44,6 +44,9 @@ namespace ForaysUI.ScreenUI{
 					}
 			}*/
 		}
+		public void Clear(int startRow, int startCol, int height, int width){
+			//todo
+		}
 		public void CleanUp(){
 			if(Program.Linux){
 				Clear();

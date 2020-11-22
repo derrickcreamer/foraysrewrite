@@ -141,6 +141,16 @@ namespace ForaysUI.ScreenUI{
 			lastChangedIdx = Rows*Cols - 1;
 			if(!holdUpdates) SendDataToWindow();
 		}
+		public void Clear(int startRow, int startCol, int height, int width){
+			bool oldHoldUpdates = holdUpdates;
+			holdUpdates = true; //todo, use the stack version here
+			string blankLine = "".PadRight(width);
+			for(int n=0;n<height;++n){
+				Write(startRow + n, startCol, blankLine, Color.Black);
+			}
+			holdUpdates = oldHoldUpdates;
+			if(!holdUpdates) SendDataToWindow();
+		}
 		public void CleanUp(){
 			//todo, is this call correct?
 			Window?.Close();

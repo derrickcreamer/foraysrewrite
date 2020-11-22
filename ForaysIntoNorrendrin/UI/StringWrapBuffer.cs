@@ -46,6 +46,7 @@ namespace ForaysUI {
 			this.maxLines = maxLines;
 			if(maxLength < 1) throw new ArgumentOutOfRangeException(nameof(maxLength),maxLength,"Max length must be at least 1.");
 			this.maxLength = maxLength;
+			this.reservedSpace = reservedSpace;
 			currentLine = new StringBuilder(maxLength * 2);
 			previousLines = new List<string>();
 			if(retainedSeparators?.Count > 0) {

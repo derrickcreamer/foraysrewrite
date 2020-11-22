@@ -89,6 +89,8 @@ namespace ForaysUI{
 			}
 		}
 		protected void DisplayLines(List<string> lines, bool morePrompt, bool addToLog) {
+			Screen.HoldUpdates();
+			Screen.Clear(0/*todo offsets*/, 0, NUM_LINES, MAX_LENGTH);
 			bool repeated = false;
 			string xCount = null; // A string like "(x2)" or "(x127)"
 			if(lines.Count == 1){ // Only check for repeats if printing a single line
@@ -112,7 +114,10 @@ namespace ForaysUI{
 				if(logIdx < 0) continue;
 				Screen.Write(i, 0/*todo offset*/, log[logIdx], Color.DarkGray); //todo, should I wrap Screen.Write here, to handle offset better?
 			}
-			if(lines.Count == 0) return;
+			if(lines.Count == 0){
+				Screen.ResumeUpdates();
+				return;
+			}
 			for(int i=0;i<lines.Count;++i){
 				Screen.Write(prevMsgsToPrint + i, 0/*todo offset*/, lines[i]);
 			}
@@ -134,8 +139,12 @@ namespace ForaysUI{
 				Screen.Write(NUM_LINES - 1, screenColumn, MORE, Color.Yellow);
 				//todo mouse UI buttons
 				Screen.SetCursorPosition(NUM_LINES - 1, screenColumn + MORE.Length - 1); // Move cursor to the space at the end of " [more] "
+				Screen.ResumeUpdates();
 				Input.ReadKey();
 				//todo mouse UI buttons
+			}
+			else{
+				Screen.ResumeUpdates();
 			}
 		}
 		protected static string Capitalize(string s){

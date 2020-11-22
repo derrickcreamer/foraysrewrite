@@ -21,7 +21,7 @@ namespace ForaysUI.ScreenUI{
 		/// and return false if the window has been closed, if applicable.</summary>
 		bool WindowUpdate();
 		///<summary>After calling HoldUpdates, changes to the IScreen data will not be drawn to the screen until ResumeUpdates is called</summary>
-		void HoldUpdates();
+		void HoldUpdates(); //todo, what about making this a stack/counter-based thing, where nested calls to Hold+Resume don't do anything until the main one is popped?
 		///<summary>After calling HoldUpdates, calling ResumeUpdates will send all changes to the screen, and resume normal operation afterward</summary>
 		void ResumeUpdates();
 
@@ -36,6 +36,9 @@ namespace ForaysUI.ScreenUI{
 
 		///<summary>Update screen memory to fill the screen with black</summary>
 		void Clear();
+
+		///<summary>Update screen memory to fill the specified rectangle with black</summary>
+		void Clear(int startRow, int startCol, int height, int width);
 
 		///<summary>Called immediately before exiting the program. Allows terminals to be reset to original config.</summary>
 		void CleanUp();
