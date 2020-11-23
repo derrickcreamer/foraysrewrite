@@ -6,11 +6,22 @@ using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI.EventHandlers{
+	//todo, it seems like this set of files (GameEventHandlers + MessageBuffer + Sidebar, maybe inventory menu stuff?) are the only ones that
+	//    interact with the GameUniverse. The others are either more general (screen drawing, input) or deal with the other parts of the UI (main menu, help).
+	//    Therefore, maybe this folder should get renamed, and maybe those files should be grouped in here. 'GameRunUI'?
 	///<summary>todo</summary>
 	public class GameEventHandler : GameUIObject{ //todo...unsure about how this will eventually be broken up and reorganized.
 		public MessageBuffer Messages;
+		public Sidebar Sidebar;
+
+		// todo, add option to change layout, which'll change these values, plus the matching ones in Messages and Sidebar:
+		public int MapRowOffset = 3;
+		public int MapColOffset = 21;
+		public int EnviromentalFlavorStartRow = 3 + GameUniverse.MapHeight; //todo, more here?
+
 		public GameEventHandler(GameUniverse g) : base(g){
 			Messages = new MessageBuffer(g);
+			Sidebar = new Sidebar(g);
 		}
 		public void BeforeGameEvent(GameObject gameEvent){
 			switch(gameEvent){
@@ -49,8 +60,6 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 					SetCursorPositionOnMap(Player.Position.Value.Y, Player.Position.Value.X);
 				//...environmental desc
 				Messages.Print(false);
-				//...messages (don't forget to flush message buffer)
-				//    AND, add a 'MessageForCanceledAction' somewhere. THIS is what gets shown if you try to walk into a wall. No need to add it to the buffer normally. Probably has a bool showRepeats.
 				//...status area
 				//...additional UI
 
@@ -67,19 +76,24 @@ namespace ForaysUI.ScreenUI.EventHandlers{
 				break;
 			}
 		}
-		const int MAP_OFFSET_ROWS = 3;
-		const int MAP_OFFSET_COLS = 0;
-		private static void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
-			=> Screen.Write(GameUniverse.MapHeight-1-row+MAP_OFFSET_ROWS, col+MAP_OFFSET_COLS, glyphIndex, color);
-		private static void SetCursorPositionOnMap(int row, int col)
-			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MAP_OFFSET_ROWS, col+MAP_OFFSET_COLS);
+		private void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
+			=> Screen.Write(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset, glyphIndex, color);
+		private void SetCursorPositionOnMap(int row, int col)
+			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset);
 		public void AfterGameEvent(GameObject gameEvent, EventResult eventResult){
 			// todo, print messages based on results here
 			switch(gameEvent){
 				case WalkAction e:
-					if(eventResult.Canceled && e.IsBlockedByTerrain){
-						//todo, get terrain name
-						Messages.Add("There is a wall in the way"); // todo, this should use the CancelMessage thing instead
+					if(eventResult.Canceled && e.IsBlockedByTerrain){ //todo, this is wrong. Canceled events don't reach this point. Print terrain messages here instead.
+					}
+					if(e.Creature == Player && Player.Position.Value == e.Destination){
+						string msg = null;
+						switch(TileTypeAt(Player.Position.Value)){ //todo, method here instead, so I can return instead of breaking?
+							case TileType.Staircase:
+								msg = "The stairway leads downward - press > to descend. "; //todo
+								break;
+						}
+						if(msg != null) Messages.Add(msg);
 					}
 					break;
 				case AttackAction e:
@@ -95,8 +109,15 @@ string longMsg = "Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h
 			//if target is already specified, do nothing
 			//else, prompt for target
 			//return (target==null)
-			//todo, for others:
-			// if(e.IsBlockedByTerrain) { /*return true or whatever*/
+			switch(action){
+				case WalkAction e:
+					if(e.IsBlockedByTerrain){
+						//todo, get terrain name
+						Messages.Add("There is a wall in the way. ");
+						return true;
+					}
+					break;
+			}
 			return false;//todo
 		}
 		public void OnStatusStart(Creature creature, Status status){

@@ -7,6 +7,8 @@ using static ForaysUI.ScreenUI.StaticInput;
 namespace ForaysUI{
 	public class MessageBuffer : GameUIObject {
 		public bool OmniscienceEnabled; //todo, will this remain here?
+		public int RowOffset = 0;
+		public int ColOffset = 21;
 
 		protected StringWrapBuffer buffer;
 		protected List<string> log;
@@ -90,7 +92,7 @@ namespace ForaysUI{
 		}
 		protected void DisplayLines(List<string> lines, bool morePrompt, bool addToLog) {
 			Screen.HoldUpdates();
-			Screen.Clear(0/*todo offsets*/, 0, NUM_LINES, MAX_LENGTH);
+			Screen.Clear(RowOffset, ColOffset, NUM_LINES, MAX_LENGTH);
 			bool repeated = false;
 			string xCount = null; // A string like "(x2)" or "(x127)"
 			if(lines.Count == 1){ // Only check for repeats if printing a single line
@@ -112,19 +114,19 @@ namespace ForaysUI{
 			for(int i=0;i<prevMsgsToPrint;++i){
 				int logIdx = startLogIdx + i;
 				if(logIdx < 0) continue;
-				Screen.Write(i, 0/*todo offset*/, log[logIdx], Color.DarkGray); //todo, should I wrap Screen.Write here, to handle offset better?
+				WriteToMessages(i, 0, log[logIdx], Color.DarkGray);
 			}
 			if(lines.Count == 0){
 				Screen.ResumeUpdates();
 				return;
 			}
 			for(int i=0;i<lines.Count;++i){
-				Screen.Write(prevMsgsToPrint + i, 0/*todo offset*/, lines[i]);
+				WriteToMessages(prevMsgsToPrint + i, 0, lines[i]);
 			}
-			int screenColumn = lines[lines.Count - 1].Length + 0/*todo offset*/;
+			int currentColumn = lines[lines.Count - 1].Length;
 			if(repeated){
-				Screen.Write(NUM_LINES - 1, screenColumn, xCount, Color.DarkGray);
-				screenColumn += xCount.Length;
+				WriteToMessages(NUM_LINES - 1, currentColumn, xCount, Color.DarkGray);
+				currentColumn += xCount.Length;
 				if(addToLog){
 					log[log.Count - 1] = lines[lines.Count - 1] + xCount;
 					repetitionCount++;
@@ -136,10 +138,10 @@ namespace ForaysUI{
 				foreach(string s in lines) log.Add(s);
 			}
 			if(morePrompt){
-				Screen.Write(NUM_LINES - 1, screenColumn, MORE, Color.Yellow);
+				WriteToMessages(NUM_LINES - 1, currentColumn, MORE, Color.Yellow);
 				//todo mouse UI buttons
-				Screen.SetCursorPosition(NUM_LINES - 1, screenColumn + MORE.Length - 1); // Move cursor to the space at the end of " [more] "
 				Screen.ResumeUpdates();
+				SetCursorPositionForMessages(NUM_LINES - 1, currentColumn + MORE.Length - 1); // Move cursor to the space at the end of " [more] "
 				Input.ReadKey();
 				//todo mouse UI buttons
 			}
@@ -147,6 +149,9 @@ namespace ForaysUI{
 				Screen.ResumeUpdates();
 			}
 		}
+		protected void WriteToMessages(int row, int col, string message, Color color = Color.Gray, Color bgColor = Color.Black)
+			=> Screen.Write(RowOffset + row, ColOffset + col, message, color, bgColor);
+		protected void SetCursorPositionForMessages(int row, int col) => Screen.SetCursorPosition(RowOffset + row, ColOffset + col);
 		protected static string Capitalize(string s){
 				char[] c = s.ToCharArray();
 				c[0] = char.ToUpper(c[0]);
