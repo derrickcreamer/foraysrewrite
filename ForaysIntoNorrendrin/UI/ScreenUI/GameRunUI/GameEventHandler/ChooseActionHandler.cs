@@ -1,131 +1,18 @@
 using System;
 using Forays;
-using GameComponents;
 using GameComponents.DirectionUtility;
-using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
-namespace ForaysUI.ScreenUI.EventHandlers{
+namespace ForaysUI.ScreenUI{
 	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
 	// The files in which this class is defined are:
-	//  todo
-	///<summary>todo</summary>
-	public class GameEventHandler : GameUIObject{
-		public MessageBuffer Messages;
-		public Sidebar Sidebar;
-
-		// todo, add option to change layout, which'll change these values, plus the matching ones in Messages and Sidebar:
-		public int MapRowOffset = 3;
-		public int MapColOffset = 21;
-		public int EnviromentalFlavorStartRow = 3 + GameUniverse.MapHeight; //todo, more here?
-
-		public GameEventHandler(GameUniverse g) : base(g){
-			Messages = new MessageBuffer(g);
-			Sidebar = new Sidebar(g);
-		}
-		public void BeforeGameEvent(GameObject gameEvent){
-			switch(gameEvent){
-				case PlayerTurnEvent e:
-					Screen.HoldUpdates();
-					for(int i = 0; i < GameUniverse.MapHeight; i++) {
-						for(int j = 0; j < GameUniverse.MapWidth; j++) {
-							char ch = ' ';
-							Color color = Color.Gray;
-							switch(this.TileTypeAt(new Point(j, i))) {
-								case TileType.Floor:
-									ch = '.';
-									break;
-								case TileType.Wall:
-									ch = '#';
-									break;
-								case TileType.Water:
-									ch = '~';
-									color = Color.Blue;
-									break;
-								case TileType.Staircase:
-									ch = '>';
-									color = Color.RandomBreached;
-									break;
-							}
-
-							if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
-								ch = 'g';
-								color = Color.Green;
-							}
-
-							DrawToMap(i, j, ch, color);
-						}
-					}
-					DrawToMap(Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
-					SetCursorPositionOnMap(Player.Position.Value.Y, Player.Position.Value.X);
-				//...environmental desc
-				Messages.Print(false);
-				//...status area
-				//...additional UI
-
-				Screen.ResumeUpdates();
-
-				//window update, set suspend if false...
-				/*if(!Screen.Update()){
-					GameUniverse.Suspend = true;
-					return;
-				}*/
-				//
-				//
-				ChooseAction(e);
-				break;
-			}
-		}
-		private void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
-			=> Screen.Write(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset, glyphIndex, color);
-		private void SetCursorPositionOnMap(int row, int col)
-			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset);
-		public void AfterGameEvent(GameObject gameEvent, EventResult eventResult){
-			// todo, print messages based on results here
-			switch(gameEvent){
-				case WalkAction e:
-					if(eventResult.Canceled && e.IsBlockedByTerrain){ //todo, this is wrong. Canceled events don't reach this point. Print terrain messages here instead.
-					}
-					if(e.Creature == Player && Player.Position.Value == e.Destination){
-						string msg = null;
-						switch(TileTypeAt(Player.Position.Value)){ //todo, method here instead, so I can return instead of breaking?
-							case TileType.Staircase:
-								msg = "The stairway leads downward - press > to descend. "; //todo
-								break;
-						}
-						if(msg != null) Messages.Add(msg);
-					}
-					break;
-				case AttackAction e:
-					if(true){ //todo check actor, target, check result, etc.
-string longMsg = "Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h.";
-						Messages.AddIfEitherVisible("You strike! " + longMsg, e.Creature, e.Target);
-					}
-					break;
-			}
-		}
-		public bool DecideCancel(GameObject action){
-			//todo, for targeting:
-			//if target is already specified, do nothing
-			//else, prompt for target
-			//return (target==null)
-			switch(action){
-				case WalkAction e:
-					if(e.IsBlockedByTerrain){
-						//todo, get terrain name
-						Messages.Add("There is a wall in the way. ");
-						return true;
-					}
-					break;
-			}
-			return false;//todo
-		}
-		public void OnStatusStart(Creature creature, Status status){
-			//todo
-		}
-		public void OnStatusEnd(Creature creature, Status status){
-			//todo
-		}
+	// AfterEventHandler.cs
+	// BeforeEventHandler.cs
+	// CancelActionHandler.cs
+	// ChooseActionHandler.cs
+	// GameEventHandler.cs (contains the constructors and helpers)
+	// StatusEventHandler.cs
+	public partial class GameEventHandler : GameUIObject{
 		private void ChooseAction(PlayerTurnEvent e){
 				ConsoleKeyInfo key = Input.ReadKey(); //todo, just wait for a keypress here for now
 				switch(key.Key){

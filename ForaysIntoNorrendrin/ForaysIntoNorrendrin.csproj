@@ -71,19 +71,24 @@
     <Compile Include="UI\Program.cs" />
     <Compile Include="UI\StringWrapBuffer.cs" />
     <Compile Include="UI\ScreenUI\Color.cs" />
-    <Compile Include="UI\ScreenUI\GameUIObject.cs" />
     <Compile Include="UI\ScreenUI\Input.cs" />
-    <Compile Include="UI\ScreenUI\MessageBuffer.cs" />
     <Compile Include="UI\ScreenUI\Screen.cs" />
     <Compile Include="UI\ScreenUI\ScreenUI.cs" />
-    <Compile Include="UI\ScreenUI\Sidebar.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleInput.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleScreen.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameUIObject.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\MessageBuffer.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\Sidebar.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\AfterEventHandler.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\BeforeEventHandler.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\CancelActionHandler.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\ChooseActionHandler.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\GameEventHandler.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\StatusEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GL\GL.cs" />
     <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
     <Compile Include="UI\ScreenUI\GL\GLColor.cs" />
     <Compile Include="UI\ScreenUI\GL\GLScreen.cs" />
-    <Compile Include="UI\ScreenUI\GameEventHandlers\GameEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

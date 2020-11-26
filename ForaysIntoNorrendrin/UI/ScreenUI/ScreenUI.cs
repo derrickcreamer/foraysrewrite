@@ -4,7 +4,6 @@ using static ForaysUI.ScreenUI.StaticInput;
 using System.IO;
 using Forays;
 using GameComponents;
-using ForaysUI.ScreenUI.EventHandlers;
 
 namespace ForaysUI.ScreenUI{
 	public static class ScreenUIMain{
