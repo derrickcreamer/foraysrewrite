@@ -6,11 +6,11 @@ using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI.EventHandlers{
-	//todo, it seems like this set of files (GameEventHandlers + MessageBuffer + Sidebar, maybe inventory menu stuff?) are the only ones that
-	//    interact with the GameUniverse. The others are either more general (screen drawing, input) or deal with the other parts of the UI (main menu, help).
-	//    Therefore, maybe this folder should get renamed, and maybe those files should be grouped in here. 'GameRunUI'?
+	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
+	// The files in which this class is defined are:
+	//  todo
 	///<summary>todo</summary>
-	public class GameEventHandler : GameUIObject{ //todo...unsure about how this will eventually be broken up and reorganized.
+	public class GameEventHandler : GameUIObject{
 		public MessageBuffer Messages;
 		public Sidebar Sidebar;
 
