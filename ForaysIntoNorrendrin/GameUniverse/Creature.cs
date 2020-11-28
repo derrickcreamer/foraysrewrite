@@ -15,7 +15,7 @@ namespace Forays {
 		List<Creature> Members;
 	}*/
 	public class Creature : CreatureBase /*CreatureBase, IPhysicalObject*/ {
-		public Point? Position => Map.Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;
+		public Point? Position => Map.Creatures.TryGetPositionOf(this, out Point p)? p : (Point?)null;//todo, rework to throw if missing
 
 		public int CurrentHealth;
 
