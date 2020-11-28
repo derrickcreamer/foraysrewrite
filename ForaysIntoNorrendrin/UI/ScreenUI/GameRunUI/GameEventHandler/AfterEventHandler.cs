@@ -27,12 +27,6 @@ namespace ForaysUI.ScreenUI{
 						if(msg != null) Messages.Add(msg);
 					}
 					break;
-				case AttackAction e:
-					if(true){ //todo check actor, target, check result, etc.
-string longMsg = "Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h. Aaaa bbbb cccc dddd eeee f g h.";
-						Messages.AddIfEitherVisible("You strike! " + longMsg, e.Creature, e.Target);
-					}
-					break;
 			}
 		}
 	}

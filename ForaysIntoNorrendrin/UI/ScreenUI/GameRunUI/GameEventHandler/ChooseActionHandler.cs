@@ -14,41 +14,37 @@ namespace ForaysUI.ScreenUI{
 	// StatusEventHandler.cs
 	public partial class GameEventHandler : GameUIObject{
 		private void ChooseAction(PlayerTurnEvent e){
-				ConsoleKeyInfo key = Input.ReadKey(); //todo, just wait for a keypress here for now
-				switch(key.Key){
-					case ConsoleKey.UpArrow:
-					case ConsoleKey.NumPad8:
-					Creature c = CreatureAt(Player.Position.Value.PointInDir(Dir8.N));
-					if(c != null)
-						e.ChosenAction = new AttackAction(Player, c);
-					else
-						e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.N));
+			ConsoleKeyInfo key = Input.ReadKey();
+			switch(key.Key){
+				case ConsoleKey.UpArrow:
+				case ConsoleKey.NumPad8:
+					ChooseActionFromDirection(e, Dir8.N);
 					break;
-					case ConsoleKey.RightArrow:
-					case ConsoleKey.NumPad6:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.E));
+				case ConsoleKey.RightArrow:
+				case ConsoleKey.NumPad6:
+					ChooseActionFromDirection(e, Dir8.E);
 					break;
-					case ConsoleKey.LeftArrow:
-					case ConsoleKey.NumPad4:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.W));
+				case ConsoleKey.LeftArrow:
+				case ConsoleKey.NumPad4:
+					ChooseActionFromDirection(e, Dir8.W);
 					break;
-					case ConsoleKey.DownArrow:
-					case ConsoleKey.NumPad2:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.S));
+				case ConsoleKey.DownArrow:
+				case ConsoleKey.NumPad2:
+					ChooseActionFromDirection(e, Dir8.S);
 					break;
-					case ConsoleKey.NumPad9:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.NE));
+				case ConsoleKey.NumPad9:
+					ChooseActionFromDirection(e, Dir8.NE);
 					break;
-					case ConsoleKey.NumPad3:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.SE));
+				case ConsoleKey.NumPad3:
+					ChooseActionFromDirection(e, Dir8.SE);
 					break;
-					case ConsoleKey.NumPad1:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.SW));
+				case ConsoleKey.NumPad1:
+					ChooseActionFromDirection(e, Dir8.SW);
 					break;
-					case ConsoleKey.NumPad7:
-					e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(Dir8.NW));
+				case ConsoleKey.NumPad7:
+					ChooseActionFromDirection(e, Dir8.NW);
 					break;
-				}
+			}
 			// todo, old code pasted:
 			/*
 					while(true) {
@@ -66,34 +62,6 @@ namespace ForaysUI.ScreenUI{
 						if(w.KeyPressed) {
 							Dir8? dir = null;
 							switch(w.GetKey()) {
-								case Key.Up:
-								case Key.W:
-									dir = Dir8.N;
-									break;
-								case Key.Down:
-								case Key.X:
-									dir = Dir8.S;
-									break;
-								case Key.Left:
-								case Key.A:
-									dir = Dir8.W;
-									break;
-								case Key.Right:
-								case Key.D:
-									dir = Dir8.E;
-									break;
-								case Key.Q:
-									dir = Dir8.NW;
-									break;
-								case Key.E:
-									dir = Dir8.NE;
-									break;
-								case Key.Z:
-									dir = Dir8.SW;
-									break;
-								case Key.C:
-									dir = Dir8.SE;
-									break;
 								case Key.N:
 									n.Event.ChosenAction = new DescendAction(g.Player);
 									return;
@@ -133,6 +101,13 @@ namespace ForaysUI.ScreenUI{
 						else Thread.Sleep(10);
 			*/
 			//
+		}
+		private void ChooseActionFromDirection(PlayerTurnEvent e, Dir8 dir){
+			Creature c = CreatureAt(Player.Position.Value.PointInDir(dir));
+			if(c != null)
+				e.ChosenAction = new MeleeAttackAction(Player, c);
+			else
+				e.ChosenAction = new WalkAction(Player, Player.Position.Value.PointInDir(dir));
 		}
 	}
 }

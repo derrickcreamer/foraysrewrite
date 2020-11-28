@@ -70,7 +70,7 @@ namespace Forays {
 				}
 				else {
 					//Notify(new NotifyPrintMessage{ Message = "The enemy hits you."});
-					Q.Execute(new AttackAction(Creature, Player));
+					Q.Execute(new MeleeAttackAction(Creature, Player));
 				}
 			}
 			else {
@@ -99,7 +99,7 @@ namespace Forays {
 			switch(ChosenAction){
 				// This section has some duplication because of how the type parameters to Q.Execute work:
 				case WalkAction action: result = Q.Execute(action); break;
-				case AttackAction action: result = Q.Execute(action); break;
+				case MeleeAttackAction action: result = Q.Execute(action); break;
 				case DescendAction action: result = Q.Execute(action); break;
 				//todo, etc...
 				default: break;
@@ -131,23 +131,34 @@ namespace Forays {
 			this.Amount = amount;
 		}
 		protected override Result Execute() {
-			if(GameUniverse.DeadCreatures.Contains(Creature)) {
-				//could do other stuff here, and set CreatureWasAlreadyDead if that is ever relevant to callers.
-				return new Result { CreatureIsNowDead = true };
-			}
 			Creature.CurrentHealth -= Amount;
 			if(Creature.CurrentHealth <= 0) {
-				if(Creature == Player){
-					//...
-					GameUniverse.GameOver = true;
-				}
-				//todo, notify creature died here - new GameEvent?
-				GameUniverse.DeadCreatures.Add(Creature);
+				Q.Execute(new DieEvent(Creature));
 			}
 			return new Result { CreatureIsNowDead = Creature.CurrentHealth <= 0 };
 		}
 	}
-	public class AttackAction : CreatureAction<AttackAction.Result> {
+	public class DieEvent : Event<SimpleEvent.NullResult> { //todo, should all these become CreatureEvents now?
+		public Creature Creature { get; set; }
+
+		public override bool IsInvalid => Creature == null; //todo remove?
+
+		public DieEvent(Creature creature) : base(creature.GameUniverse) {
+			this.Creature = creature;
+		}
+		protected override SimpleEvent.NullResult Execute() {
+			if(!GameUniverse.DeadCreatures.Contains(Creature)) {
+				if(Creature == Player){
+					//...
+					GameUniverse.GameOver = true;
+				}
+				GameUniverse.DeadCreatures.Add(Creature);
+			}
+			return null;
+		}
+	}
+	///<summary>Calculates hit/miss and calls MeleeHitEvent or MeleeMissEvent.</summary>
+	public class MeleeAttackAction : CreatureAction<MeleeAttackAction.Result> {
 		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
 
 
@@ -159,14 +170,55 @@ namespace Forays {
 			//attack hit, etc
 		}
 
-		public AttackAction(Creature creature, Creature target) : base(creature) { this.Target = target; }
+		public MeleeAttackAction(Creature creature, Creature target) : base(creature) { this.Target = target; }
 		protected override Result Execute() {
 			if(IsOutOfRange) return Failure();
 
-			if(R.CoinFlip()) return Failure(); //todo, would return AttackMissed, not failure
+			if(R.CoinFlip()){
+				Q.Execute(new MeleeHitEvent(Creature, Target));
+				//todo, result stuff?
+				return Success();
+			}
+			else{
+				Q.Execute(new MeleeMissEvent(Creature, Target));
+				//todo, result stuff?
+				return Failure(); //todo, would return AttackMissed, not failure
+			}
+		}
 
-			Q.Execute(new TakeDamageEvent(Target, 2)); //todo, make Execute part of GameObject, right?
+	}
+	public class MeleeHitEvent : CreatureAction<MeleeHitEvent.Result> {
+		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
 
+
+		public override bool IsInvalid => base.IsInvalid || Target == null;
+
+		public class Result : EventResult {
+			//todo
+			//attack hit, etc
+		}
+
+		public MeleeHitEvent(Creature creature, Creature target) : base(creature) { this.Target = target; }
+		protected override Result Execute() {
+			Q.Execute(new TakeDamageEvent(Target, 2)); //todo, pass back result from this?
+			return Success();
+		}
+
+	}
+	public class MeleeMissEvent : CreatureAction<MeleeMissEvent.Result> {
+		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
+
+
+		public override bool IsInvalid => base.IsInvalid || Target == null;
+
+		public class Result : EventResult {
+			//todo
+			//attack hit, etc
+		}
+
+		public MeleeMissEvent(Creature creature, Creature target) : base(creature) { this.Target = target; }
+		protected override Result Execute() {
+			//todo
 			return Success();
 		}
 

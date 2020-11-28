@@ -48,22 +48,40 @@ namespace ForaysUI.ScreenUI{
 					}
 					DrawToMap(Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
 					SetCursorPositionOnMap(Player.Position.Value.Y, Player.Position.Value.X);
-				//...environmental desc
-				Messages.Print(false);
-				//...status area
-				//...additional UI
+					//...environmental desc
+					Messages.Print(false);
+					//...status area
+					//...additional UI
 
-				Screen.ResumeUpdates();
+					Screen.ResumeUpdates();
 
-				//window update, set suspend if false...
-				/*if(!Screen.Update()){
-					GameUniverse.Suspend = true;
-					return;
-				}*/
-				//
-				//
-				ChooseAction(e);
-				break;
+					//window update, set suspend if false...
+					/*if(!Screen.Update()){
+						GameUniverse.Suspend = true;
+						return;
+					}*/
+					//
+					//
+					ChooseAction(e);
+					break;
+				case MeleeHitEvent e:
+					if(e.Creature == Player)
+						Messages.Add("You hit the enemy. ");
+					else
+						Messages.Add("The enemy hits you. ");
+					break;
+				case MeleeMissEvent e:
+					if(e.Creature == Player)
+						Messages.Add("You miss the enemy. ");
+					else
+						Messages.Add("The enemy misses you. ");
+					break;
+				case DieEvent e:
+					if(e.Creature == Player)
+						Messages.Add("You die. ");
+					else
+						Messages.Add("The enemy dies. ");
+					break;
 			}
 		}
 	}
