@@ -16,31 +16,6 @@ namespace Forays {
 	public interface IItemUseEvent { } //todo, not final. The idea here is that some actions might share interfaces that are easy to work with (for the UI),
 	// such as item-related actions, or actions involving a choice of target.
 
-	public class WalkAction : CreatureAction<PassFailResult> { //todo, this should just be MoveAction, with some kind of movement type enum, right?
-		public Point Destination { get; set; }
-		public bool IgnoreRange { get; set; } = false; //todo, should i have a naming convention for 'arg' properties vs. calculated properties?
-													   // ...such as IgnoreRange vs. OutOfRange. if i had a convention it might suggest 'IgnoreRange' and 'IsOutOfRange' - would that work for most?
-		public WalkAction(Creature creature, Point destination) : base(creature) {
-			this.Destination = destination;
-		}
-		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
-		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
-		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
-		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
-		public override bool IsInvalid => base.IsInvalid
-			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth //todo, is there a bounds check method somewhere?
-			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
-		protected override PassFailResult Execute() {
-			if(OutOfRange || IsBlockedByTerrain || CreatureAt(Destination) != null) {
-				// todo, there would be some kind of opportunity to print a message here.
-				return Failure();
-			}
-			bool moved = Map.Creatures.Move(Creature, Destination);
-			if(moved) return Success();
-			else return Failure();
-		}
-	}
-
 	public class AiTurnEvent : SimpleEvent {
 		public Creature Creature { get; set; }
 		public AiTurnEvent(Creature creature) : base(creature.GameUniverse) {
@@ -114,114 +89,29 @@ namespace Forays {
 			}
 		}
 	}
-	public class TakeDamageEvent : Event<TakeDamageEvent.Result> { //todo, should all these become CreatureEvents now?
-		public Creature Creature { get; set; }
-		public int Amount { get; set; } //todo, any reason to have these as properties? pretty sure only the ones that need to belong to interfaces (Creature, probably targeting stuff, etc.) will need to be properties.
-		// (it's possible that this event could eventually get a DamageSource property, or a DamageTypes collection, etc.)
-
-		public override bool IsInvalid => Creature == null || Amount <= 0; //todo, duplicating this?
-
-		public class Result : EventResult {
-			//public bool CreatureWasAlreadyDead { get; set; } (might be used one day, might not)
-			public bool CreatureIsNowDead { get; set; } //todo, technically this isn't being used yet either...
+	public class WalkAction : CreatureAction<PassFailResult> { //todo, this should just be MoveAction, with some kind of movement type enum, right?
+		public Point Destination { get; set; }
+		public bool IgnoreRange { get; set; } = false; //todo, should i have a naming convention for 'arg' properties vs. calculated properties?
+													   // ...such as IgnoreRange vs. OutOfRange. if i had a convention it might suggest 'IgnoreRange' and 'IsOutOfRange' - would that work for most?
+		public WalkAction(Creature creature, Point destination) : base(creature) {
+			this.Destination = destination;
 		}
-
-		public TakeDamageEvent(Creature creature, int amount) : base(creature.GameUniverse) {
-			this.Creature = creature;
-			this.Amount = amount;
-		}
-		protected override Result Execute() {
-			Creature.CurrentHealth -= Amount;
-			if(Creature.CurrentHealth <= 0) {
-				Q.Execute(new DieEvent(Creature));
+		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
+		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
+		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
+		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
+		public override bool IsInvalid => base.IsInvalid
+			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth //todo, is there a bounds check method somewhere?
+			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
+		protected override PassFailResult Execute() {
+			if(OutOfRange || IsBlockedByTerrain || CreatureAt(Destination) != null) {
+				// todo, there would be some kind of opportunity to print a message here.
+				return Failure();
 			}
-			return new Result { CreatureIsNowDead = Creature.CurrentHealth <= 0 };
+			bool moved = Map.Creatures.Move(Creature, Destination);
+			if(moved) return Success();
+			else return Failure();
 		}
-	}
-	public class DieEvent : Event<SimpleEvent.NullResult> { //todo, should all these become CreatureEvents now?
-		public Creature Creature { get; set; }
-
-		public override bool IsInvalid => Creature == null; //todo remove?
-
-		public DieEvent(Creature creature) : base(creature.GameUniverse) {
-			this.Creature = creature;
-		}
-		protected override SimpleEvent.NullResult Execute() {
-			if(!GameUniverse.DeadCreatures.Contains(Creature)) {
-				if(Creature == Player){
-					//...
-					GameUniverse.GameOver = true;
-				}
-				GameUniverse.DeadCreatures.Add(Creature);
-			}
-			return null;
-		}
-	}
-	///<summary>Calculates hit/miss and calls MeleeHitEvent or MeleeMissEvent.</summary>
-	public class MeleeAttackAction : CreatureAction<MeleeAttackAction.Result> {
-		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
-
-
-		public override bool IsInvalid => base.IsInvalid || Target == null;
-		public bool IsOutOfRange => Creature?.Position?.ChebyshevDistanceFrom(Target.Position.Value) > 1; //todo, null check etc.
-
-		public class Result : EventResult {
-			//todo
-			//attack hit, etc
-		}
-
-		public MeleeAttackAction(Creature creature, Creature target) : base(creature) { this.Target = target; }
-		protected override Result Execute() {
-			if(IsOutOfRange) return Failure();
-
-			if(R.CoinFlip()){
-				Q.Execute(new MeleeHitEvent(Creature, Target));
-				//todo, result stuff?
-				return Success();
-			}
-			else{
-				Q.Execute(new MeleeMissEvent(Creature, Target));
-				//todo, result stuff?
-				return Failure(); //todo, would return AttackMissed, not failure
-			}
-		}
-
-	}
-	public class MeleeHitEvent : CreatureAction<MeleeHitEvent.Result> {
-		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
-
-
-		public override bool IsInvalid => base.IsInvalid || Target == null;
-
-		public class Result : EventResult {
-			//todo
-			//attack hit, etc
-		}
-
-		public MeleeHitEvent(Creature creature, Creature target) : base(creature) { this.Target = target; }
-		protected override Result Execute() {
-			Q.Execute(new TakeDamageEvent(Target, 2)); //todo, pass back result from this?
-			return Success();
-		}
-
-	}
-	public class MeleeMissEvent : CreatureAction<MeleeMissEvent.Result> {
-		public Creature Target { get; set; } //todo - do attacks target creature, or cell? important question.
-
-
-		public override bool IsInvalid => base.IsInvalid || Target == null;
-
-		public class Result : EventResult {
-			//todo
-			//attack hit, etc
-		}
-
-		public MeleeMissEvent(Creature creature, Creature target) : base(creature) { this.Target = target; }
-		protected override Result Execute() {
-			//todo
-			return Success();
-		}
-
 	}
 	public class DescendAction : CreatureAction<PassFailResult> {
 		public override bool IsInvalid => base.IsInvalid || Creature != Player;

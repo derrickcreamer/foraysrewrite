@@ -66,7 +66,9 @@
     <Compile Include="GameUniverse\PointArray.cs" />
     <Compile Include="GameUniverse\Tile.cs" />
     <Compile Include="GameUniverse\Events\BaseEvents.cs" />
-    <Compile Include="GameUniverse\Events\CreatureEvents.cs" />
+    <Compile Include="GameUniverse\Events\CreatureEvents\CreatureEvents.cs" />
+    <Compile Include="GameUniverse\Events\CreatureEvents\DamageEvents.cs" />
+    <Compile Include="GameUniverse\Events\CreatureEvents\MeleeAttackEvents.cs" />
     <Compile Include="GameUniverse\Events\ItemEvents.cs" />
     <Compile Include="UI\Program.cs" />
     <Compile Include="UI\StringWrapBuffer.cs" />
