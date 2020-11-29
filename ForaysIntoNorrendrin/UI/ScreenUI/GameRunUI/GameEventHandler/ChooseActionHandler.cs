@@ -104,16 +104,16 @@ namespace ForaysUI.ScreenUI{
 			//
 		}
 		private void ChooseActionFromDirection(PlayerTurnEvent e, Dir8 dir){
-			Point targetPoint = Player.Position.Value.PointInDir(dir);
+			Point targetPoint = Player.Position.PointInDir(dir);
 			// Check for wall sliding:
 			if(CreatureAt(targetPoint) == null && TileTypeAt(targetPoint) == TileType.Wall){ //todo
-				Point cwPoint = Player.Position.Value.PointInDir(dir.Rotate(true));
-				Point ccwPoint = Player.Position.Value.PointInDir(dir.Rotate(false));
+				Point cwPoint = Player.Position.PointInDir(dir.Rotate(true));
+				Point ccwPoint = Player.Position.PointInDir(dir.Rotate(false));
 				if(TileTypeAt(cwPoint) != TileType.Wall && TileTypeAt(ccwPoint) == TileType.Wall) {
-					targetPoint = Player.Position.Value.PointInDir(dir.Rotate(true));
+					targetPoint = Player.Position.PointInDir(dir.Rotate(true));
 				}
 				else if(TileTypeAt(cwPoint) == TileType.Wall && TileTypeAt(ccwPoint) != TileType.Wall) {
-					targetPoint = Player.Position.Value.PointInDir(dir.Rotate(false));
+					targetPoint = Player.Position.PointInDir(dir.Rotate(false));
 				}
 			}
 			Creature targetCreature = CreatureAt(targetPoint);

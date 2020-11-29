@@ -17,9 +17,9 @@ namespace ForaysUI.ScreenUI{
 				case WalkAction e:
 					if(eventResult.Canceled && e.IsBlockedByTerrain){ //todo, this is wrong. Canceled events don't reach this point. Print terrain messages here instead.
 					}
-					if(e.Creature == Player && Player.Position.Value == e.Destination){
+					if(e.Creature == Player && Player.Position == e.Destination){
 						string msg = null;
-						switch(TileTypeAt(Player.Position.Value)){ //todo, method here instead, so I can return instead of breaking?
+						switch(TileTypeAt(Player.Position)){ //todo, method here instead, so I can return instead of breaking?
 							case TileType.Staircase:
 								msg = "The stairway leads downward - press > to descend. "; //todo
 								break;

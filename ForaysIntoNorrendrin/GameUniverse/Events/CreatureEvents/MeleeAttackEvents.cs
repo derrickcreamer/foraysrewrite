@@ -7,7 +7,7 @@ namespace Forays {
 
 
 		public override bool IsInvalid => base.IsInvalid || Target == null;
-		public bool IsOutOfRange => Creature?.Position?.ChebyshevDistanceFrom(Target.Position.Value) > 1; //todo, null check etc.
+		public bool IsOutOfRange => Creature?.Position.ChebyshevDistanceFrom(Target.Position) > 1; //todo, null check etc.
 
 		public class Result : EventResult {
 			//todo

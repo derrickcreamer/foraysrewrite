@@ -11,7 +11,7 @@ namespace Forays {
 		public virtual Creature Creature { get; set; }
 		public CreatureAction(Creature creature) : base(creature.GameUniverse) { this.Creature = creature; }
 		public override ICancelDecider CancelDecider => Creature?.CancelDecider;
-		public override bool IsInvalid => Creature == null || Creature.Position == null;
+		public override bool IsInvalid => Creature == null || !Creature.HasPosition;
 	}
 	public interface IItemUseEvent { } //todo, not final. The idea here is that some actions might share interfaces that are easy to work with (for the UI),
 	// such as item-related actions, or actions involving a choice of target.
@@ -25,7 +25,7 @@ namespace Forays {
 		protected override void ExecuteSimpleEvent() {
 			//todo, what checks whether creature is null? maybe the position check below can cover that too.
 			//todo, if creature is dead?
-			if(Creature.Position == null) return; // todo... creatures off the map shouldn't be getting turns
+			if(!Creature.HasPosition) return; // todo... creatures off the map shouldn't be getting turns
 
 			int timeTaken = Creature.ExecuteMonsterTurn();
 			Q.Schedule(new AiTurnEvent(Creature), timeTaken, Q.GetCurrentInitiative());
@@ -33,9 +33,9 @@ namespace Forays {
 			return; //todo clean up
 
 
-			List<Point> validPoints = Creature.Position.Value.EnumeratePointsWithinChebyshevDistance(1, false, false)
+			List<Point> validPoints = Creature.Position.EnumeratePointsWithinChebyshevDistance(1, false, false)
 				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();
-			Point dest = Creature.Position.Value;
+			Point dest = Creature.Position;
 			if(validPoints.Count > 0)
 				dest = validPoints[R.GetNext(validPoints.Count)];
 
@@ -97,7 +97,7 @@ namespace Forays {
 			this.Destination = destination;
 		}
 		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
-		public bool OutOfRange => !IgnoreRange && Creature.Position?.ChebyshevDistanceFrom(Destination) > 1;
+		public bool OutOfRange => !IgnoreRange && Creature.Position.ChebyshevDistanceFrom(Destination) > 1;
 		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
 		public override bool IsInvalid => base.IsInvalid
@@ -119,7 +119,7 @@ namespace Forays {
 
 		public DescendAction(Creature creature) : base(creature){ }
 		protected override PassFailResult Execute() {
-			if(Creature.TileTypeAt(Creature.Position.Value) != TileType.Staircase) return Failure();
+			if(Creature.TileTypeAt(Creature.Position) != TileType.Staircase) return Failure();
 			//todo, Grid.Clear method?
 			//todo, repeated code here:
 			Map.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);

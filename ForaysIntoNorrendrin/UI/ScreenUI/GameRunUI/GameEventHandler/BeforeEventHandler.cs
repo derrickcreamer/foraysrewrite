@@ -46,8 +46,8 @@ namespace ForaysUI.ScreenUI{
 							DrawToMap(i, j, ch, color);
 						}
 					}
-					DrawToMap(Player.Position.Value.Y, Player.Position.Value.X, '@', Color.White);
-					SetCursorPositionOnMap(Player.Position.Value.Y, Player.Position.Value.X);
+					DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
+					SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
 					//...environmental desc
 					Messages.Print(false);
 					//...status area
