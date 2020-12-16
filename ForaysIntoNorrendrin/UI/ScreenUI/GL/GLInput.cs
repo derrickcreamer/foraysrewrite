@@ -4,9 +4,14 @@ using System.Threading;
 using OpenTK.Input;
 
 namespace ForaysUI.ScreenUI{
-	public class GLInput : IInput{
+	public class GLInput : AbstractInput{
 		public Queue<ConsoleKeyInfo> KeyBuffer;
 		public GLScreen Screen;
+
+		// Translate scancodes to ConsoleKeys, keeping the current modifiers:
+		private Dictionary<uint, ConsoleKey> scancodeBindings;
+		// Translate specific combos of scancode+mods to specific combos of ConsoleKey+mods:
+		private Dictionary<(uint, bool, bool, bool), ConsoleKeyInfo> scancodeWithModsBindings;
 
 		public GLInput(){
 			KeyBuffer = new Queue<ConsoleKeyInfo>();
@@ -14,12 +19,12 @@ namespace ForaysUI.ScreenUI{
 			if(Screen == null) throw new InvalidOperationException("StaticScreen.Screen must be GLScreen");
 			Screen.Window.KeyDown += KeyDownHandler;
 		}
-		public bool KeyIsAvailable => KeyBuffer.Count > 0;
-		public void FlushInput(){
+		public override bool KeyIsAvailable => KeyBuffer.Count > 0;
+		public override void FlushInput(){
 			Screen.Window.ProcessEvents();
 			KeyBuffer.Clear();
 		}
-		public ConsoleKeyInfo ReadKey(bool showCursor = true){
+		public override ConsoleKeyInfo ReadKey(bool showCursor = true){
 			if(showCursor) Screen.CursorVisible = true; // todo, this might not be right...
 			while(true){
 				if(!Screen.WindowUpdate()) Program.Quit();
@@ -30,27 +35,59 @@ namespace ForaysUI.ScreenUI{
 				Thread.Sleep(10); //todo configurable?
 				if(KeyBuffer.Count > 0){
 					Screen.CursorVisible = false;
-					//todo rebindings?
+					//todo action rebindings?
 					ConsoleKeyInfo lastKey = KeyBuffer.Dequeue();
+					ConsoleKeyInfo rebindKey;
+					if(globalRebindings.TryGetValue(lastKey, out rebindKey)) lastKey = rebindKey;
 					return lastKey;
 				}
 			}
 		}
 		public void KeyDownHandler(object sender, KeyboardKeyEventArgs args){
-			ConsoleKey ck = GetConsoleKey(args.Key);
-			if(ck != ConsoleKey.NoName){
-				bool alt = Screen.Window.KeyIsDown(Key.LAlt) || Screen.Window.KeyIsDown(Key.RAlt);
-				bool shift = Screen.Window.KeyIsDown(Key.LShift) || Screen.Window.KeyIsDown(Key.RShift);
-				bool ctrl = Screen.Window.KeyIsDown(Key.LControl) || Screen.Window.KeyIsDown(Key.RControl);
-				if(ck == ConsoleKey.Enter && alt){
-					Screen.Window.ToggleFullScreen(); //todo, keeping this here or not?
+			bool shift = Screen.Window.KeyIsDown(Key.LShift) || Screen.Window.KeyIsDown(Key.RShift);
+			bool alt = Screen.Window.KeyIsDown(Key.LAlt) || Screen.Window.KeyIsDown(Key.RAlt);
+			bool ctrl = Screen.Window.KeyIsDown(Key.LControl) || Screen.Window.KeyIsDown(Key.RControl);
+			// First check for a specific combo of scancode + modifiers:
+			ConsoleKeyInfo cki;
+			if(scancodeWithModsBindings != null && scancodeWithModsBindings.TryGetValue((args.ScanCode, shift, alt, ctrl), out cki)){
+				if(cki.Key == ConsoleKey.Enter && ((cki.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt)){
+					Screen.Window.ToggleFullScreen(); //todo, check
 				}
 				else{
-					KeyBuffer.Enqueue(new ConsoleKeyInfo(GetChar(ck,shift),ck,shift,alt,ctrl));
+					KeyBuffer.Enqueue(cki);
+				}
+			}
+			else{
+				ConsoleKey ck;
+				// Check to see whether we always translate this scancode to a specific key (keeping the modifiers):
+				if(scancodeBindings != null && scancodeBindings.TryGetValue(args.ScanCode, out ck)){
+					// Do nothing here currently; handle this ConsoleKey below.
+				}
+				else{
+					ck = GetConsoleKey(args.Key);
+				}
+				if(ck != ConsoleKey.NoName){
+					if(ck == ConsoleKey.Enter && alt){
+						Screen.Window.ToggleFullScreen(); //todo, keeping this here or not?
+					}
+					else{
+						KeyBuffer.Enqueue(new ConsoleKeyInfo(GetChar(ck,shift),ck,shift,alt,ctrl));
+					}
 				}
 			}
 			//todo MouseUI.RemoveHighlight();
 			//todo MouseUI.RemoveMouseover();
+		}
+		protected override void AddScancodeBindingAll(uint scancode, ConsoleKey newKey){
+			if(scancodeBindings == null)
+				scancodeBindings = new Dictionary<uint, ConsoleKey>();
+			scancodeBindings[scancode] = newKey;
+		}
+		protected override void AddScancodeBinding(uint scancode, ConsoleModifiers scancodeMods, ConsoleKeyInfo newBinding){
+			bool shift = (scancodeMods & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
+			bool alt = (scancodeMods & ConsoleModifiers.Alt) == ConsoleModifiers.Alt;
+			bool ctrl = (scancodeMods & ConsoleModifiers.Control) == ConsoleModifiers.Control;
+			scancodeWithModsBindings[(scancode, shift, alt, ctrl)] = newBinding;
 		}
 		public static ConsoleKey GetConsoleKey(OpenTK.Input.Key key){
 			switch(key){
@@ -168,149 +205,6 @@ namespace ForaysUI.ScreenUI{
 
 				default: return ConsoleKey.NoName;
 			}
-		}
-		//todo, should this still be used?
-		public static char GetChar(ConsoleKey k,bool shift){ //this method tries to return the most correct char for the given values. GetCommandChar(), OTOH, returns game-specific chars.
-				if(k >= ConsoleKey.A && k <= ConsoleKey.Z){
-						if(shift){
-								return k.ToString()[0];
-						}
-						else{
-								return k.ToString().ToLower()[0];
-						}
-				}
-				if(k >= ConsoleKey.D0 && k <= ConsoleKey.D9){
-						if(shift){
-								switch(k){
-								case ConsoleKey.D1:
-								return '!';
-								case ConsoleKey.D2:
-								return '@';
-								case ConsoleKey.D3:
-								return '#';
-								case ConsoleKey.D4:
-								return '$';
-								case ConsoleKey.D5:
-								return '%';
-								case ConsoleKey.D6:
-								return '^';
-								case ConsoleKey.D7:
-								return '&';
-								case ConsoleKey.D8:
-								return '*';
-								case ConsoleKey.D9:
-								return '(';
-								case ConsoleKey.D0:
-								default:
-								return ')';
-								}
-						}
-						else{
-								return k.ToString()[1];
-						}
-				}
-				if(k >= ConsoleKey.NumPad0 && k <= ConsoleKey.NumPad9){
-						return k.ToString()[6];
-				}
-				switch(k){
-				case ConsoleKey.Tab:
-				return (char)9;
-				case ConsoleKey.Enter:
-				return (char)13;
-				case ConsoleKey.Escape:
-				return (char)27;
-				case ConsoleKey.Spacebar:
-				return ' ';
-				case ConsoleKey.OemComma:
-				if(shift){
-						return '<';
-				}
-				else{
-						return ',';
-				}
-				case ConsoleKey.OemPeriod:
-				if(shift){
-						return '>';
-				}
-				else{
-						return '.';
-				}
-				case ConsoleKey.OemMinus:
-				if(shift){
-						return '_';
-				}
-				else{
-						return '-';
-				}
-				case ConsoleKey.OemPlus:
-				if(shift){
-						return '+';
-				}
-				else{
-						return '=';
-				}
-				case ConsoleKey.Oem3:
-				if(shift){
-						return '~';
-				}
-				else{
-						return '`';
-				}
-				case ConsoleKey.Oem4:
-				if(shift){
-						return '{';
-				}
-				else{
-						return '[';
-				}
-				case ConsoleKey.Oem6:
-				if(shift){
-						return '}';
-				}
-				else{
-						return ']';
-				}
-				case ConsoleKey.Oem5:
-				if(shift){
-						return '|';
-				}
-				else{
-						return '\\';
-				}
-				case ConsoleKey.Oem1:
-				if(shift){
-						return ':';
-				}
-				else{
-						return ';';
-				}
-				case ConsoleKey.Oem7:
-				if(shift){
-						return '"';
-				}
-				else{
-						return '\'';
-				}
-				case ConsoleKey.Oem2:
-				if(shift){
-						return '?';
-				}
-				else{
-						return '/';
-				}
-				case ConsoleKey.Divide:
-				return '/';
-				case ConsoleKey.Multiply:
-				return '*';
-				case ConsoleKey.Subtract:
-				return '-';
-				case ConsoleKey.Add:
-				return '+';
-				case ConsoleKey.Decimal:
-				return '.';
-				default:
-				return (char)0;
-				}
 		}
 	}
 }

@@ -2,14 +2,14 @@ using System;
 using static ForaysUI.ScreenUI.StaticScreen;
 
 namespace ForaysUI.ScreenUI{
-	public class ConsoleInput : IInput{
-		public bool KeyIsAvailable => Console.KeyAvailable;
+	public class ConsoleInput : AbstractInput{
+		public override bool KeyIsAvailable => Console.KeyAvailable;
 
-		public void FlushInput(){
+		public override void FlushInput(){
 			while(Console.KeyAvailable) Console.ReadKey(true);
 		}
 
-		public ConsoleKeyInfo ReadKey(bool showCursor = true){
+		public override ConsoleKeyInfo ReadKey(bool showCursor = true){
 			if(showCursor) Screen.CursorVisible = true; // todo, this might not be right...
 			ConsoleKeyInfo rawKey = Console.ReadKey(true);
 			Screen.CursorVisible = false; //todo...?

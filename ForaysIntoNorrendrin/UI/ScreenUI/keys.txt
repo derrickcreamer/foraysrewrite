@@ -1,0 +1,206 @@
+# This file controls key rebindings.
+# (Any line that starts with '#' is a comment and will be ignored.)
+#
+# There are 2 types of rebindings: global rebindings & action rebindings.
+# Global rebindings affect the entire program, while action rebindings
+# affect only action commands - the ones that happen on the main game map.
+# The default mode is global, and if "global" or "action" appear on
+# their own line in this file, the mode will be changed for future rebindings.
+#
+# A rebinding looks like this:  x:tab
+# That one means "when x is pressed, generate a tab".
+# The modifier keys are shift, alt, and control:   "escape:shift k" means
+# "when escape is pressed, generate shift-k".
+#
+# If you want to rebind a key to another key no matter what modifier keys
+# are pressed, do it like this:  "all t:m" - this binds 't' to 'm', 'alt-t'
+# to 'alt-m', 'ctrl-shift-t' to 'ctrl-shift-m', and so on.
+#
+#
+# To see the key names that'll work for rebinding, scroll to the end of this file.
+# You can also use scancodes on the left side of the colon. Scancodes are
+# supported in the default OpenGL mode and ignored in terminal mode.
+# For example, "83:q" maps scancode 83 (which may or may not be 'a' in QWERTY)
+# to 'q'. The 'all' syntax "all 83:q" is also supported.
+#
+
+global
+
+# Here are the default bindings of the arrow keys to the cardinal directions:
+all uparrow:numpad8
+all leftarrow:numpad4
+all rightarrow:numpad6
+all downarrow:numpad2
+
+
+action
+
+# Here are the default vi-keys:
+all h:numpad4
+all j:numpad2
+all k:numpad8
+all l:numpad6
+all y:numpad7
+all u:numpad9
+all b:numpad1
+all n:numpad3
+
+# Here are the default numpad bindings:
+all home:numpad7
+all pageup:numpad9
+all clear:numpad5
+all end:numpad1
+all pagedown:numpad3
+
+# Default binding of '.' to '5':
+oemperiod:numpad5
+
+
+
+
+
+# Here are all the supported key names:
+# (note that these aren't case-sensitive)
+#
+# LeftArrow
+# UpArrow
+# RightArrow
+# DownArrow
+# Tab
+# Enter
+# Escape
+# Spacebar
+# PageUp
+# PageDown
+# End
+# Home
+# Clear    # (This is the middle key on the numpad with numlock off, on some systems)
+# Insert
+# Delete
+# Backspace
+# A
+# B
+# C
+# D
+# E
+# F
+# G
+# H
+# I
+# J
+# K
+# L
+# M
+# N
+# O
+# P
+# Q
+# R
+# S
+# T
+# U
+# V
+# W
+# X
+# Y
+# Z
+# D0
+# D1    # (D0-D9 are the top-row numbers)
+# D2
+# D3
+# D4
+# D5
+# D6
+# D7
+# D8
+# D9
+# NumPad0
+# NumPad1    # (These are of course the numpad numbers with numlock on)
+# NumPad2
+# NumPad3
+# NumPad4
+# NumPad5
+# NumPad6
+# NumPad7
+# NumPad8
+# NumPad9    # (The following Oem keys might change depending on keyboard layout)
+# Oem1    # (';' semicolon)
+# OemPlus    # ('=' equals, next to backspace)
+# OemComma    # (',' comma)
+# OemMinus    # ('-' hyphen, next to 0 on the top row)
+# OemPeriod    # ('.' period)
+# Oem2    # ('/' forward slash)
+# Oem3    # ('`' grave accent or backtick, on the same key as the '~' tilde)
+# Oem4    # ('[' left square bracket)
+# Oem5    # ('\' backslash)
+# Oem6    # (']' right square bracket)
+# Oem7    # (''' apostrophe)
+# F1
+# F2
+# F3
+# F4
+# F5
+# F6
+# F7
+# F8
+# F9
+# F10
+# F11
+# F12
+# F13
+# F14
+# F15
+# F16
+# F17
+# F18
+# F19
+# F20    # (F21-F24 are reserved)
+# Multiply    # (These next 5 appear on the numpad but may not be
+# Add         #  generated on all systems)
+# Subtract
+# Decimal
+# Divide
+# PrintScreen
+# Pause    # (Everything beyond this point is a valid entry but
+# Separator    # probably won't do anything)
+# BrowserBack
+# BrowserForward
+# BrowserRefresh
+# BrowserStop
+# BrowserSearch
+# BrowserFavorites
+# BrowserHome
+# VolumeMute
+# VolumeDown
+# VolumeUp
+# MediaNext
+# MediaPrevious
+# MediaStop
+# MediaPlay
+# LaunchMail
+# LaunchMediaSelect
+# LaunchApp1
+# LaunchApp2
+# Oem8
+# Oem102
+# Process
+# Packet
+# Attention
+# CrSel
+# ExSel
+# EraseEndOfFile
+# Play
+# Zoom
+# NoName
+# Pa1
+# OemClear
+# Select
+# Print
+# Execute
+# Help
+# LeftWindows
+# RightWindows
+# Applications
+# Sleep
+#
+

@@ -14,6 +14,7 @@ namespace ForaysUI.ScreenUI{
 		public static RNG RNG;
 
 		public static void Run(string[] args){
+			//todo, set Program.SavePath from args here
 			//todo check ifdef and args to see whether this is GL mode
 			GLMode = true;
 
@@ -29,7 +30,7 @@ namespace ForaysUI.ScreenUI{
 			}
 
 			//todo... this is where Nym registers the translation of "you feel stronger" to "the foo looks stronger"
-			//todo... load key rebindings
+			Input.LoadKeyBindings();
 			ShowTitleScreen();
 			ShowMainMenu();
 		}

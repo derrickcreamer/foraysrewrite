@@ -40,19 +40,15 @@ namespace ForaysUI.ScreenUI{
 			ConsoleKeyInfo key = Input.ReadKey();
 			bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
 			switch(key.Key){
-				case ConsoleKey.UpArrow:
 				case ConsoleKey.NumPad8:
 					ChooseActionFromDirection(e, Dir8.N, shift);
 					break;
-				case ConsoleKey.RightArrow:
 				case ConsoleKey.NumPad6:
 					ChooseActionFromDirection(e, Dir8.E, shift);
 					break;
-				case ConsoleKey.LeftArrow:
 				case ConsoleKey.NumPad4:
 					ChooseActionFromDirection(e, Dir8.W, shift);
 					break;
-				case ConsoleKey.DownArrow:
 				case ConsoleKey.NumPad2:
 					ChooseActionFromDirection(e, Dir8.S, shift);
 					break;
