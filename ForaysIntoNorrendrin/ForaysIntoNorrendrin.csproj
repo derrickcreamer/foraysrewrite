@@ -82,6 +82,7 @@
     <Compile Include="UI\ScreenUI\ScreenUI.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleInput.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleScreen.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\GameMenu.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameUIObject.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MessageBuffer.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\Sidebar.cs" />

@@ -19,52 +19,103 @@ namespace ForaysUI.ScreenUI{
 		private Dir8? walkDir;
 
 		private void ChooseAction(PlayerTurnEvent e){
-			if(walkDir != null){
-				if(Input.KeyIsAvailable){
-					Input.FlushInput();
-					walkDir = null;
+			do{
+				Screen.HoldUpdates();
+				for(int i = 0; i < GameUniverse.MapHeight; i++) {
+					for(int j = 0; j < GameUniverse.MapWidth; j++) {
+						char ch = ' ';
+						Color color = Color.Gray;
+						switch(this.TileTypeAt(new Point(j, i))) {
+							case TileType.Floor:
+								ch = '.';
+								break;
+							case TileType.Wall:
+								ch = '#';
+								break;
+							case TileType.Water:
+								ch = '~';
+								color = Color.Blue;
+								break;
+							case TileType.Staircase:
+								ch = '>';
+								color = Color.RandomBreached;
+								break;
+						}
+
+						if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
+							ch = 'g';
+							color = Color.Green;
+						}
+
+						DrawToMap(i, j, ch, color);
+					}
 				}
-				else{
-					Point targetPoint = Player.Position.PointInDir(walkDir.Value);
-					if(TileTypeAt(targetPoint) == TileType.Wall || CreatureAt(targetPoint) != null){ //todo
+				DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
+				SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
+				//...environmental desc
+				Messages.Print(false);
+				//...status area
+				//...additional UI
+
+				Screen.ResumeUpdates();
+
+				//window update, set suspend if false...
+				/*if(!Screen.Update()){
+					GameUniverse.Suspend = true;
+					return;
+				}*/
+				//
+				//
+				if(walkDir != null){
+					if(Input.KeyIsAvailable){
+						Input.FlushInput();
 						walkDir = null;
 					}
 					else{
-						if(!Screen.WindowUpdate()) Program.Quit();
-						Thread.Sleep(10); //todo, make configurable
-						e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(walkDir.Value));
-						return;
+						Point targetPoint = Player.Position.PointInDir(walkDir.Value);
+						if(TileTypeAt(targetPoint) == TileType.Wall || CreatureAt(targetPoint) != null){ //todo
+							walkDir = null;
+						}
+						else{
+							if(!Screen.WindowUpdate()) Program.Quit();
+							Thread.Sleep(10); //todo, make configurable
+							e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(walkDir.Value));
+							return;
+						}
 					}
 				}
-			}
-			ConsoleKeyInfo key = Input.ReadKey();
-			bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
-			switch(key.Key){
-				case ConsoleKey.NumPad8:
-					ChooseActionFromDirection(e, Dir8.N, shift);
-					break;
-				case ConsoleKey.NumPad6:
-					ChooseActionFromDirection(e, Dir8.E, shift);
-					break;
-				case ConsoleKey.NumPad4:
-					ChooseActionFromDirection(e, Dir8.W, shift);
-					break;
-				case ConsoleKey.NumPad2:
-					ChooseActionFromDirection(e, Dir8.S, shift);
-					break;
-				case ConsoleKey.NumPad9:
-					ChooseActionFromDirection(e, Dir8.NE, shift);
-					break;
-				case ConsoleKey.NumPad3:
-					ChooseActionFromDirection(e, Dir8.SE, shift);
-					break;
-				case ConsoleKey.NumPad1:
-					ChooseActionFromDirection(e, Dir8.SW, shift);
-					break;
-				case ConsoleKey.NumPad7:
-					ChooseActionFromDirection(e, Dir8.NW, shift);
-					break;
-			}
+				ConsoleKeyInfo key = Input.ReadKey();
+				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
+				switch(key.Key){
+					case ConsoleKey.NumPad8:
+						ChooseActionFromDirection(e, Dir8.N, shift);
+						break;
+					case ConsoleKey.NumPad6:
+						ChooseActionFromDirection(e, Dir8.E, shift);
+						break;
+					case ConsoleKey.NumPad4:
+						ChooseActionFromDirection(e, Dir8.W, shift);
+						break;
+					case ConsoleKey.NumPad2:
+						ChooseActionFromDirection(e, Dir8.S, shift);
+						break;
+					case ConsoleKey.NumPad9:
+						ChooseActionFromDirection(e, Dir8.NE, shift);
+						break;
+					case ConsoleKey.NumPad3:
+						ChooseActionFromDirection(e, Dir8.SE, shift);
+						break;
+					case ConsoleKey.NumPad1:
+						ChooseActionFromDirection(e, Dir8.SW, shift);
+						break;
+					case ConsoleKey.NumPad7:
+						ChooseActionFromDirection(e, Dir8.NW, shift);
+						break;
+					case ConsoleKey.Escape:
+
+						break;
+				}
+			} while(e.ChosenAction == null);
 		}
 		private void ChooseActionFromDirection(PlayerTurnEvent e, Dir8 dir, bool shift){
 			Point targetPoint = Player.Position.PointInDir(dir);

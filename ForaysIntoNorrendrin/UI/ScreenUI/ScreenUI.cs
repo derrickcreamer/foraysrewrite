@@ -108,7 +108,8 @@ namespace ForaysUI.ScreenUI{
 			RunGame(g);
 		}
 		private static void RunGame(GameUniverse g){
-			GameEventHandler eventHandler = new GameEventHandler(g);
+			GameRunUI gameUI = new GameRunUI(g);
+			GameEventHandler eventHandler = new GameEventHandler(gameUI);
 			g.Q.BeforeEventExecute = eventHandler.BeforeGameEvent;
 			g.Q.AfterEventExecute = eventHandler.AfterGameEvent;
 			(g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = eventHandler.DecideCancel;

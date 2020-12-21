@@ -16,52 +16,6 @@ namespace ForaysUI.ScreenUI{
 		public void BeforeGameEvent(GameObject gameEvent){
 			switch(gameEvent){
 				case PlayerTurnEvent e:
-					Screen.HoldUpdates();
-					for(int i = 0; i < GameUniverse.MapHeight; i++) {
-						for(int j = 0; j < GameUniverse.MapWidth; j++) {
-							char ch = ' ';
-							Color color = Color.Gray;
-							switch(this.TileTypeAt(new Point(j, i))) {
-								case TileType.Floor:
-									ch = '.';
-									break;
-								case TileType.Wall:
-									ch = '#';
-									break;
-								case TileType.Water:
-									ch = '~';
-									color = Color.Blue;
-									break;
-								case TileType.Staircase:
-									ch = '>';
-									color = Color.RandomBreached;
-									break;
-							}
-
-							if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
-								ch = 'g';
-								color = Color.Green;
-							}
-
-							DrawToMap(i, j, ch, color);
-						}
-					}
-					DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
-					SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
-					//...environmental desc
-					Messages.Print(false);
-					//...status area
-					//...additional UI
-
-					Screen.ResumeUpdates();
-
-					//window update, set suspend if false...
-					/*if(!Screen.Update()){
-						GameUniverse.Suspend = true;
-						return;
-					}*/
-					//
-					//
 					ChooseAction(e);
 					break;
 				case MeleeHitEvent e:

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Forays;
-using ForaysUI.ScreenUI;
 using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
-namespace ForaysUI{
+
+namespace ForaysUI.ScreenUI{
 	public class MessageBuffer : GameUIObject {
 		public bool OmniscienceEnabled; //todo, will this remain here?
 		public int RowOffset = 0;
@@ -20,7 +20,7 @@ namespace ForaysUI{
 		protected const int MAX_LENGTH = GameUniverse.MapWidth;
 		protected const string MORE = " [more] ";
 
-		public MessageBuffer(GameUniverse g) : base(g) {
+		public MessageBuffer(GameRunUI ui) : base(ui) {
 			buffer = new StringWrapBuffer(NUM_LINES, MAX_LENGTH, MORE.Length, null, new char[] {' '});
 			buffer.BufferFull += HandleOverflow;
 			log = new List<string>();
@@ -139,6 +139,7 @@ namespace ForaysUI{
 			}
 			if(morePrompt){
 				WriteToMessages(NUM_LINES - 1, currentColumn, MORE, Color.Yellow);
+				//todo, should this also darken the other UI sections?
 				//todo mouse UI buttons
 				Screen.ResumeUpdates();
 				SetCursorPositionForMessages(NUM_LINES - 1, currentColumn + MORE.Length - 1); // Move cursor to the space at the end of " [more] "
