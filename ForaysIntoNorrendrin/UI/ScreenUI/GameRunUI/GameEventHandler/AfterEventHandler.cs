@@ -4,13 +4,14 @@ using Forays;
 namespace ForaysUI.ScreenUI{
 	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
 	// The files in which this class is defined are:
-	// AfterEventHandler.cs
+	// AfterEventHandler.cs (contains the constructor)
 	// BeforeEventHandler.cs
 	// CancelActionHandler.cs
 	// ChooseActionHandler.cs
-	// GameEventHandler.cs (contains the constructors and helpers)
 	// StatusEventHandler.cs
 	public partial class GameEventHandler : GameUIObject{
+		public GameEventHandler(GameRunUI ui) : base(ui){ }
+
 		public void AfterGameEvent(GameObject gameEvent, EventResult eventResult){
 			// todo, print messages based on results here
 			switch(gameEvent){

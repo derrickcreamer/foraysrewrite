@@ -90,7 +90,6 @@
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\BeforeEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\CancelActionHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\ChooseActionHandler.cs" />
-    <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\GameEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\StatusEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GL\GL.cs" />
     <Compile Include="UI\ScreenUI\GL\GLInput.cs" />

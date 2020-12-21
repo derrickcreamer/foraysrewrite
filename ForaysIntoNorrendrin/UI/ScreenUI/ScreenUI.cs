@@ -7,8 +7,8 @@ using GameComponents;
 
 namespace ForaysUI.ScreenUI{
 	public static class ScreenUIMain{
-		const int Rows = 28;
-		const int Cols = 88;
+		public const int Rows = 28;
+		public const int Cols = 88;
 
 		public static bool GLMode;
 		public static RNG RNG;
