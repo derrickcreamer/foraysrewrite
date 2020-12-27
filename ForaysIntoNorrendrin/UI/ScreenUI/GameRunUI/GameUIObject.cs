@@ -17,13 +17,13 @@ namespace ForaysUI.ScreenUI{
 
 		public MessageBuffer Messages => GameRunUI.Messages;
 		public Sidebar Sidebar => GameRunUI.Sidebar;
-		public GameMenu GameMenu => GameRunUI.GameMenu;
+		public EscapeMenu EscapeMenu => GameRunUI.EscapeMenu;
 	}
 	// GameRunUI is kind of like the UI equivalent to GameUniverse.
 	public class GameRunUI : GameObject{
 		public MessageBuffer Messages;
 		public Sidebar Sidebar;
-		public GameMenu GameMenu;
+		public EscapeMenu EscapeMenu;
 
 		// Track display height/width separately to make it easier to change later:
 		public const int MapDisplayHeight = GameUniverse.MapHeight;
@@ -37,7 +37,7 @@ namespace ForaysUI.ScreenUI{
 		public GameRunUI(GameUniverse g) : base(g){
 			Messages = new MessageBuffer(this);
 			Sidebar = new Sidebar(this);
-			GameMenu = new GameMenu(this);
+			EscapeMenu = new EscapeMenu(this);
 		}
 		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset, glyphIndex, color);
@@ -90,7 +90,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(EnviromentalDescriptionRow, MapColOffset, envDesc, color);
 			}
 			if(commands != DrawOption.DoNotDraw){
-				Color commandColor = commands == DrawOption.Darkened? Color.DarkCyan : Color.Cyan;
+				Color commandColor = commands == DrawOption.Darkened? Color.DarkGray : Color.Cyan;
 				Color textColor = commands == DrawOption.Darkened? Color.DarkGray : Color.Gray;
 				/*string text = "Actions [Enter]    Look around [Tab]    [i]nventory    [e]quipment";
 				Screen.Write(CommandListRow, MapColOffset, text, textColor);

@@ -80,7 +80,7 @@ namespace ForaysUI.ScreenUI{
 						ChooseActionFromDirection(e, Dir8.NW, shift);
 						break;
 					case ConsoleKey.Escape:
-						GameMenu.Open();
+						EscapeMenu.Open();
 						break;
 				}
 			} while(e.ChosenAction == null);

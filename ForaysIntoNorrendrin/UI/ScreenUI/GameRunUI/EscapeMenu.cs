@@ -3,12 +3,12 @@ using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI{
-	public class GameMenu : GameUIObject{
+	public class EscapeMenu : GameUIObject{
 		const int Height = 13;
 		const int Width = 25;
 		const int RowOffset = (ScreenUIMain.Rows - Height) / 2;
 		const int ColOffset = (ScreenUIMain.Cols - Width) / 2;
-		public GameMenu(GameRunUI ui) : base(ui){ }
+		public EscapeMenu(GameRunUI ui) : base(ui){ }
 
 		public void Open(){
 			Screen.CursorVisible = false;
