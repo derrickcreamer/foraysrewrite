@@ -20,11 +20,11 @@ namespace ForaysUI.ScreenUI{
 		private void ChooseAction(PlayerTurnEvent e){
 			do{
 				GameRunUI.DrawGameUI(
-					map: DrawOption.Normal,
-					messages: DrawOption.Normal,
-					environmentalDesc: DrawOption.Normal,
 					sidebar: DrawOption.Normal,
-					bottomUI: DrawOption.Normal
+					messages: DrawOption.Normal,
+					map: DrawOption.Normal,
+					environmentalDesc: DrawOption.Normal,
+					commands: DrawOption.Normal
 				);
 				//window update, set suspend if false...
 				/*if(!Screen.Update()){

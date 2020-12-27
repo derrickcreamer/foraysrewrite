@@ -5,7 +5,7 @@ using static ForaysUI.ScreenUI.StaticInput;
 namespace ForaysUI.ScreenUI{
 	public class GameMenu : GameUIObject{
 		const int Height = 13;
-		const int Width = 24;
+		const int Width = 25;
 		const int RowOffset = (ScreenUIMain.Rows - Height) / 2;
 		const int ColOffset = (ScreenUIMain.Cols - Width) / 2;
 		public GameMenu(GameRunUI ui) : base(ui){ }
@@ -14,11 +14,11 @@ namespace ForaysUI.ScreenUI{
 			Screen.CursorVisible = false;
 			Screen.HoldUpdates();
 			GameRunUI.DrawGameUI(
-				map: DrawOption.DoNotDraw,
-				messages: DrawOption.DoNotDraw,
-				environmentalDesc: DrawOption.Darkened,
 				sidebar: DrawOption.Darkened,
-				bottomUI: DrawOption.Darkened
+				messages: DrawOption.DoNotDraw,
+				map: DrawOption.DoNotDraw,
+				environmentalDesc: DrawOption.Darkened,
+				commands: DrawOption.Darkened
 			);
 			//todo, probably refactor this into a box-drawing utility:
 			const Color cornerColor = Color.Blue;

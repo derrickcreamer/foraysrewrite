@@ -25,10 +25,14 @@ namespace ForaysUI.ScreenUI{
 		public Sidebar Sidebar;
 		public GameMenu GameMenu;
 
+		// Track display height/width separately to make it easier to change later:
+		public const int MapDisplayHeight = GameUniverse.MapHeight;
+		public const int MapDisplayWidth = GameUniverse.MapWidth;
 		// todo, add option to change layout, which'll change these values, plus the matching ones in Messages and Sidebar:
-		public int MapRowOffset = 3;
+		public int MapRowOffset = 4;
 		public int MapColOffset = 21;
-		public int EnviromentalFlavorStartRow = 3 + GameUniverse.MapHeight; //todo, more here?
+		public int EnviromentalDescriptionRow = 4 + MapDisplayHeight; //todo, more here?
+		public int CommandListRow = 5 + MapDisplayHeight;
 
 		public GameRunUI(GameUniverse g) : base(g){
 			Messages = new MessageBuffer(this);
@@ -40,10 +44,14 @@ namespace ForaysUI.ScreenUI{
 		public void SetCursorPositionOnMap(int row, int col)
 			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset);
 
-		public void DrawGameUI(DrawOption map, DrawOption messages, DrawOption environmentalDesc,
-			DrawOption sidebar, DrawOption bottomUI)
+		public void DrawGameUI(DrawOption sidebar, DrawOption messages, DrawOption map,
+			DrawOption environmentalDesc, DrawOption commands)
 		{
 			Screen.HoldUpdates();
+			Sidebar.Draw(sidebar);
+			if(messages != DrawOption.DoNotDraw){
+				Messages.Print(false);
+			}
 			if(map != DrawOption.DoNotDraw){
 				for(int i = 0; i < GameUniverse.MapHeight; i++) {
 					for(int j = 0; j < GameUniverse.MapWidth; j++) {
@@ -76,14 +84,28 @@ namespace ForaysUI.ScreenUI{
 				}
 				DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
 			}
-			if(messages != DrawOption.DoNotDraw){
-				Messages.Print(false);
+			if(environmentalDesc != DrawOption.DoNotDraw){
+				Color color = environmentalDesc == DrawOption.Darkened? Color.DarkEnvironmentDescription : Color.EnvironmentDescription;
+				string envDesc = "You are in a maze of twisty little passages, all alike.".PadRight(MapDisplayWidth);
+				Screen.Write(EnviromentalDescriptionRow, MapColOffset, envDesc, color);
 			}
-			//todo
-			//...environmental desc
-			//...status area
-			//...additional UI
-
+			if(commands != DrawOption.DoNotDraw){
+				Color commandColor = commands == DrawOption.Darkened? Color.DarkCyan : Color.Cyan;
+				Color textColor = commands == DrawOption.Darkened? Color.DarkGray : Color.Gray;
+				/*string text = "Actions [Enter]    Look around [Tab]    [i]nventory    [e]quipment";
+				Screen.Write(CommandListRow, MapColOffset, text, textColor);
+				Screen.Write(CommandListRow, MapColOffset + 9, "Enter", commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 32, "Tab", commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 41, 'i', commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 56, 'e', commandColor);*/
+				string text = "[i]nventory    [e]quipment    Look around [Tab]    Actions [Enter]";
+				Screen.Write(CommandListRow, MapColOffset, text, textColor);
+				Screen.Write(CommandListRow, MapColOffset + 1, 'i', commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 16, 'e', commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 43, "Tab", commandColor);
+				Screen.Write(CommandListRow, MapColOffset + 60, "Enter", commandColor);
+				//todo, mouse buttons
+			}
 			Screen.ResumeUpdates();
 		}
 	}

@@ -16,7 +16,7 @@ namespace ForaysUI.ScreenUI{
 		protected int repetitionCount;
 		protected bool interruptPlayer;
 
-		protected const int NUM_LINES = 3;
+		protected const int NUM_LINES = 4;
 		protected const int MAX_LENGTH = GameUniverse.MapWidth;
 		protected const string MORE = " [more] ";
 
