@@ -86,6 +86,11 @@
     <Compile Include="UI\ScreenUI\GameRunUI\GameUIObject.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MessageBuffer.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\Sidebar.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\CharacterScreens\ActionsScreen.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\CharacterScreens\AdventureLogScreen.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\CharacterScreens\CharacterScreens.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\CharacterScreens\EquipmentScreen.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\CharacterScreens\InventoryScreen.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\AfterEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\BeforeEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\CancelActionHandler.cs" />

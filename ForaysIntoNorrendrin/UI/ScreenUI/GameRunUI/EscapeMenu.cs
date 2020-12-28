@@ -10,15 +10,16 @@ namespace ForaysUI.ScreenUI{
 		const int ColOffset = (ScreenUIMain.Cols - Width) / 2;
 		public EscapeMenu(GameRunUI ui) : base(ui){ }
 
-		public void Open(){
+		public void Open(bool drawBottomUI = true){
 			Screen.CursorVisible = false;
 			Screen.HoldUpdates();
+			DrawOption bottomUI = drawBottomUI? DrawOption.Darkened : DrawOption.DoNotDraw;
 			GameRunUI.DrawGameUI(
 				sidebar: DrawOption.Darkened,
 				messages: DrawOption.DoNotDraw,
 				map: DrawOption.DoNotDraw,
-				environmentalDesc: DrawOption.Darkened,
-				commands: DrawOption.Darkened
+				environmentalDesc: bottomUI,
+				commands: bottomUI
 			);
 			//todo, probably refactor this into a box-drawing utility:
 			const Color cornerColor = Color.Blue;
@@ -46,7 +47,7 @@ namespace ForaysUI.ScreenUI{
 			Screen.Write(optionOffsetRow + 2, optionOffsetCol, "[ ]  View help", Color.Gray);
 			Screen.Write(optionOffsetRow + 4, optionOffsetCol, "[ ]  Game options", Color.Gray);
 			Screen.Write(optionOffsetRow + 6, optionOffsetCol, "[ ]  Screen options", Color.Gray);
-			Screen.Write(optionOffsetRow + 8, optionOffsetCol, "[ ]  Quit game", Color.Gray);
+			Screen.Write(optionOffsetRow + 8, optionOffsetCol, "[ ]  Quit game", Color.Gray); //todo, "Save or quit"?
 
 			Screen.Write(optionOffsetRow, optionOffsetCol + 1, 'a', Color.Cyan);
 			Screen.Write(optionOffsetRow + 2, optionOffsetCol + 1, 'b', Color.Cyan);

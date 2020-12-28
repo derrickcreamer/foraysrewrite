@@ -18,12 +18,14 @@ namespace ForaysUI.ScreenUI{
 		public MessageBuffer Messages => GameRunUI.Messages;
 		public Sidebar Sidebar => GameRunUI.Sidebar;
 		public EscapeMenu EscapeMenu => GameRunUI.EscapeMenu;
+		public CharacterScreens CharacterScreens => GameRunUI.CharacterScreens;
 	}
 	// GameRunUI is kind of like the UI equivalent to GameUniverse.
 	public class GameRunUI : GameObject{
 		public MessageBuffer Messages;
 		public Sidebar Sidebar;
 		public EscapeMenu EscapeMenu;
+		public CharacterScreens CharacterScreens;
 
 		// Track display height/width separately to make it easier to change later:
 		public const int MapDisplayHeight = GameUniverse.MapHeight;
@@ -38,6 +40,7 @@ namespace ForaysUI.ScreenUI{
 			Messages = new MessageBuffer(this);
 			Sidebar = new Sidebar(this);
 			EscapeMenu = new EscapeMenu(this);
+			CharacterScreens = new CharacterScreens(this);
 		}
 		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset, glyphIndex, color);

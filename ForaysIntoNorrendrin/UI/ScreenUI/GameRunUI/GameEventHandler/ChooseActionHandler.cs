@@ -82,6 +82,18 @@ namespace ForaysUI.ScreenUI{
 					case ConsoleKey.Escape:
 						EscapeMenu.Open();
 						break;
+					case ConsoleKey.I:
+						CharacterScreens.Show(e, CharacterScreen.Inventory);
+						break;
+					case ConsoleKey.E:
+						CharacterScreens.Show(e, CharacterScreen.Equipment);
+						break;
+					case ConsoleKey.Enter:
+						CharacterScreens.Show(e, CharacterScreen.Actions);
+						break;
+					case ConsoleKey.V:
+						CharacterScreens.Show(e, CharacterScreen.AdventureLog);
+						break;
 				}
 			} while(e.ChosenAction == null);
 		}
