@@ -94,6 +94,9 @@ namespace ForaysUI.ScreenUI{
 					case ConsoleKey.V:
 						CharacterScreens.Show(e, CharacterScreen.AdventureLog);
 						break;
+					case ConsoleKey.Tab:
+						GameRunUI.LookMode(e);
+						break;
 				}
 			} while(e.ChosenAction == null);
 		}

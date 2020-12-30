@@ -16,6 +16,7 @@ namespace ForaysUI.ScreenUI{
 			while(true){
 				const int rowOffset = 3;
 				int colOffset = GameRunUI.MapColOffset;
+				Screen.HoldUpdates();
 				Screen.Clear(0, colOffset, ScreenUIMain.Rows, GameRunUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.Actions);
 
@@ -24,6 +25,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(rowOffset + 2, colOffset, "[a] Rest to recover health and repair equipment"); //todo
 				Screen.Write(rowOffset + 2, colOffset + 1, 'a', Color.Cyan);
 				Screen.Write(rowOffset + 3, colOffset, SeparatorBar); //todo, count?
+				Screen.ResumeUpdates();
 				Screen.SetCursorPosition(rowOffset, colOffset + 19);
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
@@ -41,6 +43,7 @@ namespace ForaysUI.ScreenUI{
 						int letterIndex = key.KeyChar - 'a';
 						if(letterIndex >= 0 && letterIndex < 3){ //todo
 							//
+							//remember to check whether the PlayerTurnEvent is null - that should be allowed.
 						}
 						break;
 				}

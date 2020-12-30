@@ -16,6 +16,7 @@ namespace ForaysUI.ScreenUI{
 			while(true){
 				const int rowOffset = 3;
 				int colOffset = GameRunUI.MapColOffset;
+				Screen.HoldUpdates();
 				Screen.Clear(0, colOffset, ScreenUIMain.Rows, GameRunUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.Equipment);
 
@@ -28,6 +29,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(rowOffset + 4, colOffset, "[c] Third sword");
 				Screen.Write(rowOffset + 4, colOffset + 1, 'c', Color.Cyan);
 				Screen.Write(rowOffset + 5, colOffset, SeparatorBar);
+				Screen.ResumeUpdates();
 				Screen.SetCursorPosition(rowOffset, colOffset + 16);
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;

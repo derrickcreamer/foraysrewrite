@@ -16,6 +16,7 @@ namespace ForaysUI.ScreenUI{
 			while(true){
 				const int rowOffset = 3;
 				int colOffset = GameRunUI.MapColOffset;
+				Screen.HoldUpdates();
 				Screen.Clear(0, colOffset, ScreenUIMain.Rows, GameRunUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.AdventureLog);
 
@@ -32,6 +33,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(rowOffset + 8, colOffset, "[d] Pause adventure, change options, or get help"); //todo
 				Screen.Write(rowOffset + 8, colOffset + 1, 'd', Color.Cyan);
 				//Screen.Write(rowOffset + 9, colOffset, SeparatorBar); //todo, count?
+				Screen.ResumeUpdates();
 				Screen.SetCursorPosition(rowOffset, colOffset + 31);
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;

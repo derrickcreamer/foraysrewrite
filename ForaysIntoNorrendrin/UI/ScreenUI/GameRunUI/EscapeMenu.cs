@@ -4,8 +4,8 @@ using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI{
 	public class EscapeMenu : GameUIObject{
-		const int Height = 13;
-		const int Width = 25;
+		const int Height = 11;
+		const int Width = 23;
 		const int RowOffset = (ScreenUIMain.Rows - Height) / 2;
 		const int ColOffset = (ScreenUIMain.Cols - Width) / 2;
 		public EscapeMenu(GameRunUI ui) : base(ui){ }
@@ -44,16 +44,14 @@ namespace ForaysUI.ScreenUI{
 			const int optionOffsetCol = ColOffset + 3;
 			const int optionOffsetRow = RowOffset + 2;
 			Screen.Write(optionOffsetRow, optionOffsetCol, "[ ]  Resume game", Color.Gray);
-			Screen.Write(optionOffsetRow + 2, optionOffsetCol, "[ ]  View help", Color.Gray);
-			Screen.Write(optionOffsetRow + 4, optionOffsetCol, "[ ]  Game options", Color.Gray);
-			Screen.Write(optionOffsetRow + 6, optionOffsetCol, "[ ]  Screen options", Color.Gray);
-			Screen.Write(optionOffsetRow + 8, optionOffsetCol, "[ ]  Quit game", Color.Gray); //todo, "Save or quit"?
+			Screen.Write(optionOffsetRow + 2, optionOffsetCol, "[ ]  Help", Color.Gray);
+			Screen.Write(optionOffsetRow + 4, optionOffsetCol, "[ ]  Options", Color.Gray);
+			Screen.Write(optionOffsetRow + 6, optionOffsetCol, "[ ]  Save or quit", Color.Gray);
 
 			Screen.Write(optionOffsetRow, optionOffsetCol + 1, 'a', Color.Cyan);
 			Screen.Write(optionOffsetRow + 2, optionOffsetCol + 1, 'b', Color.Cyan);
 			Screen.Write(optionOffsetRow + 4, optionOffsetCol + 1, 'c', Color.Cyan);
 			Screen.Write(optionOffsetRow + 6, optionOffsetCol + 1, 'd', Color.Cyan);
-			Screen.Write(optionOffsetRow + 8, optionOffsetCol + 1, 'e', Color.Cyan);
 
 			Screen.ResumeUpdates();
 			ConsoleKeyInfo key = Input.ReadKey(false);
@@ -67,9 +65,6 @@ namespace ForaysUI.ScreenUI{
 					//todo
 					break;
 				case ConsoleKey.D:
-					//todo
-					break;
-				case ConsoleKey.E:
 					//todo, ask for confirm
 					Program.Quit();
 					break;

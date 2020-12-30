@@ -1,7 +1,9 @@
 using System;
 using Forays;
 using GameComponents;
+using GameComponents.DirectionUtility;
 using static ForaysUI.ScreenUI.StaticScreen;
+using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI{
 	///<summary>Base class for UI types that make heavy use of the GameUniverse</summary>
@@ -95,12 +97,6 @@ namespace ForaysUI.ScreenUI{
 			if(commands != DrawOption.DoNotDraw){
 				Color commandColor = commands == DrawOption.Darkened? Color.DarkGray : Color.Cyan;
 				Color textColor = commands == DrawOption.Darkened? Color.DarkGray : Color.Gray;
-				/*string text = "Actions [Enter]    Look around [Tab]    [i]nventory    [e]quipment";
-				Screen.Write(CommandListRow, MapColOffset, text, textColor);
-				Screen.Write(CommandListRow, MapColOffset + 9, "Enter", commandColor);
-				Screen.Write(CommandListRow, MapColOffset + 32, "Tab", commandColor);
-				Screen.Write(CommandListRow, MapColOffset + 41, 'i', commandColor);
-				Screen.Write(CommandListRow, MapColOffset + 56, 'e', commandColor);*/
 				string text = "[i]nventory    [e]quipment    Look around [Tab]    Actions [Enter]";
 				Screen.Write(CommandListRow, MapColOffset, text, textColor);
 				Screen.Write(CommandListRow, MapColOffset + 1, 'i', commandColor);
@@ -110,6 +106,76 @@ namespace ForaysUI.ScreenUI{
 				//todo, mouse buttons
 			}
 			Screen.ResumeUpdates();
+		}
+		public void LookMode(PlayerTurnEvent e){
+			bool travelMode = false;
+			Point p = Player.Position; //todo
+			while(true){
+				Screen.HoldUpdates();
+				Screen.Clear(0, MapColOffset, 4, GameRunUI.MapDisplayWidth);
+				Screen.Clear(EnviromentalDescriptionRow, MapColOffset, 2, GameRunUI.MapDisplayWidth);
+				DrawGameUI(
+					sidebar: DrawOption.Normal,
+					messages: DrawOption.DoNotDraw,
+					map: DrawOption.Normal,
+					environmentalDesc: DrawOption.DoNotDraw,
+					commands: DrawOption.DoNotDraw
+				);
+				string moveCursorMsg = travelMode? "Travel mode -- Move cursor to choose destination." : "Move cursor to look around.";
+				Screen.Write(0, MapColOffset, moveCursorMsg);
+				Screen.Write(2, MapColOffset, "[Tab] to cycle between interesting targets          [m]ore details");
+				Screen.Write(2, MapColOffset + 1, "Tab", Color.Cyan);
+				Screen.Write(2, MapColOffset + 53, 'm', Color.Cyan);
+				if(travelMode){
+					Screen.Write(3, MapColOffset, "[x] to confirm destination           [Space] to cancel travel mode");
+					Screen.Write(3, MapColOffset + 1, 'x', Color.Cyan);
+					Screen.Write(3, MapColOffset + 38, "Space", Color.Cyan);
+				}
+				else{
+					Screen.Write(3, MapColOffset, "[x] to enter travel mode");
+					Screen.Write(3, MapColOffset + 1, 'x', Color.Cyan);
+				}
+				//todo, show highlight, and path if travel mode
+				string lookDescription = "You see an unaware goblin on a staircase."; //todo
+				//todo, handle 2-line wrap around
+				Screen.Write(EnviromentalDescriptionRow, MapColOffset, lookDescription, Color.Green);
+				Screen.ResumeUpdates();
+				bool needsRedraw = false;
+				while(!needsRedraw){
+					ConsoleKeyInfo key = Input.ReadKey();
+					bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
+					switch(key.Key){
+						case ConsoleKey.Tab:
+							//todo
+							needsRedraw = true;
+							break;
+						case ConsoleKey.Escape:
+							return; // Done
+						case ConsoleKey.Spacebar:
+							if(travelMode){
+								travelMode = false;
+								needsRedraw = true;
+							}
+							else{
+								return;
+							}
+							break;
+						case ConsoleKey.X:
+							if(travelMode){
+								e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(Dir8.NE)); //todo
+								return;
+							}
+							else{
+								travelMode = true;
+								needsRedraw = true;
+							}
+							break;
+						//todo movement keys
+						default:
+							break;
+					}
+				}
+			}
 		}
 	}
 	public enum DrawOption{ Normal, Darkened, DoNotDraw };
