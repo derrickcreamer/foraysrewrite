@@ -43,16 +43,10 @@ namespace ForaysUI.ScreenUI{
 			}
 			const int optionOffsetCol = ColOffset + 3;
 			const int optionOffsetRow = RowOffset + 2;
-			Screen.Write(optionOffsetRow, optionOffsetCol, "[ ]  Resume game", Color.Gray);
-			Screen.Write(optionOffsetRow + 2, optionOffsetCol, "[ ]  Help", Color.Gray);
-			Screen.Write(optionOffsetRow + 4, optionOffsetCol, "[ ]  Options", Color.Gray);
-			Screen.Write(optionOffsetRow + 6, optionOffsetCol, "[ ]  Save or quit", Color.Gray);
-
-			Screen.Write(optionOffsetRow, optionOffsetCol + 1, 'a', Color.Cyan);
-			Screen.Write(optionOffsetRow + 2, optionOffsetCol + 1, 'b', Color.Cyan);
-			Screen.Write(optionOffsetRow + 4, optionOffsetCol + 1, 'c', Color.Cyan);
-			Screen.Write(optionOffsetRow + 6, optionOffsetCol + 1, 'd', Color.Cyan);
-
+			string[] menuItems = new[] {
+				"Resume game", "Help", "Options", "Save or quit"
+			};
+			Screen.WriteListOfChoices(optionOffsetRow, optionOffsetCol, menuItems, linesBetweenEach: 1);
 			Screen.ResumeUpdates();
 			ConsoleKeyInfo key = Input.ReadKey(false);
 			switch(key.Key){
@@ -62,6 +56,7 @@ namespace ForaysUI.ScreenUI{
 					//todo
 					break;
 				case ConsoleKey.C:
+					OptionsScreen.Show();
 					//todo
 					break;
 				case ConsoleKey.D:

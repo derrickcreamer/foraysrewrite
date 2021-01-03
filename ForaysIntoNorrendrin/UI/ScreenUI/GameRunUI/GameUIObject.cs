@@ -53,6 +53,8 @@ namespace ForaysUI.ScreenUI{
 			DrawOption environmentalDesc, DrawOption commands)
 		{
 			Screen.HoldUpdates();
+			Screen.Clear(0, Sidebar.Width, ScreenUIMain.Rows, 1); //todo, check option
+			Screen.Clear(0, ScreenUIMain.Cols - 1, ScreenUIMain.Rows, 1); //todo, check option
 			Sidebar.Draw(sidebar);
 			if(messages != DrawOption.DoNotDraw){
 				Messages.Print(false);

@@ -29,6 +29,7 @@ namespace ForaysUI.ScreenUI{
 				StaticInput.Input = new ConsoleInput();
 			}
 
+			Option.Initialize(); //todo, load options here
 			//todo... this is where Nym registers the translation of "you feel stronger" to "the foo looks stronger"
 			Input.LoadKeyBindings();
 			ShowTitleScreen();

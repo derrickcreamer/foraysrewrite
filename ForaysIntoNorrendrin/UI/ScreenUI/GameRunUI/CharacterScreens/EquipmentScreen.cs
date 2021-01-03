@@ -22,6 +22,7 @@ namespace ForaysUI.ScreenUI{
 
 				Screen.Write(rowOffset, colOffset, "Your equipment: ");
 				Screen.Write(rowOffset + 1, colOffset, SeparatorBar); //todo
+				//todo, use WriteListOfChoices here
 				Screen.Write(rowOffset + 2, colOffset, "[a] Sword");
 				Screen.Write(rowOffset + 2, colOffset + 1, 'a', Color.Cyan);
 				Screen.Write(rowOffset + 3, colOffset, "[b] Another sword");

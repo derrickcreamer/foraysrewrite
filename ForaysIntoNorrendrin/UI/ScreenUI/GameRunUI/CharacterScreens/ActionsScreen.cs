@@ -22,9 +22,13 @@ namespace ForaysUI.ScreenUI{
 
 				Screen.Write(rowOffset, colOffset, "Available actions: ");
 				Screen.Write(rowOffset + 1, colOffset, SeparatorBar);
-				Screen.Write(rowOffset + 2, colOffset, "[a] Rest to recover health and repair equipment"); //todo
-				Screen.Write(rowOffset + 2, colOffset + 1, 'a', Color.Cyan);
-				Screen.Write(rowOffset + 3, colOffset, SeparatorBar); //todo, count?
+				string[] actions = new[] { //todo
+					"Rest to recover health and repair equipment",
+					"Descend staircase",
+					"Close a door"
+				};
+				Screen.WriteListOfChoices(rowOffset + 2, colOffset, actions);
+				Screen.Write(rowOffset + 5, colOffset, SeparatorBar); //todo, count?
 				Screen.ResumeUpdates();
 				Screen.SetCursorPosition(rowOffset, colOffset + 19);
 				ConsoleKeyInfo key = Input.ReadKey();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ForaysUI.ScreenUI{
 	// This class exists so that 'using static' grants easy access to this Screen:
@@ -46,6 +47,10 @@ namespace ForaysUI.ScreenUI{
 		///<summary>Called immediately before exiting the program. Allows terminals to be reset to original config.</summary>
 		void CleanUp();
 
+		///<summary>Allows each Screen to return additional options specific to its implementation.</summary>
+		IList<OptionsScreen.OptionEditInfo> GetAdditionalDisplayOptions();
+		//todo, need a method to attempt to load these additional options, when they're encountered in the saved options file.
+
 
 		//todo - this one is interesting: GLUpdate calls WindowUpdate and therefore lets the gl window process events, returns false if exiting, ...
 			// it DOES seem like a 'let input events be read' method could be useful, yeah.
@@ -79,5 +84,19 @@ namespace ForaysUI.ScreenUI{
 
 
 		// ALSO need to keep the mouse UI in mind...it'll basically be built on top of...the GL version only, not THIS one. Nevermind.
+	}
+	public static class ScreenExtensions{
+		public static void WriteListOfChoices(this IScreen screen, int rowOffset, int colOffset, IList<string> choices,
+			Color textColor = Color.Gray, Color bgColor = Color.Black, Color letterColor = Color.Cyan, int linesBetweenEach = 0)
+		{
+			int row = rowOffset;
+			for(int i=0;i<choices.Count;++i){
+				screen.Write(row, colOffset, '[', textColor, bgColor);
+				screen.Write(row, colOffset + 1, i + 'a', letterColor, bgColor);
+				screen.Write(row, colOffset + 2, "] ", textColor, bgColor);
+				screen.Write(row, colOffset + 4, choices[i], textColor, bgColor);
+				row += linesBetweenEach + 1;
+			}
+		}
 	}
 }

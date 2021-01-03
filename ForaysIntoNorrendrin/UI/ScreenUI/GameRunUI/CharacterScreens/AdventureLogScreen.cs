@@ -24,14 +24,9 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(rowOffset + 1, colOffset, SeparatorBar);
 				Screen.Write(rowOffset + 2, colOffset, "Entered the mountain pass 571 turns ago");
 				Screen.Write(rowOffset + 3, colOffset, "Skills: (none)"); //todo
-				Screen.Write(rowOffset + 5, colOffset, "[a] Discovered locations"); //todo
-				Screen.Write(rowOffset + 5, colOffset + 1, 'a', Color.Cyan);
-				Screen.Write(rowOffset + 6, colOffset, "[b] Discovered items"); //todo
-				Screen.Write(rowOffset + 6, colOffset + 1, 'b', Color.Cyan);
-				Screen.Write(rowOffset + 7, colOffset, "[c] Recent messages"); //todo
-				Screen.Write(rowOffset + 7, colOffset + 1, 'c', Color.Cyan);
-				Screen.Write(rowOffset + 8, colOffset, "[d] Pause adventure, change options, or get help"); //todo
-				Screen.Write(rowOffset + 8, colOffset + 1, 'd', Color.Cyan);
+				Screen.WriteListOfChoices(rowOffset + 5, colOffset, new[] {
+					"Discovered locations", "Discovered items", "Recent messages", "Pause adventure, change options, or get help"
+				});
 				//Screen.Write(rowOffset + 9, colOffset, SeparatorBar); //todo, count?
 				Screen.ResumeUpdates();
 				Screen.SetCursorPosition(rowOffset, colOffset + 31);

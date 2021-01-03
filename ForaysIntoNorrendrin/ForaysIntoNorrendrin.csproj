@@ -78,6 +78,8 @@
     <Compile Include="UI\StringWrapBuffer.cs" />
     <Compile Include="UI\ScreenUI\Color.cs" />
     <Compile Include="UI\ScreenUI\Input.cs" />
+    <Compile Include="UI\ScreenUI\Options.cs" />
+    <Compile Include="UI\ScreenUI\OptionsScreen.cs" />
     <Compile Include="UI\ScreenUI\Screen.cs" />
     <Compile Include="UI\ScreenUI\ScreenUI.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleInput.cs" />
@@ -97,8 +99,9 @@
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\ChooseActionHandler.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameEventHandler\StatusEventHandler.cs" />
     <Compile Include="UI\ScreenUI\GL\GL.cs" />
-    <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
     <Compile Include="UI\ScreenUI\GL\GLColor.cs" />
+    <Compile Include="UI\ScreenUI\GL\GLInput.cs" />
+    <Compile Include="UI\ScreenUI\GL\GLOptions.cs" />
     <Compile Include="UI\ScreenUI\GL\GLScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

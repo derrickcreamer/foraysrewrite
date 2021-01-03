@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ForaysUI.ScreenUI{
 	public class ConsoleScreen : IScreen
@@ -58,5 +59,6 @@ namespace ForaysUI.ScreenUI{
 		public void ResetColors(){
 			//todo
 		}
+		public IList<OptionsScreen.OptionEditInfo> GetAdditionalDisplayOptions() => null;
 	}
 }

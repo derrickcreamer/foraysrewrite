@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ForaysUI.ScreenUI{
 	public class GLScreen : IScreen{
@@ -156,5 +157,21 @@ namespace ForaysUI.ScreenUI{
 			//todo, is this call correct?
 			Window?.Close();
 		}
+		public IList<OptionsScreen.OptionEditInfo> GetAdditionalDisplayOptions(){
+			return new[] {
+				OptionsScreen.GetEditInfo((BoolOptionType)BoolOptionTypeGL.HideMousePath, "Hide the path shown when moving the mouse over the map"),
+				new OptionsScreen.OptionEditInfo{
+					Text = "Fullscreen",
+					GetValue = () => Window.FullScreen? "yes" : "no",
+					EditValue = (row, col) => {
+						Window.ToggleFullScreen();
+						System.Threading.Thread.Sleep(10);
+						Window.WindowUpdate();
+					}
+				},
+				//todo, vsync on/off/adaptive here
+			};
+		}
+		//todo - once the 'load options' method is added, it should set the 'input delay ms' option separately for each screen.
 	}
 }

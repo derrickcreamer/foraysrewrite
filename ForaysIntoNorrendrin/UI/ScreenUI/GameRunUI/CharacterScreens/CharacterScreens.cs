@@ -12,7 +12,7 @@ namespace ForaysUI.ScreenUI{
 	// InventoryScreen.cs
 	public enum CharacterScreen { Inventory, Equipment, Actions, AdventureLog };
 	public partial class CharacterScreens : GameUIObject{
-		const string SeparatorBar = "------------------------------------------------------------------";
+		const string SeparatorBar = "------------------------------------------------------------------"; // 66, equal to map display width
 		public CharacterScreens(GameRunUI ui) : base(ui){ }
 
 		public void Show(PlayerTurnEvent e, CharacterScreen screen){
