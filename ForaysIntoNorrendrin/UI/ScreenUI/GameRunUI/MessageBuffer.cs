@@ -7,8 +7,8 @@ using static ForaysUI.ScreenUI.StaticInput;
 namespace ForaysUI.ScreenUI{
 	public class MessageBuffer : GameUIObject {
 		public bool OmniscienceEnabled; //todo, will this remain here?
-		public int RowOffset = 0;
-		public int ColOffset = 21;
+		public static int RowOffset; // Offset values are set by GameRunUI.UpdateMessagesOption
+		public static int ColOffset;
 
 		protected StringWrapBuffer buffer;
 		protected List<string> log;

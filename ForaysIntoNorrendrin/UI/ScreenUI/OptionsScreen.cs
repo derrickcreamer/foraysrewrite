@@ -86,8 +86,24 @@ namespace ForaysUI.ScreenUI{
 		private static OptionsScreenType? ShowDisplayOptions(){
 			List<OptionEditInfo> options = new List<OptionEditInfo>{
 				GetEditInfo(IntOptionType.LoopDelayMs, "Delay while awaiting input (in milliseconds)"),
-				GetEditInfo(BoolOptionType.SidebarOnRight, "Arrange screen with sidebar on right side instead of left"),
-				GetEditInfo(BoolOptionType.MessagesAtBottom, "Arrange screen with messages at bottom instead of top"),
+				new OptionEditInfo{
+					Text = "Arrange screen with sidebar on right side instead of left",
+					GetValue = () => Option.IsSet(BoolOptionType.SidebarOnRight)? "yes" : "no",
+					EditValue = (i, j) => {
+						bool newValue = !Option.IsSet(BoolOptionType.SidebarOnRight);
+						Option.Set(BoolOptionType.SidebarOnRight, newValue);
+						GameRunUI.UpdateSidebarOption(newValue);
+					}
+				},
+				new OptionEditInfo{
+					Text = "Arrange screen with messages at bottom instead of top",
+					GetValue = () => Option.IsSet(BoolOptionType.MessagesAtBottom)? "yes" : "no",
+					EditValue = (i, j) => {
+						bool newValue = !Option.IsSet(BoolOptionType.MessagesAtBottom);
+						Option.Set(BoolOptionType.MessagesAtBottom, newValue);
+						GameRunUI.UpdateMessagesOption(newValue);
+					}
+				},
 				//todo color options
 			};
 			IList<OptionEditInfo> additionalOptions = Screen.GetAdditionalDisplayOptions();

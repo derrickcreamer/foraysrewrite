@@ -4,8 +4,8 @@ using static ForaysUI.ScreenUI.StaticScreen;
 
 namespace ForaysUI.ScreenUI{
 	public class Sidebar : GameUIObject{
-		public int RowOffset = 0;
-		public int ColOffset = 0;
+		public static int RowOffset; // Offset values are set by GameRunUI.UpdateSidebarOption
+		public static int ColOffset;
 		public const int Height = ScreenUIMain.Rows;
 		public const int Width = 20;
 		public Sidebar(GameRunUI ui) : base(ui){

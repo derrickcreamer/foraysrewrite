@@ -32,17 +32,52 @@ namespace ForaysUI.ScreenUI{
 		// Track display height/width separately to make it easier to change later:
 		public const int MapDisplayHeight = GameUniverse.MapHeight;
 		public const int MapDisplayWidth = GameUniverse.MapWidth;
-		// todo, add option to change layout, which'll change these values, plus the matching ones in Messages and Sidebar:
-		public int MapRowOffset = 4;
-		public int MapColOffset = 21;
-		public int EnviromentalDescriptionRow = 4 + MapDisplayHeight; //todo, more here?
-		public int CommandListRow = 5 + MapDisplayHeight;
+
+		public static int MapRowOffset;
+		public static int MapColOffset;
+		public static int EnviromentalDescriptionRow;
+		public static int CommandListRow;
+		public static int ScreenEdgeDividerCol; // Used to keep these 2 columns blank
+		public static int MidScreenDividerCol;
 
 		public GameRunUI(GameUniverse g) : base(g){
 			Messages = new MessageBuffer(this);
 			Sidebar = new Sidebar(this);
 			EscapeMenu = new EscapeMenu(this);
 			CharacterScreens = new CharacterScreens(this);
+			UpdateSidebarOption(Option.IsSet(BoolOptionType.SidebarOnRight));
+			UpdateMessagesOption(Option.IsSet(BoolOptionType.MessagesAtBottom));
+		}
+		public static void UpdateSidebarOption(bool sidebarOnRight){
+			Sidebar.RowOffset = 0;
+			if(sidebarOnRight){
+				MapColOffset = 1;
+				MessageBuffer.ColOffset = 1;
+				Sidebar.ColOffset = MapDisplayWidth + 2;
+				MidScreenDividerCol = MapDisplayWidth + 1;
+				ScreenEdgeDividerCol = 0;
+			}
+			else{
+				MapColOffset = 21;
+				MessageBuffer.ColOffset = 21;
+				Sidebar.ColOffset = 0;
+				MidScreenDividerCol = Sidebar.Width;
+				ScreenEdgeDividerCol = ScreenUIMain.Cols - 1;
+			}
+		}
+		public static void UpdateMessagesOption(bool messagesAtBottom){
+			if(messagesAtBottom){
+				MapRowOffset = 2;
+				EnviromentalDescriptionRow = 1;
+				CommandListRow = 0;
+				MessageBuffer.RowOffset = MapDisplayHeight + 2;
+			}
+			else{
+				MapRowOffset = 4;
+				EnviromentalDescriptionRow = 4 + MapDisplayHeight;
+				CommandListRow = 5 + MapDisplayHeight;
+				MessageBuffer.RowOffset = 0;
+			}
 		}
 		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+MapRowOffset, col+MapColOffset, glyphIndex, color);
@@ -53,8 +88,8 @@ namespace ForaysUI.ScreenUI{
 			DrawOption environmentalDesc, DrawOption commands)
 		{
 			Screen.HoldUpdates();
-			Screen.Clear(0, Sidebar.Width, ScreenUIMain.Rows, 1); //todo, check option
-			Screen.Clear(0, ScreenUIMain.Cols - 1, ScreenUIMain.Rows, 1); //todo, check option
+			Screen.Clear(0, MidScreenDividerCol, ScreenUIMain.Rows, 1);
+			Screen.Clear(0, ScreenEdgeDividerCol, ScreenUIMain.Rows, 1);
 			Sidebar.Draw(sidebar);
 			if(messages != DrawOption.DoNotDraw){
 				Messages.Print(false);
@@ -114,8 +149,9 @@ namespace ForaysUI.ScreenUI{
 			Point p = Player.Position; //todo
 			while(true){
 				Screen.HoldUpdates();
-				Screen.Clear(0, MapColOffset, 4, GameRunUI.MapDisplayWidth);
-				Screen.Clear(EnviromentalDescriptionRow, MapColOffset, 2, GameRunUI.MapDisplayWidth);
+				Screen.Clear(MessageBuffer.RowOffset, MapColOffset, 4, GameRunUI.MapDisplayWidth);
+				Screen.Clear(EnviromentalDescriptionRow, MapColOffset, 1, GameRunUI.MapDisplayWidth);
+				Screen.Clear(CommandListRow, MapColOffset, 1, GameRunUI.MapDisplayWidth);
 				DrawGameUI(
 					sidebar: DrawOption.Normal,
 					messages: DrawOption.DoNotDraw,
@@ -124,18 +160,18 @@ namespace ForaysUI.ScreenUI{
 					commands: DrawOption.DoNotDraw
 				);
 				string moveCursorMsg = travelMode? "Travel mode -- Move cursor to choose destination." : "Move cursor to look around.";
-				Screen.Write(0, MapColOffset, moveCursorMsg);
-				Screen.Write(2, MapColOffset, "[Tab] to cycle between interesting targets          [m]ore details");
-				Screen.Write(2, MapColOffset + 1, "Tab", Color.Cyan);
-				Screen.Write(2, MapColOffset + 53, 'm', Color.Cyan);
+				Screen.Write(MessageBuffer.RowOffset, MapColOffset, moveCursorMsg);
+				Screen.Write(MessageBuffer.RowOffset + 2, MapColOffset, "[Tab] to cycle between interesting targets          [m]ore details");
+				Screen.Write(MessageBuffer.RowOffset + 2, MapColOffset + 1, "Tab", Color.Cyan);
+				Screen.Write(MessageBuffer.RowOffset + 2, MapColOffset + 53, 'm', Color.Cyan);
 				if(travelMode){
-					Screen.Write(3, MapColOffset, "[x] to confirm destination           [Space] to cancel travel mode");
-					Screen.Write(3, MapColOffset + 1, 'x', Color.Cyan);
-					Screen.Write(3, MapColOffset + 38, "Space", Color.Cyan);
+					Screen.Write(MessageBuffer.RowOffset + 3, MapColOffset, "[x] to confirm destination           [Space] to cancel travel mode");
+					Screen.Write(MessageBuffer.RowOffset + 3, MapColOffset + 1, 'x', Color.Cyan);
+					Screen.Write(MessageBuffer.RowOffset + 3, MapColOffset + 38, "Space", Color.Cyan);
 				}
 				else{
-					Screen.Write(3, MapColOffset, "[x] to enter travel mode");
-					Screen.Write(3, MapColOffset + 1, 'x', Color.Cyan);
+					Screen.Write(MessageBuffer.RowOffset + 3, MapColOffset, "[x] to enter travel mode");
+					Screen.Write(MessageBuffer.RowOffset + 3, MapColOffset + 1, 'x', Color.Cyan);
 				}
 				//todo, show highlight, and path if travel mode
 				string lookDescription = "You see an unaware goblin on a staircase."; //todo
