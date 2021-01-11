@@ -120,6 +120,9 @@ namespace ForaysUI.ScreenUI{
 							ch = 'g';
 							color = Color.Green;
 						}
+						if(!Player.Position.HasLOS(new Point(j, i), Map.Tiles)){
+							color = Color.DarkBlue;
+						}
 
 						DrawToMap(i, j, ch, color);
 					}
