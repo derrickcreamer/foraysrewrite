@@ -108,8 +108,13 @@ namespace Forays {
 				// todo, there would be some kind of opportunity to print a message here.
 				return Failure();
 			}
-			bool moved = Map.Creatures.Move(Creature, Destination);
-			if(moved) return Success();
+			bool canMove = !Map.Creatures.HasContents(Destination);
+			if(canMove){
+				if(Creature == Player) Map.Light.RemoveLightSource(Player.Position, 5);
+				Map.Creatures.Move(Creature, Destination);
+				if(Creature == Player) Map.Light.AddLightSource(Player.Position, 5);
+				return Success();
+			}
 			else return Failure();
 		}
 	}

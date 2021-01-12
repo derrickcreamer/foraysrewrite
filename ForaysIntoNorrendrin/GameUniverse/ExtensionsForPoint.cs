@@ -29,6 +29,14 @@ namespace Forays{
 				else
 					return Dir8.Neutral;
 		}
+		///<summary>Indicates whether this Point represents a valid map position.</summary>
+		public static bool ExistsOnMap(this Point p){
+			return p.X>=0 && p.Y>=0 && p.X<=GameUniverse.MapWidth-1 && p.Y<=GameUniverse.MapHeight-1;
+		}
+		///<summary>Indicates whether this Point represents a valid map position, excluding map edges.</summary>
+		public static bool ExistsBetweenMapEdges(this Point p){
+			return p.X>0 && p.Y>0 && p.X<GameUniverse.MapWidth-1 && p.Y<GameUniverse.MapHeight-1;
+		}
 		///<summary>Get the points next to the target that are between target and observer - one or two results, or zero if target==obs.</summary>
 		public static Point[] GetNeighborsBetween(this Point target, Point observer){
 			int x1 = target.X;
@@ -51,7 +59,7 @@ namespace Forays{
 				return new Point[1] { p1 };
 			}
 		}
-		public static bool HasLOS(this Point source, Point destination, PointArray<TileType> map){ //todo, map??
+		public static bool HasLOS(this Point source, Point destination, PointArray<TileType> map){ //todo, move this, to use NeverInLOS from DungeonMap
 			if(TileDefinition.IsOpaque(map[destination])){
 				Point[] neighbors = GetNeighborsBetween(destination, source);
 				for(int i=0;i<neighbors.Length;++i){
@@ -62,7 +70,7 @@ namespace Forays{
 			}
 			else return CheckReciprocalBresenhamLineOfSight(source, destination, map);
 		}
-		private static bool CheckReciprocalBresenhamLineOfSight(Point source, Point destination, PointArray<TileType> map){ //todo, what to do with map?
+		public static bool CheckReciprocalBresenhamLineOfSight(this Point source, Point destination, PointArray<TileType> map){ //todo, what to do with map?
 			int x1 = source.X;
 			int y1 = source.Y;
 			int x2 = destination.X;

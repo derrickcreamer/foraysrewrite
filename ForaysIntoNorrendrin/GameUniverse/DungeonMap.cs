@@ -5,7 +5,6 @@ using GameComponents.DirectionUtility;
 using UtilityCollections;
 
 namespace Forays {
-	public enum MagicalLightState { MagicalDarkness = -1, Normal = 0, MagicalLight = 1 };
 	public class DungeonMap : GameObject {
 		const int MapWidth = GameUniverse.MapWidth;
 		const int MapHeight = GameUniverse.MapHeight;
@@ -31,9 +30,7 @@ namespace Forays {
 		///<summary>Used to mark cells that automatically fail LOS checks, as an optimization</summary>
 		public PointArray<bool> NeverInLineOfSight;
 
-		///<summary>Counts the number of light sources currently casting light into each cell.
-		/// (Currently, all light sources have equal strength, and cells are either lit or not lit.)</summary>
-		public PointArray<int> CellBrightness;
+		public LightMap Light;
 
 		///<summary>Track which direction the player last exited each cell. Helps the AI track the player.</summary>
 		public PointArray<Dir8> DirectionPlayerExited;
@@ -45,7 +42,6 @@ namespace Forays {
 		//track burning objects here?
 		//items
 
-		public MagicalLightState MagicalLightState;
 		public int DangerModifier;
 		public PointArray<bool> Seen;
 		//todo... does the 'seen' map need to track WHAT was seen? tile+trap+features + optionally creatures?
@@ -58,7 +54,7 @@ namespace Forays {
 			Traps = new Dictionary<Point, Trap>();
 			Items = new Grid<Item, Point>(isInBounds);
 			NeverInLineOfSight = new PointArray<bool>(MapWidth, MapHeight);
-			CellBrightness = new PointArray<int>(MapWidth, MapHeight);
+			Light = new LightMap(g);
 			DirectionPlayerExited = new PointArray<Dir8>(MapWidth, MapHeight);
 			//todo, more here?
 			Seen = new PointArray<bool>(MapWidth, MapHeight);

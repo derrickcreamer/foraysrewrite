@@ -92,6 +92,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
 
 			Map.GenerateMap();
+			Map.Light.AddLightSource(Player.Position, 5);
 		}
 	}
 	public class GameObject {

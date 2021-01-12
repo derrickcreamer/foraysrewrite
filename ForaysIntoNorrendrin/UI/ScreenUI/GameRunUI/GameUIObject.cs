@@ -95,7 +95,7 @@ namespace ForaysUI.ScreenUI{
 				Messages.Print(false);
 			}
 			if(map != DrawOption.DoNotDraw){
-				for(int i = 0; i < GameUniverse.MapHeight; i++) {
+				for(int i = 0; i < GameUniverse.MapHeight; i++) { //todo, cache all LOS + lighting for player turn
 					for(int j = 0; j < GameUniverse.MapWidth; j++) {
 						char ch = ' ';
 						Color color = Color.Gray;
@@ -122,6 +122,11 @@ namespace ForaysUI.ScreenUI{
 						}
 						if(!Player.Position.HasLOS(new Point(j, i), Map.Tiles)){
 							color = Color.DarkBlue;
+						}
+						else{
+							if(!Map.Light.CellAppearsLitToObserver(new Point(j, i), Player.Position)){
+								color = Color.DarkCyan;
+							}
 						}
 
 						DrawToMap(i, j, ch, color);

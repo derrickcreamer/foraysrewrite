@@ -105,7 +105,7 @@ namespace Forays {
 				break;
 				case ItemType.ScrollOfSunlight:
 				{
-					Map.MagicalLightState = MagicalLightState.MagicalLight;
+					Map.Light.MagicalLightState = MagicalLightState.MagicalLight;
 					//todo...will I still use a 'return to normal lighting' event for this?
 					// (this one uses a call to KillEvents, so it might be useful to track it somewhere)
 				}
