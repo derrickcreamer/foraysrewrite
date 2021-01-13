@@ -51,25 +51,13 @@ namespace Forays {
 			else{
 				if(TileDefinition.IsOpaque(Map.Tiles[cell])){
 					// Light for opaque cells must be done carefully so light sources aren't visible through walls.
-					// Here we consider adjacent lit nonopaque cells that pass LOS checks...
-					// Any of those that are in 'neighborsBetween' succeed.
-					// Any in a cardinal direction succeed.
-					// Finally, any in a diagonal direction succeed if an adjacent cardinal also has LOS.
-					Point[] neighborsBetween = cell.GetNeighborsBetween(observer);
+					// If the observer has LOS to any adjacent lit nonopaque cell, that observer knows this wall is lit.
 					for(int i=0;i<8;++i){
 						Dir8 dir = EightDirections.Eight[i];
 						Point neighbor = cell.PointInDir(dir);
 						if(!neighbor.ExistsBetweenMapEdges()) continue;
 						if(cellBrightness[neighbor] == 0) continue;
-						if(!observer.CheckReciprocalBresenhamLineOfSight(neighbor, Map.Tiles)) continue;
-						if(neighborsBetween.Contains(neighbor)) return true;
-						if(dir.IsOrthogonal()) return true;
-						Point cwNeighbor = cell.PointInDir(dir.Rotate(true));
-						if(!TileDefinition.IsOpaque(Map.Tiles[cwNeighbor]) && observer.CheckReciprocalBresenhamLineOfSight(cwNeighbor, Map.Tiles))
-							return true;
-						Point ccwNeighbor = cell.PointInDir(dir.Rotate(false));
-						if(!TileDefinition.IsOpaque(Map.Tiles[ccwNeighbor]) && observer.CheckReciprocalBresenhamLineOfSight(ccwNeighbor, Map.Tiles))
-							return true;
+						if(observer.CheckReciprocalBresenhamLineOfSight(neighbor, Map.Tiles)) return true;
 					}
 					return false;
 				}

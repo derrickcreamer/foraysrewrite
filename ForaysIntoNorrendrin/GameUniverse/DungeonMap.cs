@@ -91,6 +91,7 @@ namespace Forays {
 						Tiles[x,y] = TileType.Floor;
 				}
 			Tiles[MapWidth / 3, MapHeight / 3] = TileType.Staircase;
+			Light.AddLightSource(new Point(MapWidth / 3, MapHeight / 3), 2);//todo remove
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
