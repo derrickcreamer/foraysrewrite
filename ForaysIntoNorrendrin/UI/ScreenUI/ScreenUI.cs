@@ -4,6 +4,7 @@ using static ForaysUI.ScreenUI.StaticInput;
 using System.IO;
 using Forays;
 using GameComponents;
+using GrammarUtility;
 
 namespace ForaysUI.ScreenUI{
 	public static class ScreenUIMain{
@@ -12,6 +13,7 @@ namespace ForaysUI.ScreenUI{
 
 		public static bool GLMode;
 		public static RNG RNG;
+		public static Grammar Grammar;
 
 		public static void Run(string[] args){
 			//todo, set Program.SavePath from args here
@@ -30,10 +32,17 @@ namespace ForaysUI.ScreenUI{
 			}
 
 			Option.Initialize(); //todo, load options here
-			//todo... this is where Nym registers the translation of "you feel stronger" to "the foo looks stronger"
+			InitializeGrammar();
 			Input.LoadKeyBindings();
 			ShowTitleScreen();
 			ShowMainMenu();
+		}
+		private static void InitializeGrammar(){
+			Grammar = new Grammar();
+			Names.Initialize(Grammar);
+			Grammar.AddVerb("do", "does");
+			Grammar.AddVerb("are", "is");
+			Grammar.AddVerb("feel", "looks"); // To automatically handle "you feel stronger" vs. "the foo looks stronger"
 		}
 		private static void ShowTitleScreen(){
 			if(GLMode){

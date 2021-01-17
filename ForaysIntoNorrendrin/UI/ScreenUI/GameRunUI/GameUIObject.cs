@@ -2,6 +2,7 @@ using System;
 using Forays;
 using GameComponents;
 using GameComponents.DirectionUtility;
+using GrammarUtility;
 using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
@@ -21,6 +22,7 @@ namespace ForaysUI.ScreenUI{
 		public Sidebar Sidebar => GameRunUI.Sidebar;
 		public EscapeMenu EscapeMenu => GameRunUI.EscapeMenu;
 		public CharacterScreens CharacterScreens => GameRunUI.CharacterScreens;
+		public Grammar Grammar => ScreenUIMain.Grammar;
 	}
 	// GameRunUI is kind of like the UI equivalent to GameUniverse.
 	public class GameRunUI : GameObject{

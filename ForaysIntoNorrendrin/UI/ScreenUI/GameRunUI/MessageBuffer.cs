@@ -1,12 +1,16 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using Forays;
+using GrammarUtility;
 using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
 
 namespace ForaysUI.ScreenUI{
+	public enum Punctuation { Period, ExclamationPoint, QuestionMark, Ellipsis };
+	public enum Visibility { RequireEither, RequireBoth, RequireSubject, RequireObject, AlwaysVisible };
 	public class MessageBuffer : GameUIObject {
-		public bool OmniscienceEnabled; //todo, will this remain here?
+		public bool OmniscienceEnabled;
 		public static int RowOffset; // Offset values are set by GameRunUI.UpdateMessagesOption
 		public static int ColOffset;
 
@@ -15,6 +19,7 @@ namespace ForaysUI.ScreenUI{
 		protected string currentRepeatedString;
 		protected int repetitionCount;
 		protected bool interruptPlayer;
+		protected StringBuilder sb;
 
 		protected const int NUM_LINES = 4;
 		protected const int MAX_LENGTH = GameUniverse.MapWidth;
@@ -24,6 +29,7 @@ namespace ForaysUI.ScreenUI{
 			buffer = new StringWrapBuffer(NUM_LINES, MAX_LENGTH, MORE.Length, null, new char[] {' '});
 			buffer.BufferFull += HandleOverflow;
 			log = new List<string>();
+			sb = new StringBuilder();
 		}
 		//todo, ctor for deserialization?
 		/// <param name="noInterrupt">By default, any printed message interrupts automatic actions (autoexplore etc.). Set to true to override this behavior.</param>
@@ -33,42 +39,6 @@ namespace ForaysUI.ScreenUI{
 			if(!noInterrupt) interruptPlayer = true;
 			buffer.Add(Capitalize(message));
 			if(requireMorePrompt) Print(true);
-		}
-		/// <param name="obj">This message will be added only if the player can see this object, or if omniscience is enabled.</param>
-		/// <param name="noInterrupt">By default, any printed message interrupts automatic actions (autoexplore etc.). Set to true to override this behavior.</param>
-		/// <param name="requireMorePrompt">If true, the message buffer will add this message and then print its contents immediately, with the '[more]' prompt.</param>
-		public void AddIfVisible(string message, GameObject obj, bool noInterrupt = false, bool requireMorePrompt = false){
-			//todo, GameObject isn't the final type here.
-			if(string.IsNullOrEmpty(message)) return;
-			if(OmniscienceEnabled || true/*todo, check CanSee here*/){
-				if(!noInterrupt) interruptPlayer = true;
-				buffer.Add(Capitalize(message));
-				if(requireMorePrompt) Print(true);
-			}
-		}
-		/// <param name="obj1">This message will be added only if the player can see obj1 or obj2, or if omniscience is enabled.</param>
-		/// <param name="obj2">This message will be added only if the player can see obj1 or obj2, or if omniscience is enabled.</param>
-		/// <param name="noInterrupt">By default, any printed message interrupts automatic actions (autoexplore etc.). Set to true to override this behavior.</param>
-		/// <param name="requireMorePrompt">If true, the message buffer will add this message and then print its contents immediately, with the '[more]' prompt.</param>
-		public void AddIfEitherVisible(string message, GameObject obj1, GameObject obj2, bool noInterrupt = false, bool requireMorePrompt = false){
-			//todo, GameObject isn't the final type here.
-			if(string.IsNullOrEmpty(message)) return;
-			if(OmniscienceEnabled || true || false/*todo, check CanSee on both here*/){
-				if(!noInterrupt) interruptPlayer = true;
-				buffer.Add(Capitalize(message));
-				if(requireMorePrompt) Print(true);
-			}
-		}
-		/// <param name="condition">This message will be added only if 'condition' returns true, or if omniscience is enabled.</param>
-		/// <param name="noInterrupt">By default, any printed message interrupts automatic actions (autoexplore etc.). Set to true to override this behavior.</param>
-		/// <param name="requireMorePrompt">If true, the message buffer will add this message and then print its contents immediately, with the '[more]' prompt.</param>
-		public void AddIfConditionMet(string message, Func<bool> condition, bool noInterrupt = false, bool requireMorePrompt = false){
-			if(string.IsNullOrEmpty(message)) return;
-			if(OmniscienceEnabled || condition()){
-				if(!noInterrupt) interruptPlayer = true;
-				buffer.Add(Capitalize(message));
-				if(requireMorePrompt) Print(true);
-			}
 		}
 		public void Print(bool requireMorePrompt) {
 			if(requireMorePrompt) buffer.EnsureReservedSpace(false);
@@ -158,6 +128,56 @@ namespace ForaysUI.ScreenUI{
 				c[0] = char.ToUpper(c[0]);
 				return new string(c);
 		}
-	}
+		public void Add(Determinative subjectDeterminative, string subj, string verb, Determinative objectDeterminative, string obj,
+			Punctuation punctuation = Punctuation.Period, bool noInterrupt = false, bool requireMorePrompt = false)
+		{
+			sb.Append(Grammar.Get(subjectDeterminative, subj, verb));
+			if(obj != null){
+				sb.Append(" ");
+				sb.Append(Grammar.Get(objectDeterminative, obj));
+			}
+			if(punctuation == Punctuation.Period) sb.Append(".");
+			else if(punctuation == Punctuation.ExclamationPoint) sb.Append("!");
+			else if(punctuation == Punctuation.Ellipsis) sb.Append("...");
+			else if(punctuation == Punctuation.QuestionMark) sb.Append("?");
+			sb.Append(" ");
+			string message = sb.ToString();
+			sb.Clear();
+			Add(message, noInterrupt, requireMorePrompt);
+		}
+		//todo, extra strings?
+		public void Add(Determinative subjectDeterminative, Creature subj, string verb, Determinative objectDeterminative, Creature obj,
+			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireEither,
+			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
+		{
+			bool subjectVisible = OmniscienceEnabled || assumeSubjectVisible || Player.CanSee(subj);
+			bool objectVisible = obj != null && (OmniscienceEnabled || assumeObjectVisible || Player.CanSee(obj));
+			if(visibility == Visibility.RequireEither && !subjectVisible && !objectVisible) return;
+			if(visibility == Visibility.RequireBoth && (!subjectVisible || !objectVisible)) return;
+			if(visibility == Visibility.RequireSubject && !subjectVisible) return;
+			if(visibility == Visibility.RequireObject && !objectVisible) return;
+			string subjectName = subjectVisible? Names.Get(subj.OriginalType) : "something";
+			string objectName = objectVisible? Names.Get(obj.OriginalType)
+				: (obj == null)? null : "something";
+			Add(subjectDeterminative, subjectName, verb, objectDeterminative, objectName, punctuation, noInterrupt, requireMorePrompt);
+		}
+		// AddSimple for any sentence which has no object.
+		// Each method also has an overload without Determinatives. These methods assume that "the" should be used.
+		public void AddSimple(Determinative subjectDeterminative, Creature subj, string verb, Punctuation punctuation = Punctuation.Period,
+			Visibility visibility = Visibility.RequireSubject, bool assumeSubjectVisible = false,
+			bool noInterrupt = false, bool requireMorePrompt = false)
+				=> Add(subjectDeterminative, subj, verb, Determinative.None, null, punctuation, visibility,
+					assumeSubjectVisible, false, noInterrupt, requireMorePrompt);
+		// Same as above, but assuming a determinative of "the":
+		public void Add(Creature subj, string verb, Creature obj,
+			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireEither,
+			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
+				=> Add(Determinative.The, subj, verb, Determinative.The, obj, punctuation, visibility,
+					assumeSubjectVisible, assumeObjectVisible, noInterrupt, requireMorePrompt);
+		public void AddSimple(Creature subj, string verb,
+			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireSubject,
+			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
+				=> Add(Determinative.The, subj, verb, Determinative.None, null, punctuation, visibility,
+					assumeSubjectVisible, false, noInterrupt, requireMorePrompt);
 }
-
+}

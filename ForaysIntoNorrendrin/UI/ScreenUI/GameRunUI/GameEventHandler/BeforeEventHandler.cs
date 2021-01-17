@@ -1,7 +1,6 @@
 using System;
 using Forays;
-using GameComponents;
-using static ForaysUI.ScreenUI.StaticScreen;
+using GrammarUtility;
 
 namespace ForaysUI.ScreenUI{
 	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
@@ -18,22 +17,13 @@ namespace ForaysUI.ScreenUI{
 					ChooseAction(e);
 					break;
 				case MeleeHitEvent e:
-					if(e.Creature == Player)
-						Messages.Add("You hit the enemy. ");
-					else
-						Messages.Add("The enemy hits you. ");
+					Messages.Add(e.Creature, "hit", e.Target);
 					break;
 				case MeleeMissEvent e:
-					if(e.Creature == Player)
-						Messages.Add("You miss the enemy. ");
-					else
-						Messages.Add("The enemy misses you. ");
+					Messages.Add(e.Creature, "miss", e.Target);
 					break;
 				case DieEvent e:
-					if(e.Creature == Player)
-						Messages.Add("You die. ");
-					else
-						Messages.Add("The enemy dies. ");
+					Messages.AddSimple(e.Creature, "die");
 					break;
 			}
 		}

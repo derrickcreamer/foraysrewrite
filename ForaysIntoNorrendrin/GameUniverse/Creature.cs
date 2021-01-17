@@ -73,6 +73,10 @@ namespace Forays {
 			//   It would hide the ctor, mostly because there might be a few subclasses of Creature, and the only thing that should care about THAT is serialization.
 			//   It MIGHT provide a few bool options for the classic stuff like 'schedule an event for this' or 'add this to the map'. Maybe, maybe not.
 
+		public bool CanSee(Creature target){
+			return Position.ManhattanDistanceFrom(target.Position) <= 1; //todo
+		}
+
 		///<summary>Return value is the cost of the action taken</summary>
 		public int ExecuteMonsterTurn(){
 			return Turns(1);
