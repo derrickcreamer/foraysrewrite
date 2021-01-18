@@ -105,14 +105,8 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public int Turns(int numTurns) => numTurns * GameUniverse.TicksPerTurn;
 		public RNG R => GameUniverse.R;
 		public DungeonMap Map => GameUniverse.Map;
-		//public Grid<Creature, Point> Creatures => GameUniverse.Creatures;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
 		public TileType TileTypeAt(Point p) => GameUniverse.Map.Tiles[p.X, p.Y];
-		/*public Grid<Creature, Point> Creatures => GameUniverse.Map.Creatures;
-		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
-		public Grid<Tile, Point> Tiles => GameUniverse.Map.Tiles;
-		public Tile TileAt(Point p) => GameUniverse.Map.Tiles[p];
-		public Grid<Item, Point> Items => GameUniverse.Map.Items;
-		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];*/
+		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];
 	}
 }

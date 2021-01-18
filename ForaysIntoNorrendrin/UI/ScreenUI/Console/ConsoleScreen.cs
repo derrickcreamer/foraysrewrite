@@ -21,6 +21,9 @@ namespace ForaysUI.ScreenUI{
 		public void Write(int row, int col, string str, Color color, Color bgColor = Color.Black){
 			throw new NotImplementedException();
 		}
+		public void Write(int startRow, int startCol, ColorGlyph[][] colorGlyphs){
+			throw new NotImplementedException();
+		}
 		public bool WindowUpdate() => true;
 		public void HoldUpdates(){
 
@@ -48,6 +51,12 @@ namespace ForaysUI.ScreenUI{
 		public void Clear(int startRow, int startCol, int height, int width){
 			//todo
 		}
+		public ColorGlyph[][] GetCurrentScreen(){
+			throw new NotImplementedException();
+		}
+		public ColorGlyph[][] GetCurrent(int startRow, int startCol, int height, int width){
+			throw new NotImplementedException();
+		}
 		public void CleanUp(){
 			if(Program.Linux){
 				Clear();
@@ -60,5 +69,10 @@ namespace ForaysUI.ScreenUI{
 			//todo
 		}
 		public IList<OptionsScreen.OptionEditInfo> GetAdditionalDisplayOptions() => null;
+
+		public ColorGlyph GetHighlighted(ColorGlyph cg, HighlightType highlightType)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

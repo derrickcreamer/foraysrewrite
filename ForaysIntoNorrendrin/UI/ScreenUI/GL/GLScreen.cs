@@ -61,6 +61,29 @@ namespace ForaysUI.ScreenUI{
 			}
 			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
+		public void Write(int startRow, int startCol, ColorGlyph[][] colorGlyphs){
+			for(int i=0;i<colorGlyphs.Length;++i){
+				if(startRow + i >= Rows) break;
+				ColorGlyph[] line = colorGlyphs[i];
+				int count;
+				if(startCol + line.Length > Cols) count = Cols - startCol; // Cut off too-long strings
+				else count = line.Length;
+				int startIdx = startCol + (startRow + i)*Cols;
+				for(int j=0;j<count;++j){
+					int idx = startIdx + j;
+					ColorGlyph cg = line[j];
+					if(screenMemory[idx].Equals(cg))
+						continue;
+					Color color = cg.ForegroundColor.ResolveColor(); // Random colors won't match at first, but
+					Color bgColor = cg.BackgroundColor.ResolveColor(); // might match after being resolved, so check again:
+					if(screenMemory[idx].Equals(cg.GlyphIndex, color, bgColor)) return;
+					screenMemory[idx] = new ColorGlyph(cg.GlyphIndex, color, bgColor);
+					if(firstChangedIdx > idx) firstChangedIdx = idx;
+					if(lastChangedIdx < idx) lastChangedIdx = idx;
+				}
+			}
+			if(holdUpdatesCount == 0) SendDataToWindow();
+		}
 		private void SendDataToWindow(){
 			if(lastChangedIdx == -1) return;
 			int count = lastChangedIdx - firstChangedIdx + 1;
@@ -153,6 +176,33 @@ namespace ForaysUI.ScreenUI{
 			holdUpdatesCount--;
 			if(holdUpdatesCount == 0) SendDataToWindow();
 		}
+		public ColorGlyph[][] GetCurrentScreen(){
+			ColorGlyph[][] result = new ColorGlyph[Rows][];
+			int idx = 0;
+			for(int i=0;i<Rows;++i){
+				ColorGlyph[] line = new ColorGlyph[Cols];
+				for(int j=0;j<Cols;++j){
+					line[j] = screenMemory[idx];
+					idx++;
+				}
+				result[i] = line;
+			}
+			return result;
+		}
+		public ColorGlyph[][] GetCurrent(int startRow, int startCol, int height, int width){
+			if(startRow + height > Rows) throw new ArgumentException("Start row + height is larger than screen height");
+			if(startCol + width > Cols) throw new ArgumentException("Start col + width is larger than screen width");
+			ColorGlyph[][] result = new ColorGlyph[height][];
+			for(int i=0;i<height;++i){
+				ColorGlyph[] line = new ColorGlyph[width];
+				int startIdx = startCol + (startRow + i)*Cols;
+				for(int j=0;j<width;++j){
+					line[j] = screenMemory[startIdx + j];
+				}
+				result[i] = line;
+			}
+			return result;
+		}
 		public void CleanUp(){
 			//todo, is this call correct?
 			Window?.Close();
@@ -173,5 +223,21 @@ namespace ForaysUI.ScreenUI{
 			};
 		}
 		//todo - once the 'load options' method is added, it should set the 'input delay ms' option separately for each screen.
+
+		public ColorGlyph GetHighlighted(ColorGlyph cg, HighlightType highlightType){
+			//todo, does this need to check color options?
+			if(highlightType == HighlightType.Targeting){
+				float[] colorRgba = cg.ForegroundColor.GetRGBA();
+				float[] highlightColorRgba = Color.TargetingHighlight.GetRGBA();
+				for(int i=0;i<4;++i){
+					if(colorRgba[i] != highlightColorRgba[i]) // If any part is different, return the regular highlight:
+						return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, Color.TargetingHighlight);
+				}
+				return new ColorGlyph(cg.GlyphIndex, Color.Black, Color.TargetingHighlight); // Otherwise, draw it in black.
+			}
+			else{
+				return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, Color.Blue);
+			}
+		}
 	}
 }

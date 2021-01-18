@@ -69,6 +69,9 @@ namespace ForaysUI.ScreenUI{
 				Screen.Write(row+6, col+4, "[c] High scores"); //todo, replays?
 				Screen.Write(row+7, col+4, "[d] Quit");
 				//todo, mouse UI push button map/layer/whatever here.
+				// ... I think all mouseover behavior needs a common element this time.
+				// Highlights should be able to grab screen memory, change colors or draw over it, and then
+				//   restore it once the 'remove highlight' method is called.
 				for(int i=0;i<4;++i){
 					Screen.Write(i + row+4, col+5, i + 'a', Color.Cyan);
 					//todo mouse UI button

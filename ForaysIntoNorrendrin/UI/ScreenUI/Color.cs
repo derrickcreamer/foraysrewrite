@@ -39,7 +39,9 @@ namespace ForaysUI.ScreenUI{
 		DarkGray, DarkRed, DarkGreen, DarkBlue, DarkYellow, DarkMagenta, DarkCyan,
 		// UI colors
 		OutOfSight, TerrainDarkGray, DarkerGray, HealthBar, StatusEffectBar, EnvironmentDescription,
-		DarkEnvironmentDescription, DarkerRed, DarkerMagenta, ForestGreen, DarkForestGreen, Transparent,
+		DarkEnvironmentDescription, DarkerRed, DarkerMagenta, ForestGreen, DarkForestGreen,
+		TargetingHighlight, ButtonHighlight,
+		Transparent, // Transparent is currently used to mark the end of the defined colors. New colors should be added before this point.
 		//todo, maybe UI colors should have UI names, not color names like DarkerRed.
 		//todo...maybe UI colors are user-settable?
 		// so they'd have default values (and Reset) but could be set to whatever RGB.

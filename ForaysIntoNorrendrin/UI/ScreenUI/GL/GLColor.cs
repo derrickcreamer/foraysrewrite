@@ -43,6 +43,8 @@ namespace ForaysUI.ScreenUI{
 			rgbaArrays[(int)Color.StatusEffectBar] = rgbaArrays[(int)Color.DarkerMagenta];
 			rgbaArrays[(int)Color.EnvironmentDescription] = rgbaArrays[(int)Color.ForestGreen];
 			rgbaArrays[(int)Color.DarkEnvironmentDescription] = rgbaArrays[(int)Color.DarkForestGreen];
+			rgbaArrays[(int)Color.TargetingHighlight] = rgbaArrays[(int)Color.Green];
+			rgbaArrays[(int)Color.ButtonHighlight] = rgbaArrays[(int)Color.Blue];
 		}
 		private static float[] GetFloatsFromBytes(int r, int g, int b, int a = 255){
 			const float one255th = 1.0f / 255.0f;

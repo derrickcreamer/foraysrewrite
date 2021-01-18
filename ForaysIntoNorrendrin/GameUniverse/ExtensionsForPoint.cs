@@ -37,6 +37,20 @@ namespace Forays{
 		public static bool ExistsBetweenMapEdges(this Point p){
 			return p.X>0 && p.Y>0 && p.X<GameUniverse.MapWidth-1 && p.Y<GameUniverse.MapHeight-1;
 		}
+		///<summary>Returns the point at the given distance in the given direction.</summary>
+		public static Point PointInDir(this Point source, Dir8 dir, int distance){
+			switch(dir){
+				case Dir8.N: return new Point(source.X, source.Y + distance);
+				case Dir8.S: return new Point(source.X, source.Y - distance);
+				case Dir8.E: return new Point(source.X + distance, source.Y);
+				case Dir8.W: return new Point(source.X - distance, source.Y);
+				case Dir8.NE: return new Point(source.X + distance, source.Y + distance);
+				case Dir8.SE: return new Point(source.X + distance, source.Y - distance);
+				case Dir8.SW: return new Point(source.X - distance, source.Y - distance);
+				case Dir8.NW: return new Point(source.X - distance, source.Y + distance);
+				default: return source;
+			}
+		}
 		///<summary>Get the points next to the target that are between target and observer - one or two results, or zero if target==obs.</summary>
 		public static Point[] GetNeighborsBetween(this Point target, Point observer){
 			int x1 = target.X;
