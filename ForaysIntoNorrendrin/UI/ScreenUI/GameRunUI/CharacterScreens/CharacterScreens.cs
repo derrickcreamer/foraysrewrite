@@ -36,7 +36,7 @@ namespace ForaysUI.ScreenUI{
 				commands: DrawOption.DoNotDraw
 			);
 			const int rowOffset = 0;
-			int colOffset = GameRunUI.MapColOffset;
+			int colOffset = MapUI.ColOffset;
 			const Color bgColor = Color.Black;
 			Screen.Write(rowOffset, colOffset, "Inventory   Equipment   Actions   Adventure Log    [Tab] to switch", Color.DarkGray, bgColor);
 			Screen.Write(rowOffset, colOffset + 51, "[Tab] to switch", Color.Gray, bgColor);

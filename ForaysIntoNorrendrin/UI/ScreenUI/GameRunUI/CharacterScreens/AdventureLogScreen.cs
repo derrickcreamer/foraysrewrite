@@ -15,9 +15,9 @@ namespace ForaysUI.ScreenUI{
 		private CharacterScreen? ShowAdventureLog(PlayerTurnEvent e){
 			while(true){
 				const int rowOffset = 3;
-				int colOffset = GameRunUI.MapColOffset;
+				int colOffset = MapUI.ColOffset;
 				Screen.HoldUpdates();
-				Screen.Clear(0, colOffset, ScreenUIMain.Rows, GameRunUI.MapDisplayWidth);
+				Screen.Clear(0, colOffset, ScreenUIMain.Rows, MapUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.AdventureLog);
 
 				Screen.Write(rowOffset, colOffset, "Adventure log of Charname III: ");

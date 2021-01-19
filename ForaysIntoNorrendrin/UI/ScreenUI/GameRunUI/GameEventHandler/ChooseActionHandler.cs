@@ -33,7 +33,7 @@ namespace ForaysUI.ScreenUI{
 				}*/
 				//
 				//
-				GameRunUI.SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
+				MapUI.SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
 				if(walkDir != null){
 					if(Input.KeyIsAvailable){
 						Input.FlushInput();
@@ -95,7 +95,7 @@ namespace ForaysUI.ScreenUI{
 						CharacterScreens.Show(e, CharacterScreen.AdventureLog);
 						break;
 					case ConsoleKey.Tab:
-						GameRunUI.LookMode(e);
+						MapUI.LookMode(e);
 						break;
 				}
 			} while(e.ChosenAction == null);
