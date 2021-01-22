@@ -19,7 +19,7 @@ namespace Forays {
 		//public List<CreatureGroup> CreatureGroups;
 		public PointArray<TileType> Tiles;
 
-		public MultiValueDictionary<Point, FeatureType> Features;
+		public PointArray<FeatureType> Features;
 
 		public Dictionary<Point, Trap> Traps;
 		public bool CellIsTrapped(Point p) => Traps.ContainsKey(p);
@@ -40,17 +40,15 @@ namespace Forays {
 			// I think those are in-game. Those are something that, let's say, an AI-controlled player might consider,
 			// much like the number of times a wand has been used. Those aren't things that the AI or the UI should need to track.
 		//track burning objects here?
-		//items
 
 		public int DangerModifier;
 		public PointArray<bool> Seen;
-		//todo... does the 'seen' map need to track WHAT was seen? tile+trap+features + optionally creatures?
 
 		public DungeonMap(GameUniverse g) : base(g) {
 			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight;
 			Creatures = new Grid<Creature, Point>(isInBounds);
 			Tiles = new PointArray<TileType>(MapWidth, MapHeight);
-			Features = new MultiValueDictionary<Point, FeatureType>(); //todo, don't allow dupes, right?
+			Features = new PointArray<FeatureType>(MapWidth, MapHeight);
 			Traps = new Dictionary<Point, Trap>();
 			Items = new Grid<Item, Point>(isInBounds);
 			NeverInLineOfSight = new PointArray<bool>(MapWidth, MapHeight);
@@ -64,17 +62,14 @@ namespace Forays {
 			TileType type = Tiles[p];
 			return TileDefinition.IsPassable(type);
 		}
-		public bool CellIsOpaque(Point p){ //todo, maybe cache this and recalculate when a tile changes or a feature is added/removed.
+		public bool CellIsOpaque(Point p){
 			TileType type = Tiles[p];
 			if(TileDefinition.IsOpaque(type)) return true;
-			if(Features.AnyValues(p)){
-				foreach(FeatureType feature in Features[p]){
-					if(FeatureDefinition.IsOpaque(feature)) return true;
-				}
-			}
+			if(Features[p].IsOpaque()) return true;
 			return false;
 		}
-
+		//public void AddFeatureIfMissing(FeatureType feature, Point p) => Features[p] = (Features[p] | feature);
+		//public void AddMissingFeature(FeatureType feature, Point p){}  //todo... not sure how these methods will interact with, say, the gas/fire logic.
 		public void GenerateMap() {
 			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
 			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;

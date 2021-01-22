@@ -33,6 +33,7 @@ namespace ForaysUI.ScreenUI{
 
 			Option.Initialize(); //todo, load options here
 			InitializeGrammar();
+			GameObjectGlyphs.Initialize();
 			Input.LoadKeyBindings();
 			ShowTitleScreen();
 			ShowMainMenu();

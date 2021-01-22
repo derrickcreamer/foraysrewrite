@@ -106,7 +106,8 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public RNG R => GameUniverse.R;
 		public DungeonMap Map => GameUniverse.Map;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
-		public TileType TileTypeAt(Point p) => GameUniverse.Map.Tiles[p.X, p.Y];
+		public TileType TileTypeAt(Point p) => GameUniverse.Map.Tiles[p];
+		public FeatureType FeaturesAt(Point p) => GameUniverse.Map.Features[p];
 		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];
 	}
 }

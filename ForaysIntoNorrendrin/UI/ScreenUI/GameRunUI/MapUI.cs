@@ -17,9 +17,20 @@ namespace ForaysUI.ScreenUI{
 		public static int RowOffset;
 		public static int ColOffset;
 
-		private ColorGlyph[][] cachedMapDisplay; // Used only for lookmode etc.
+		private ColorGlyph[][] cachedMapDisplay; // Used only for lookmode etc. (Row-major because it's copied from the screen.)
 
-		public MapUI(GameRunUI ui) : base(ui) { }
+		private PointArray<TileType> tilesLastSeen; // These are column-major because they align with game map coordinates.
+		private PointArray<FeatureType> featuresLastSeen;
+		private Dictionary<Point, TrapType> trapsLastSeen;
+		//todo, shrines, idols?
+		private Dictionary<Point, ItemType> itemsLastSeen;
+
+		public MapUI(GameRunUI ui) : base(ui) {
+			tilesLastSeen = new PointArray<TileType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
+			featuresLastSeen = new PointArray<FeatureType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
+			trapsLastSeen = new Dictionary<Point, TrapType>();
+			itemsLastSeen = new Dictionary<Point, ItemType>();
+		}
 		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+RowOffset, col+ColOffset, glyphIndex, color, bgColor);
 		public void DrawToMap(int row, int col, ColorGlyph cg)
@@ -35,44 +46,53 @@ namespace ForaysUI.ScreenUI{
 			}
 			for(int i = 0; i < GameUniverse.MapHeight; i++) { //todo, cache all LOS + lighting for player turn... conditionally? for certain commands?
 				for(int j = 0; j < GameUniverse.MapWidth; j++) {
-					char ch = ' ';
-					Color color = Color.Gray;
-					switch(this.TileTypeAt(new Point(j, i))) {
-						case TileType.Floor:
-							ch = '.';
-							break;
-						case TileType.Wall:
-							ch = '#';
-							break;
-						case TileType.Water:
-							ch = '~';
-							color = Color.Blue;
-							break;
-						case TileType.Staircase:
-							ch = '>';
-							color = Color.RandomBreached;
-							break;
+					Point p = new Point(j, i);
+					Creature creature = CreatureAt(p);
+					if(creature != null && Player.CanSee(creature)){ //todo, any optimizations for this CanSee check?
+						DrawToMap(i, j, GameObjectGlyphs.Get(creature.OriginalType));
+						RecordMapMemory(p); // todo, should map memory always get recorded here?
 					}
-
-					if(this.CreatureAt(new Point(j, i))?.OriginalType == CreatureType.Goblin){
-						ch = 'g';
-						color = Color.Green;
+					else if(Player.Position.HasLOS(p, Map.Tiles)){
+						Map.Seen[p] = true; //todo!!! This one does NOT stay here. Temporary hack to get map memory working. Should be done in the player turn action or similar.
+						ItemType? item = ItemAt(p)?.Type; //todo check ID
+						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
+						if(!Map.Light.CellAppearsLitToObserver(p, Player.Position)){
+							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan); //todo, only some tiles get darkened this way, right?
+						}
+						else{
+							DrawToMap(i, j, cg);
+						}
+						RecordMapMemory(p);
 					}
-					if(!Player.Position.HasLOS(new Point(j, i), Map.Tiles)){
-						color = Color.DarkBlue;
+					else if(false){ // todo, this is where the dcss-style option for seeing previous monster locations will be added
+					}
+					else if(Map.Seen[p]){
+						ItemType? lastKnownItem;
+						if(itemsLastSeen.TryGetValue(p, out ItemType item)) lastKnownItem = item;
+						else lastKnownItem = null; //todo ID?
+						ColorGlyph cg = DetermineVisibleColorGlyph(tilesLastSeen[p], featuresLastSeen[p], lastKnownItem);
+						DrawToMap(i, j, cg.GlyphIndex, Color.OutOfSight);
 					}
 					else{
-						if(!Map.Light.CellAppearsLitToObserver(new Point(j, i), Player.Position)){
-							color = Color.DarkCyan;
-						}
+						DrawToMap(i, j, ' ', Color.White);
 					}
-
-					DrawToMap(i, j, ch, color);
 				}
 			}
 			DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
 			if(drawUsingCache) cachedMapDisplay = Screen.GetCurrent(RowOffset, ColOffset, MapDisplayHeight, MapDisplayWidth);
 			else cachedMapDisplay = null;
+		}
+		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item){ //todo, add trap, shrine, etc.
+			//todo features
+			if(item != null) return GameObjectGlyphs.Get(item.Value);
+			return GameObjectGlyphs.Get(tile);
+		}
+		private void RecordMapMemory(Point p){
+			tilesLastSeen[p] = TileTypeAt(p);
+			featuresLastSeen[p] = FeaturesAt(p);
+			Item item = ItemAt(p);
+			if(item != null) itemsLastSeen[p] = item.Type; //todo ID
+			//todo traps etc.
 		}
 		public void LookMode(PlayerTurnEvent e){
 			bool travelMode = false;
