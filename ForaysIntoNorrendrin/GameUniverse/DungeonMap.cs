@@ -6,8 +6,8 @@ using UtilityCollections;
 
 namespace Forays {
 	public class DungeonMap : GameObject {
-		const int MapWidth = GameUniverse.MapWidth;
-		const int MapHeight = GameUniverse.MapHeight;
+		const int Width = GameUniverse.MapWidth;
+		const int Height = GameUniverse.MapHeight;
 
 		public DungeonLevelType CurrentLevelType; //todo temporary
 
@@ -45,17 +45,17 @@ namespace Forays {
 		public PointArray<bool> Seen;
 
 		public DungeonMap(GameUniverse g) : base(g) {
-			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < MapWidth && p.Y >= 0 && p.Y < MapHeight;
+			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < Width && p.Y >= 0 && p.Y < Height;
 			Creatures = new Grid<Creature, Point>(isInBounds);
-			Tiles = new PointArray<TileType>(MapWidth, MapHeight);
-			Features = new PointArray<FeatureType>(MapWidth, MapHeight);
+			Tiles = new PointArray<TileType>(Width, Height);
+			Features = new PointArray<FeatureType>(Width, Height);
 			Traps = new Dictionary<Point, Trap>();
 			Items = new Grid<Item, Point>(isInBounds);
-			NeverInLineOfSight = new PointArray<bool>(MapWidth, MapHeight);
+			NeverInLineOfSight = new PointArray<bool>(Width, Height);
 			Light = new LightMap(g);
-			DirectionPlayerExited = new PointArray<Dir8>(MapWidth, MapHeight);
+			DirectionPlayerExited = new PointArray<Dir8>(Width, Height);
 			//todo, more here?
-			Seen = new PointArray<bool>(MapWidth, MapHeight);
+			Seen = new PointArray<bool>(Width, Height);
 		}
 		public bool CellIsPassable(Point p){ // will get optional flags param if needed
 			//check everything that could block a cell, which currently is probably just the tile type
@@ -74,9 +74,9 @@ namespace Forays {
 			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
 			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;
 			int waterRarity = CurrentLevelType == DungeonLevelType.Cramped ? 50 : 8;
-			for(int x=0;x<MapWidth;++x)
-				for(int y = 0; y<MapHeight; ++y) {
-					if(x == 0 || y == 0 || x == MapWidth-1 || y == MapHeight-1)
+			for(int x=0;x<Width;++x)
+				for(int y = 0; y<Height; ++y) {
+					if(x == 0 || y == 0 || x == Width-1 || y == Height-1)
 						Tiles[x,y] = TileType.Wall;
 					else if(MapRNG.OneIn(wallRarity))
 						Tiles[x,y] = TileType.Wall;
@@ -85,13 +85,16 @@ namespace Forays {
 					else
 						Tiles[x,y] = TileType.Floor;
 				}
-			Tiles[MapWidth / 3, MapHeight / 3] = TileType.Staircase;
-			Light.AddLightSource(new Point(MapWidth / 3, MapHeight / 3), 2);//todo remove
+			for(int x=Width/3;x<Width;++x) {
+				Tiles[x, Height/2] = TileType.Wall;
+			}
+			Tiles[Width / 3, Height / 3] = TileType.Staircase;
+			Light.AddLightSource(new Point(Width / 3, Height / 3), 2);//todo remove
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
-				Creatures.Add(c, new Point(MapRNG.GetNext(MapWidth-2)+1, MapRNG.GetNext(MapHeight-2)+1));
+				Creatures.Add(c, new Point(MapRNG.GetNext(Width-2)+1, MapRNG.GetNext(Height-2)+1));
 				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
 			}

@@ -61,6 +61,7 @@
     <Compile Include="GameUniverse\Creature.cs" />
     <Compile Include="GameUniverse\CreatureBase.cs" />
     <Compile Include="GameUniverse\CreatureStatuses.cs" />
+    <Compile Include="GameUniverse\DijkstraMap.cs" />
     <Compile Include="GameUniverse\DungeonMap.cs" />
     <Compile Include="GameUniverse\EventQueue.cs" />
     <Compile Include="GameUniverse\ExtensionsForRNG.cs" />
