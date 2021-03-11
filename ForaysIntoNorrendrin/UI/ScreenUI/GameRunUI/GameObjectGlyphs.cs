@@ -15,8 +15,8 @@ namespace ForaysUI.ScreenUI{
 		public static ColorGlyph Get(ItemType type) => items[type];
 
 		private static void Add(CreatureType type, char ch, Color color) => creatures.Add(type, new ColorGlyph(ch, color));
-		private static void Add(TileType type, char ch, Color color) => tiles.Add(type, new ColorGlyph(ch, color));
-		private static void Add(FeatureType type, char ch, Color color) => features.Add(type, new ColorGlyph(ch, color));
+		private static void Add(TileType type, char ch, Color color, Color bgColor = Color.Black) => tiles.Add(type, new ColorGlyph(ch, color, bgColor));
+		private static void Add(FeatureType type, char ch, Color color, Color bgColor = Color.Black) => features.Add(type, new ColorGlyph(ch, color, bgColor));
 		private static void Add(ItemType type, char ch, Color color) => items.Add(type, new ColorGlyph(ch, color));
 
 		public static void Initialize(){
@@ -31,8 +31,9 @@ namespace ForaysUI.ScreenUI{
 
 			Add(TileType.Wall, '#', Color.Gray);
 			Add(TileType.Floor, '.', Color.White);
-			Add(TileType.Water, '~', Color.Blue);
+			Add(TileType.DeepWater, '~', Color.Cyan, Color.DarkBlue);
 			Add(TileType.Staircase, '>', Color.White);
+			Add(TileType.ThickIce, '~', Color.White, Color.Gray);
 
 			Add(FeatureType.Fire, '&', Color.RandomFire);
 			Add(FeatureType.PoisonGas, '*', Color.DarkGreen);
@@ -52,6 +53,10 @@ namespace ForaysUI.ScreenUI{
 			Add(FeatureType.Bones, '%', Color.White);
 			Add(FeatureType.TrollCorpse, '%', Color.DarkGreen);
 			Add(FeatureType.TrollBloodwitchCorpse, '%', Color.DarkRed);
+			Add(FeatureType.Ice, '~', Color.Cyan, Color.Gray);
+			Add(FeatureType.CrackedIce, '~', Color.Red, Color.Gray);
+			Add(FeatureType.BrokenIce, '~', Color.Gray, Color.DarkBlue);
+			Add(FeatureType.Water, '~', Color.Cyan, Color.DarkCyan);
 
 			//Add(ItemType., '!', Color.White);
 			//todo, unIDed items? What gets registered here will probably be the indices based on the names, not the actual item types.

@@ -19,7 +19,7 @@ namespace Forays {
 		//public List<CreatureGroup> CreatureGroups;
 		public PointArray<TileType> Tiles;
 
-		public PointArray<FeatureType> Features;
+		public FeatureMap Features;
 
 		public Dictionary<Point, Trap> Traps;
 		public bool CellIsTrapped(Point p) => Traps.ContainsKey(p);
@@ -31,6 +31,9 @@ namespace Forays {
 		public PointArray<bool> NeverInLineOfSight;
 
 		public LightMap Light;
+		//todo, fire & ice events could work like this:
+		//  just track whether we're jumping OVER a multiple of 120 (or whatever the turn counter is)
+		// if so,stop for a moment.
 
 		///<summary>Track which direction the player last exited each cell. Helps the AI track the player.</summary>
 		public PointArray<Dir8> DirectionPlayerExited;
@@ -48,7 +51,7 @@ namespace Forays {
 			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < Width && p.Y >= 0 && p.Y < Height;
 			Creatures = new Grid<Creature, Point>(isInBounds);
 			Tiles = new PointArray<TileType>(Width, Height);
-			Features = new PointArray<FeatureType>(Width, Height);
+			Features = new FeatureMap(Width, Height);
 			Traps = new Dictionary<Point, Trap>();
 			Items = new Grid<Item, Point>(isInBounds);
 			NeverInLineOfSight = new PointArray<bool>(Width, Height);
@@ -56,6 +59,20 @@ namespace Forays {
 			DirectionPlayerExited = new PointArray<Dir8>(Width, Height);
 			//todo, more here?
 			Seen = new PointArray<bool>(Width, Height);
+		}
+		public IEnumerable<Point> GetAllPoints(bool includeEdges){
+			int startX = 0, startY = 0, endX = Width, endY = Height;
+			if(!includeEdges){
+				startX = 1;
+				startY = 1;
+				endX = Width - 1;
+				endY = Height - 1;
+			}
+			for(int x=startX;x<endX;++x){
+				for(int y = startY; y<endY; ++y) {
+					yield return new Point(x, y);
+				}
+			}
 		}
 		public bool CellIsPassable(Point p){ // will get optional flags param if needed
 			//check everything that could block a cell, which currently is probably just the tile type
@@ -68,28 +85,86 @@ namespace Forays {
 			if(Features[p].IsOpaque()) return true;
 			return false;
 		}
-		//public void AddFeatureIfMissing(FeatureType feature, Point p) => Features[p] = (Features[p] | feature);
-		//public void AddMissingFeature(FeatureType feature, Point p){}  //todo... not sure how these methods will interact with, say, the gas/fire logic.
 		public void GenerateMap() {
 			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
 			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;
 			int waterRarity = CurrentLevelType == DungeonLevelType.Cramped ? 50 : 8;
+			string[] tempMap = new string[]{
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"--------www-----------------------------III-----------------------",
+"--------wwwwww#----------------------IIIIIIIIIIIIIIIIII-----------",
+"------wwwWWWWW#----------------------IIIIIIIIIIIIIIIIIIII---------",
+"------wWWWWWWW#ww-------------------IIIIIiiiiiiiiiiiiIIII---------",
+"------wwWWWWWWWWw--------------------IIIIiiiiiiiiiiiiiIIII--------",
+"-------wwwWWWwwww--------------------IIIIiiiiiiiiiiiiiiIII--------",
+"---------wwwwwww-----------------------IIIIIIiiiiiiiiiiIII--------",
+"-------------------------------------------IIIIiiiiiiiiIII--------",
+"-------------------------------------------IIIIIIiiiIIIIII--------",
+"----------------------------------------------IIIIIIIIII----------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------",
+"------------------------------------------------------------------"
+			};
+
 			for(int x=0;x<Width;++x)
 				for(int y = 0; y<Height; ++y) {
 					if(x == 0 || y == 0 || x == Width-1 || y == Height-1)
 						Tiles[x,y] = TileType.Wall;
-					else if(MapRNG.OneIn(wallRarity))
+					else if(tempMap[y][x] == 'W'){
+						Tiles[x,y] = TileType.DeepWater;
+					}
+					else if(tempMap[y][x] == 'w'){
+						Tiles[x,y] = TileType.Floor;
+						Features.Add(x, y, FeatureType.Water);
+					}
+					else if(tempMap[y][x] == 'I'){
+						Tiles[x,y] = TileType.ThickIce;
+					}
+					else if(tempMap[y][x] == 'i'){
+						Tiles[x,y] = TileType.DeepWater;
+						Features.Add(x, y, FeatureType.Ice);
+					}
+					else if(tempMap[y][x] == '#'){
+						Tiles[x,y] = TileType.Wall;
+					}
+					else Tiles[x,y] = TileType.Floor;
+					/*else if(x < 7 && y < 7){
+						Tiles[x,y] = TileType.Floor;
+						Features.Add(x, y, FeatureType.Water);
+					}
+					else if(x < 33 && x > 25 && y < 7){
+						Tiles[x,y] = TileType.ThickIce;
+					}
+					else if(x < 7 && y > 17){
+						Tiles[x,y] = TileType.DeepWater;
+					}
+					else {
+						Tiles[x,y] = TileType.DeepWater;
+						Features.Add(x, y, FeatureType.Ice);
+					}*/
+					/*else if(MapRNG.OneIn(wallRarity))
 						Tiles[x,y] = TileType.Wall;
 					else if(MapRNG.OneIn(waterRarity))
-						Tiles[x,y] = TileType.Water;
+						Tiles[x,y] = TileType.DeepWater;
 					else
-						Tiles[x,y] = TileType.Floor;
+						Tiles[x,y] = TileType.Floor;*/
 				}
-			for(int x=Width/3;x<Width;++x) {
+			/*for(int x=Width/3;x<Width;++x) {
 				Tiles[x, Height/2] = TileType.Wall;
-			}
+			}*/
 			Tiles[Width / 3, Height / 3] = TileType.Staircase;
 			Light.AddLightSource(new Point(Width / 3, Height / 3), 2);//todo remove
+			for(int x=1;x<Width-1;++x)
+				for(int y = 1; y<Height-1; ++y)
+					Light.AddLightSource(new Point(x, y), 2);//todo remove
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {

@@ -113,6 +113,58 @@ namespace Forays {
 				if(Creature == Player) Map.Light.RemoveLightSource(Player.Position, 5);
 				Map.Creatures.Move(Creature, Destination);
 				if(Creature == Player) Map.Light.AddLightSource(Player.Position, 5);
+				if(TileTypeAt(Destination) == TileType.DeepWater){
+					//todo - this logic probably goes somewhere else, ultimately.
+					if(Map.FeaturesAt(Destination).HasFeature(FeatureType.Ice)){
+						// Thin ice might crack, and the crack might keep going:
+
+						//todo, check levitate, small size, etc.
+						// large == automatic break, right?
+						const int chance = 7;
+						if(R.OneIn(chance)){
+							HashSet<Point> visited = new HashSet<Point>();
+							List<Point> visitNext = new List<Point>();
+							List<Point> cracked = new List<Point>();
+							visited.Add(Destination);
+							visitNext.Add(Destination);
+							cracked.Add(Destination);
+							while(visitNext.Count > 0){
+								Point p = visitNext[visitNext.Count - 1];
+								visitNext.RemoveAt(visitNext.Count - 1);
+								foreach(Point neighbor in p.GetNeighbors()){
+									if(visited.Contains(neighbor)) continue;
+									visited.Add(neighbor);
+									if(TileTypeAt(neighbor) == TileType.DeepWater
+										&& Map.FeaturesAt(Destination).HasFeature(FeatureType.Ice)
+										&& R.OneIn(chance))
+									{
+										cracked.Add(neighbor);
+										visitNext.Add(neighbor);
+									}
+								}
+							}
+							foreach(Point p in cracked){
+								Map.Features.Remove(p, FeatureType.Ice);
+								Map.Features.Add(p, FeatureType.CrackedIce);
+							}
+						}
+					}
+					else if(Map.FeaturesAt(Destination).HasFeature(FeatureType.CrackedIce)){
+						// Cracked ice might break. The chance is lower based on how much solid ground & non-cracked ice is adjacent.
+						int chance = 1;
+						foreach(Point neighbor in Destination.GetNeighbors()){
+							TileType tt = TileTypeAt(neighbor);
+							if(tt != TileType.DeepWater) continue;
+							FeatureType ft = FeaturesAt(neighbor);
+							if(ft.HasFeature(FeatureType.Ice)) continue;
+							else chance++;
+						}
+						if(R.FractionalChance(chance, 9)){
+							Map.Features.Remove(Destination, FeatureType.CrackedIce);
+							Map.Features.Add(Destination, FeatureType.BrokenIce);
+						}
+					}
+				}
 				return Success();
 			}
 			else return Failure();

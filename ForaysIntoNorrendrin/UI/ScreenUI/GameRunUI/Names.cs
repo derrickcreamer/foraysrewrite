@@ -37,8 +37,9 @@ namespace ForaysUI.ScreenUI{
 
 			Add(TileType.Wall, "wall");
 			Add(TileType.Floor, "floor");
-			Add(TileType.Water, "water", uncountable: true);
+			Add(TileType.DeepWater, "deep water", uncountable: true);
 			Add(TileType.Staircase, "staircase"); //todo check
+			Add(TileType.ThickIce, "thick ice", uncountable: true);
 
 			Add(ItemType.PotionOfBrutishStrength, "potion~ of brutish strength");
 		}

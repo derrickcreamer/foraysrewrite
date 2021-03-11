@@ -48,13 +48,14 @@ namespace ForaysUI.ScreenUI{
 				for(int j = 0; j < GameUniverse.MapWidth; j++) {
 					Point p = new Point(j, i);
 					Creature creature = CreatureAt(p);
+					ItemType? item = ItemAt(p)?.Type; //todo check ID
 					if(creature != null && Player.CanSee(creature)){ //todo, any optimizations for this CanSee check?
-						DrawToMap(i, j, GameObjectGlyphs.Get(creature.OriginalType));
+						DrawToMap(i, j, DetermineCreatureColorGlyph(creature.OriginalType, TileTypeAt(p), FeaturesAt(p), item));
+						//todo, need to consider inverting colors when colors are the same.
 						RecordMapMemory(p); // todo, should map memory always get recorded here?
 					}
 					else if(Player.Position.HasLOS(p, Map.Tiles)){
 						Map.Seen[p] = true; //todo!!! This one does NOT stay here. Temporary hack to get map memory working. Should be done in the player turn action or similar.
-						ItemType? item = ItemAt(p)?.Type; //todo check ID
 						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
 						if(!Map.Light.CellAppearsLitToObserver(p, Player.Position)){
 							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan); //todo, only some tiles get darkened this way, right?
@@ -74,13 +75,34 @@ namespace ForaysUI.ScreenUI{
 					}
 				}
 			}
-			DrawToMap(Player.Position.Y, Player.Position.X, '@', Color.White);
 			if(drawUsingCache) cachedMapDisplay = Screen.GetCurrent(RowOffset, ColOffset, MapDisplayHeight, MapDisplayWidth);
 			else cachedMapDisplay = null;
+		}
+		private static ColorGlyph DetermineCreatureColorGlyph(CreatureType creature, TileType tile, FeatureType features, ItemType? item){
+			//todo, add trap, shrine, etc.
+			//todo features
+			Color bgColor = Color.Black;
+			if(features.HasFeature(FeatureType.Water)) bgColor = Color.DarkCyan;
+			//else if(features.HasFeature(FeatureType.Lava)) bgColor = Color.DarkRed;
+			else if(tile == TileType.ThickIce) bgColor = Color.Gray;
+			else if(tile == TileType.DeepWater){
+				if(features.HasFeature(FeatureType.Ice) || features.HasFeature(FeatureType.CrackedIce)) bgColor = Color.Gray;
+				else bgColor = Color.DarkBlue;
+			}
+			ColorGlyph cg = GameObjectGlyphs.Get(creature);
+			return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, bgColor);
 		}
 		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item){ //todo, add trap, shrine, etc.
 			//todo features
 			if(item != null) return GameObjectGlyphs.Get(item.Value);
+			if(features.HasFeature(FeatureType.Ice)) return new ColorGlyph('~', Color.Cyan, Color.Gray);
+			if(features.HasFeature(FeatureType.CrackedIce)) return new ColorGlyph('~', Color.Red, Color.Gray);
+			if(features.HasFeature(FeatureType.BrokenIce)) return new ColorGlyph('~', Color.Gray, Color.DarkBlue);
+			if(features.HasFeature(FeatureType.Water)) return new ColorGlyph('~', Color.Cyan, Color.DarkCyan);
+			//todo, should change color for creatures based on background, right? do I need rules for which colors to modify/invert?
+			//so... if background color... then return a modified version.
+			//bg colors are currently black, gray, dark blue... plus targeting/mouseover stuff.
+
 			return GameObjectGlyphs.Get(tile);
 		}
 		private ColorGlyph GetLastSeenColorGlyph(Point p, bool useOutOfSightColor){

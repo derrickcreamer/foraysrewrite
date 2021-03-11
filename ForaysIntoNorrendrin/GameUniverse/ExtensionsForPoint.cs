@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GameComponents;
 using GameComponents.DirectionUtility;
 
@@ -28,6 +29,11 @@ namespace Forays{
 					return Dir8.W;
 				else
 					return Dir8.Neutral;
+		}
+		public static IEnumerable<Point> GetNeighbors(this Point source){
+			foreach(Dir8 dir in EightDirections.Enumerate(true, false, false)){
+				yield return source.PointInDir(dir);
+			}
 		}
 		///<summary>Indicates whether this Point represents a valid map position.</summary>
 		public static bool ExistsOnMap(this Point p){

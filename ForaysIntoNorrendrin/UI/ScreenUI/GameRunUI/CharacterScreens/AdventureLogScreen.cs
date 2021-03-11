@@ -83,7 +83,7 @@ namespace ForaysUI.ScreenUI{
 		}
 		int GetCellCost(GameComponents.Point p){ //todo, wait, return negatives here, not null...
 			switch(TileTypeAt(p)){
-				case TileType.Water: return 50;
+				case TileType.DeepWater: return 50;
 				case TileType.Staircase: return 20;
 				case TileType.Wall: return -1;
 				default: return 10;
