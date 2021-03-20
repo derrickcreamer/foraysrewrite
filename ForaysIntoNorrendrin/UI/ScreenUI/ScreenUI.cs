@@ -123,12 +123,11 @@ namespace ForaysUI.ScreenUI{
 		}
 		private static void RunGame(GameUniverse g){
 			GameRunUI gameUI = new GameRunUI(g);
-			GameEventHandler eventHandler = new GameEventHandler(gameUI);
-			g.Q.BeforeEventExecute = eventHandler.BeforeGameEvent;
-			g.Q.AfterEventExecute = eventHandler.AfterGameEvent;
-			(g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = eventHandler.DecideCancel;
-			g.CreatureRules.OnStatusStart = eventHandler.OnStatusStart;
-			g.CreatureRules.OnStatusEnd = eventHandler.OnStatusEnd;
+			g.Q.BeforeEventExecute = gameUI.GameEventHandler.BeforeGameEvent;
+			g.Q.AfterEventExecute = gameUI.GameEventHandler.AfterGameEvent;
+			(g.Player.CancelDecider as PlayerCancelDecider).DecideCancel = gameUI.GameEventHandler.DecideCancel;
+			g.CreatureRules.OnStatusStart = gameUI.GameEventHandler.OnStatusStart;
+			g.CreatureRules.OnStatusEnd = gameUI.GameEventHandler.OnStatusEnd;
 			//todo, try/catch? do I want a thing where I can get to the exceptions before they reach this point?
 			g.Run();
 			if(g.GameOver){

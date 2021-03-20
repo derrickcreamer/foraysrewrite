@@ -120,8 +120,8 @@ namespace ForaysUI.ScreenUI{
 			if(item != null) itemsLastSeen[p] = item.Type; //todo ID
 			//todo traps etc.
 		}
-		public void LookMode(PlayerTurnEvent e){
-			bool travelMode = false;
+		public void LookMode(PlayerTurnEvent e, bool startInTravelMode = false){
+			bool travelMode = startInTravelMode;
 			Point p = Player.Position; //todo
 			while(true){
 				Screen.HoldUpdates();
@@ -207,7 +207,7 @@ namespace ForaysUI.ScreenUI{
 							break;
 						case ConsoleKey.X:
 							if(travelMode){
-								e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(Dir8.NE)); //todo
+								GameEventHandler.Autoexplore = true;
 								return;
 							}
 							else{

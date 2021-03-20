@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GameComponents;
 
 namespace Forays{
@@ -33,6 +34,10 @@ namespace Forays{
 		public static bool FractionalChance(this RNG rng, int x, int outOfY){
 			if(x >= outOfY) return true;
 			return x > rng.GetNext(outOfY);
+		}
+		public static T ChooseFromList<T>(this RNG rng, IList<T> list){
+			if(list == null || list.Count == 0) throw new InvalidOperationException("List missing or empty");
+			return list[rng.GetNext(list.Count)];
 		}
 		// Rework Choose to avoid 'params' and array allocations:
 		public static T Choose<T>(this RNG rng, T t0, T t1){

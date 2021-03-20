@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Forays;
 using GameComponents;
@@ -15,6 +16,7 @@ namespace ForaysUI.ScreenUI{
 	// ChooseActionHandler.cs
 	// StatusEventHandler.cs
 	public partial class GameEventHandler : GameUIObject{
+		public bool Autoexplore;
 		private Dir8? walkDir;
 
 		private void ChooseAction(PlayerTurnEvent e){
@@ -50,6 +52,19 @@ namespace ForaysUI.ScreenUI{
 							e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(walkDir.Value));
 							return;
 						}
+					}
+				}
+				else if(Autoexplore){
+					if(Input.KeyIsAvailable){
+						Input.FlushInput();
+						Autoexplore = false;
+					}
+					else{
+						//todo, check for interruptions etc. - Interruption should share code between walk+autoexplore.
+						if(!Screen.WindowUpdate()) Program.Quit();
+						Thread.Sleep(100); //todo, make configurable
+						ChooseAutoexploreAction(e);
+						if(e.ChosenAction != null) return;
 					}
 				}
 				ConsoleKeyInfo key = Input.ReadKey();
@@ -96,6 +111,11 @@ namespace ForaysUI.ScreenUI{
 						break;
 					case ConsoleKey.Tab:
 						MapUI.LookMode(e);
+						if(Autoexplore) ChooseAutoexploreAction(e);
+						break;
+					case ConsoleKey.X:
+						MapUI.LookMode(e, true);
+						if(Autoexplore) ChooseAutoexploreAction(e);
 						break;
 				}
 			} while(e.ChosenAction == null);
@@ -132,6 +152,55 @@ namespace ForaysUI.ScreenUI{
 				e.ChosenAction = new WalkAction(Player, targetPoint);
 				if(shift && !wallSliding) walkDir = dir; // Don't set walkDir for attacks or wall slides
 			}
+		}
+		private void ChooseAutoexploreAction(PlayerTurnEvent e){
+			// dijkstra map from unknown cells, or BFS stopping at unknown - todo.
+			/*var dm = new DijkstraMap2(p => (!Map.Seen[p] || TileTypeAt(p) == TileType.Wall)? -1 : 10){
+				IsSource = p => !Map.Seen[p]
+			};
+			dm.Scan();
+			var dm2 = new DijkstraMap2(p => 10){
+				IsSource = p => (Map.Seen[p] || p.IsMapEdge())
+			};
+			dm2.Scan();*/
+			// make unexplored map first
+			// use unexplored map to determine SOURCE VALUES in 2nd map -
+			//    specifically, double the unexplored map values, negate, and rescan unexplored map.
+			//    Then, negate again and use those values as starting values. So the one near the big unexplored issue might be 8,
+			//    while the other is maybe 2.
+			var dm2 = new DijkstraMap(p => Map.Seen[p]? -1 : 10){ //todo, seen==blocked?
+				IsSource = p => (Map.Seen[p] || p.IsMapEdge())
+			};
+			dm2.Scan();
+			//CharacterScreens.PrintDijkstraTest(dm2);
+			foreach(Point p in Map.GetAllPoints(false)){
+				//if(dm2[p] == DijkstraMap2.Unexplored || dm2[p] == DijkstraMap2.Blocked) continue;
+				dm2[p] = (int)-(dm2[p] * 3.2f); //3.1411 is low enough to take the top path. 3.142 is high enough to take the bottom path.
+			}
+			dm2.RescanWithCurrentValues();
+			//CharacterScreens.PrintDijkstraTest(dm2);
+			var dm = new DijkstraMap(p => (!Map.Seen[p] || TileTypeAt(p) == TileType.Wall)? -1 : 10){
+				IsSource = p => !Map.Seen[p],
+				GetSourceValue = p => p.IsMapEdge()? DijkstraMap.Blocked : -(dm2[p])
+			};
+			dm.Scan();
+			//CharacterScreens.PrintDijkstraTest(dm);
+			int min = int.MaxValue;
+			List<Point> valid = new List<Point>();
+			foreach(Dir8 dir in EightDirections.Enumerate(true, false, true)){
+				Point neighbor = Player.Position.PointInDir(dir);
+				if(dm[neighbor] == DijkstraMap.Blocked) continue;
+				if(dm[neighbor] < min){
+					min = dm[neighbor];
+					valid.Clear();
+					valid.Add(neighbor);
+				}
+				else if(dm[neighbor] == min){
+					valid.Add(neighbor);
+				}
+			}
+			Point dest = ScreenRNG.ChooseFromList(valid);
+			e.ChosenAction = new WalkAction(Player, dest);
 		}
 	}
 }

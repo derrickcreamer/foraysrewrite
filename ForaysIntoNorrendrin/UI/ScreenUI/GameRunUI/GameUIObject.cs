@@ -21,6 +21,7 @@ namespace ForaysUI.ScreenUI{
 		public MapUI MapUI => GameRunUI.MapUI;
 		public EscapeMenu EscapeMenu => GameRunUI.EscapeMenu;
 		public CharacterScreens CharacterScreens => GameRunUI.CharacterScreens;
+		public GameEventHandler GameEventHandler => GameRunUI.GameEventHandler;
 		public Grammar Grammar => ScreenUIMain.Grammar;
 	}
 	// GameRunUI is kind of like the UI equivalent to GameUniverse.
@@ -30,6 +31,7 @@ namespace ForaysUI.ScreenUI{
 		public MapUI MapUI;
 		public EscapeMenu EscapeMenu;
 		public CharacterScreens CharacterScreens;
+		public GameEventHandler GameEventHandler;
 
 		public static int EnviromentalDescriptionRow;
 		public static int CommandListRow;
@@ -42,6 +44,7 @@ namespace ForaysUI.ScreenUI{
 			MapUI = new MapUI(this);
 			EscapeMenu = new EscapeMenu(this);
 			CharacterScreens = new CharacterScreens(this);
+			GameEventHandler = new GameEventHandler(this);
 			UpdateSidebarOption(Option.IsSet(BoolOptionType.SidebarOnRight));
 			UpdateMessagesOption(Option.IsSet(BoolOptionType.MessagesAtBottom));
 		}

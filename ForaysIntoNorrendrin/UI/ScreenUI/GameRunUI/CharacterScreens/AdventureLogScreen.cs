@@ -69,7 +69,7 @@ namespace ForaysUI.ScreenUI{
 								dm[j,i] -= min;
 							}
 						}
-						PrintDijkstraTest();
+						//PrintDijkstraTest();
 					}
 						break;
 					case ConsoleKey.C:
@@ -98,60 +98,76 @@ namespace ForaysUI.ScreenUI{
 		}
 		static DijkstraMap dm;
 		void RunDijkstraTest(){
-			// testing 2 things here...
-			// method vs method
-			// and cached func vs noncached func
-			// let's test cached func first...
-			// cached func, almost no difference... 10000 iterations had a diff of ~20ms
-			// 1000x had a diff of 4ms. So, cache it, but don't care.
-			//5921
-			//5876
-			// in both cases, not much more than 1ms per dijkstra map? wow.
 			/*System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 			PointArray<int> map;
+			DijkstraMap dm1;
+			DijkstraMap2 dm2 = null;
 			Func<GameComponents.Point, int> f = GetCellCost;
 			timer.Start();
-			for(int n = 0;n<10000;++n){
-				map = DijkstraMap2.GetTestCheckAll(Player.Position, f);
-				if(map[new GameComponents.Point(5,5)] == 44) throw new Exception();
-			}
 			timer.Stop();
 			string ms1 = timer.ElapsedMilliseconds.ToString();
 			timer = new System.Diagnostics.Stopwatch();
-			timer.Start();*/
-			dm = new DijkstraMap(GetCellCost){ IsSource = IsSource, GetSourceValue = GetSourceValue };
+			timer.Start();
+			//dm = new DijkstraMap(GetCellCost){ IsSource = IsSource, GetSourceValue = GetSourceValue };
 			//for(int n = 0;n<10000;++n){
-			//	dm.ResetValues();
-				//dm.Scan(Player.Position);
-				dm.Scan();
-				if(dm[new GameComponents.Point(5,5)] == 44) throw new Exception();
-			/*}
+				dm2 = new DijkstraMap2(GetCellCost);
+				dm2.Scan(Player.Position);
+			//}
 			timer.Stop();
 			string ms2 = timer.ElapsedMilliseconds.ToString();
 			Screen.Write(10, 10, "   " + ms1 + "   ", Color.Green);
 			Screen.Write(11, 10, "   " + ms2 + "   ", Color.Green);
-			Input.ReadKey();*/
-			PrintDijkstraTest();
+			Input.ReadKey();
+			PrintDijkstraTest(dm2);*/
 		}
-		void PrintDijkstraTest(){
+		public void PrintDijkstraTest(PointArray<int> dm){
 			Screen.HoldUpdates();
+			int min = int.MaxValue;
+			for(int i = 0;i<GameUniverse.MapHeight;++i){
+				for(int j=0;j<GameUniverse.MapWidth;++j){
+					if(dm[j,i] != DijkstraMap.Blocked && dm[j,i] < min){
+						min = dm[j,i];
+					}
+				}
+			}
+			if(min < 0){
+				for(int i = 0;i<GameUniverse.MapHeight;++i){
+					for(int j=0;j<GameUniverse.MapWidth;++j){
+						if(dm[j,i] != DijkstraMap.Blocked && dm[j,i] != DijkstraMap.Unexplored){
+							dm[j,i] -= min;
+						}
+					}
+				}
+			}
 			for(int i = 0;i<GameUniverse.MapHeight;++i){
 				for(int j=0;j<GameUniverse.MapWidth;++j){
 					int num = dm[j,i];
 					char ch = '#';
+					Color bgColor = Color.Gray;
+					Color color = Color.Black;
 					if(num != DijkstraMap.Unexplored && num != DijkstraMap.Blocked){
+						bgColor = Color.Black;
 						num = num/10;
-						if(num < 10) ch = num.ToString()[0];
+						if(num < 10){
+							color = Color.Yellow;
+							ch = num.ToString()[0];
+						}
 						else{
 							if(num<36){
+								color = Color.Red;
 								ch = (char)((num - 10) + 'a');
 							}
-							else{
+							else if(num<62){
+								color = Color.Magenta;
 								ch = (char)((num - 36) + 'A');
+							}
+							else{
+								color = Color.Blue;
+								ch = '+';
 							}
 						}
 					}
-					MapUI.DrawToMap(i, j, ch, Color.Gray);
+					MapUI.DrawToMap(i, j, ch, color, bgColor);
 				}
 			}
 			Screen.ResumeUpdates();

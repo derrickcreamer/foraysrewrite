@@ -87,7 +87,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
 			Player = new Creature(this) { CancelDecider = new PlayerCancelDecider(this) };
-			Map.Creatures.Add(Player, new Point(15, 8));
+			Map.Creatures.Add(Player, new Point(1, 20));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
 

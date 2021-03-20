@@ -43,6 +43,9 @@ namespace Forays{
 		public static bool ExistsBetweenMapEdges(this Point p){
 			return p.X>0 && p.Y>0 && p.X<GameUniverse.MapWidth-1 && p.Y<GameUniverse.MapHeight-1;
 		}
+		public static bool IsMapEdge(this Point p){
+			return p.X==0 || p.Y==0 || p.X==GameUniverse.MapWidth-1 || p.Y==GameUniverse.MapHeight-1;
+		}
 		///<summary>Returns the point at the given distance in the given direction.</summary>
 		public static Point PointInDir(this Point source, Dir8 dir, int distance){
 			switch(dir){

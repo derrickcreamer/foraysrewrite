@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GameComponents;
 using GameComponents.DirectionUtility;
-using UtilityCollections;
+using Priority_Queue;
 
 namespace Forays{
 	public class DijkstraMap : PointArray<int>{
@@ -10,7 +10,7 @@ namespace Forays{
 		public const int Blocked = int.MinValue;
 
 		public readonly Func<Point, int> GetCellCost;
-		private PriorityQueue<Point, int> frontier; // The PQ keeps track of which cell should be visited next
+		private SimplePriorityQueue<Point, int> frontier; // The PQ keeps track of which cell should be visited next
 
 		public Func<Point, bool> IsSource;
 		public Func<Point, int> GetSourceValue;
@@ -18,7 +18,7 @@ namespace Forays{
 		public DijkstraMap(Func<Point, int> getCellCost) : base(GameUniverse.MapWidth, GameUniverse.MapHeight){
 			if(getCellCost == null) throw new ArgumentNullException(nameof(getCellCost));
 			GetCellCost = getCellCost;
-			frontier = new PriorityQueue<Point, int>(p => this[p]);
+			frontier = new SimplePriorityQueue<Point, int>();
 			ResetValues();
 		}
 		public void ResetValues(){ // Set everything to Unexplored instead of zero:
@@ -31,7 +31,7 @@ namespace Forays{
 			// Start the frontier with the given source cell, which starts with a value of zero if not otherwise specified:
 			int value = GetSourceValue?.Invoke(source) ?? 0;
 			this[source] = value;
-			frontier.Enqueue(source);
+			frontier.Enqueue(source, value);
 			ScanInternal();
 		}
 		public void Scan(IEnumerable<Point> sources){
@@ -39,7 +39,7 @@ namespace Forays{
 			foreach(Point source in sources){
 				int value = GetSourceValue?.Invoke(source) ?? 0;
 				this[source] = value;
-				frontier.Enqueue(source);
+				frontier.Enqueue(source, value);
 			}
 			ScanInternal();
 		}
@@ -52,7 +52,7 @@ namespace Forays{
 					if(IsSource(p)){
 						int value = GetSourceValue?.Invoke(p) ?? 0;
 						this[p] = value;
-						frontier.Enqueue(p);
+						frontier.Enqueue(p, value);
 					}
 					else{
 						this[j,i] = Unexplored;
@@ -69,13 +69,13 @@ namespace Forays{
 					if(!neighbor.ExistsBetweenMapEdges()) continue;
 					int neighborCost = GetCellCost(neighbor);
 					if(neighborCost < 0){
-						this[neighbor] = Blocked;
+						if(this[neighbor] == Unexplored) this[neighbor] = Blocked;
 					}
 					else{
-						int costSoFar = this[current];
-						if(this[neighbor] > costSoFar + neighborCost){
-							this[neighbor] = costSoFar + neighborCost;
-							frontier.Enqueue(neighbor);
+						int totalCost = this[current] + neighborCost;
+						if(this[neighbor] > totalCost){
+							this[neighbor] = totalCost;
+							frontier.Enqueue(neighbor, totalCost);
 						}
 					}
 				}
@@ -86,7 +86,8 @@ namespace Forays{
 			for(int i=0;i<Height;++i){
 				for(int j=0;j<Width;++j){
 					Point p = new Point(j, i);
-					if(this[p] != Blocked && this[p] != Unexplored) frontier.Enqueue(p);
+					int value = this[p];
+					if(value != Blocked && value != Unexplored) frontier.Enqueue(p, value);
 				}
 			}
 			RescanInternal();
@@ -110,16 +111,18 @@ namespace Forays{
 					if(this[neighbor] == Blocked) continue;
 					int neighborCost = GetCellCost(neighbor);
 					if(neighborCost < 0){
-						frontier.Remove(neighbor); // (Not sure this can happen on a rescan if done correctly)
-						this[neighbor] = Blocked;
+						if(this[neighbor] == Unexplored){
+							frontier.TryRemove(neighbor); // (Not sure this can happen on a rescan if done correctly)
+							this[neighbor] = Blocked;
+						}
 					}
 					else{
-						int costSoFar = this[current];
-						if(this[neighbor] > costSoFar + neighborCost){
+						int totalCost = this[current] + neighborCost;
+						if(this[neighbor] > totalCost){
 							// Remove them before changing sort values, so the sort doesn't break:
-							if(this[neighbor] != Unexplored) frontier.Remove(neighbor);
-							this[neighbor] = costSoFar + neighborCost;
-							frontier.Enqueue(neighbor);
+							if(this[neighbor] != Unexplored) frontier.TryRemove(neighbor);
+							this[neighbor] = totalCost;
+							frontier.Enqueue(neighbor, totalCost);
 						}
 					}
 				}
