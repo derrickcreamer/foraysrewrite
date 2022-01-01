@@ -9,11 +9,14 @@ namespace Forays {
 	}
 	public abstract class MultiPointMapEvent<TResult> : Event<TResult> where TResult : EventResult, new() {
 		public virtual List<Point> Points { get; set; }
-		public MultiPointMapEvent(List<Point> points, GameUniverse g) : base(g) { this.Points = points; }
+		public MultiPointMapEvent(List<Point> points, GameUniverse g) : base(g) {
+			if(points == null) throw new ArgumentNullException(nameof(points));
+			this.Points = points;
+		}
 	}
 	public class CheckForIceCrackingEvent : SinglePointMapEvent<SimpleEvent.NullResult> {
 		public CheckForIceCrackingEvent(Point point, GameUniverse g) : base(point, g) { }
-		//todo, out of bounds or not ice... public override bool IsInvalid =>
+		public override bool IsInvalid => !Point.ExistsOnMap() || !FeaturesAt(Point).HasFeature(FeatureType.Ice);
 		protected override SimpleEvent.NullResult Execute() {
 			// Thin ice might crack, and the crack might keep going:
 
@@ -49,12 +52,17 @@ namespace Forays {
 	}
 	public class IceCrackingEvent : MultiPointMapEvent<SimpleEvent.NullResult> {
 		public IceCrackingEvent(List<Point> points, GameUniverse g) : base(points, g) { }
-		//todo, out of bounds or not ice... public override bool IsInvalid =>
+		public override bool IsInvalid {
+			get {
+				if(Points == null) return true;
+				foreach(Point p in Points){
+					if(!p.ExistsOnMap() || !FeaturesAt(p).HasFeature(FeatureType.Ice)) return true;
+				}
+				return false;
+			}
+		}
 		protected override SimpleEvent.NullResult Execute() {
 			foreach(Point p in Points){
-				//todo remove check once IsInvalid is done:
-				if(!Map.FeaturesAt(p).HasFeature(FeatureType.Ice))
-					throw new InvalidOperationException("not ice");
 				Map.Features.Remove(p, FeatureType.Ice);
 				Map.Features.Add(p, FeatureType.CrackedIce);
 			}
@@ -63,7 +71,7 @@ namespace Forays {
 	}
 	public class CheckForIceBreakingEvent : SinglePointMapEvent<SimpleEvent.NullResult> {
 		public CheckForIceBreakingEvent(Point point, GameUniverse g) : base(point, g) { }
-		//todo, out of bounds or not ice... public override bool IsInvalid =>
+		public override bool IsInvalid => !Point.ExistsOnMap() || !FeaturesAt(Point).HasFeature(FeatureType.CrackedIce);
 		protected override SimpleEvent.NullResult Execute() {
 			// Cracked ice might break. The chance is lower based on how much solid ground & non-cracked ice is adjacent.
 			int chance = 1;
@@ -82,11 +90,8 @@ namespace Forays {
 	}
 	public class IceBreakingEvent : SinglePointMapEvent<SimpleEvent.NullResult> {
 		public IceBreakingEvent(Point point, GameUniverse g) : base(point, g) { }
-		//todo, out of bounds or not ice... public override bool IsInvalid =>
+		public override bool IsInvalid => !Point.ExistsOnMap() || !FeaturesAt(Point).HasFeature(FeatureType.CrackedIce);
 		protected override SimpleEvent.NullResult Execute() {
-			//todo remove check once IsInvalid is done:
-			if(!Map.FeaturesAt(Point).HasFeature(FeatureType.CrackedIce))
-				throw new InvalidOperationException("not ice");
 			Map.Features.Remove(Point, FeatureType.CrackedIce);
 			Map.Features.Add(Point, FeatureType.BrokenIce);
 			return null;

@@ -100,9 +100,7 @@ namespace Forays {
 		public bool OutOfRange => !IgnoreRange && Creature.Position.ChebyshevDistanceFrom(Destination) > 1;
 		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
-		public override bool IsInvalid => base.IsInvalid
-			|| Destination.X < 0 || Destination.X >= GameUniverse.MapWidth //todo, is there a bounds check method somewhere?
-			|| Destination.Y < 0 || Destination.Y >= GameUniverse.MapHeight; /* or destination not on map */
+		public override bool IsInvalid => base.IsInvalid || !Destination.ExistsOnMap();
 		protected override PassFailResult Execute() {
 			if(OutOfRange || IsBlockedByTerrain || CreatureAt(Destination) != null) {
 				// todo, there would be some kind of opportunity to print a message here.

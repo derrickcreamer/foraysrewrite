@@ -21,6 +21,9 @@ namespace Forays{
 			if(!ev.NoCancel && ev.CancelDecider?.Cancels(ev) == true){
 				return new TResult { Canceled = true };
 			}
+			if(ev.IsInvalid){ //todo, make this work with the OnException stuff below?
+				throw new InvalidOperationException($"Event {ev.GetType().Name} is invalid and can't be executed");
+			}
 			// todo: should IsInvalid be checked here?
 			EventStack.Add(ev);
 			BeforeEventExecute?.Invoke(ev);
