@@ -21,6 +21,7 @@ namespace Forays{
 			if(!ev.NoCancel && ev.CancelDecider?.Cancels(ev) == true){
 				return new TResult { Canceled = true };
 			}
+			// todo: should IsInvalid be checked here?
 			EventStack.Add(ev);
 			BeforeEventExecute?.Invoke(ev);
 			TResult result;

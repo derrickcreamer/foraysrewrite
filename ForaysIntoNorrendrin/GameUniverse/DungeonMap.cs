@@ -118,7 +118,7 @@ namespace Forays {
 				for(int y = 0; y<Height; ++y) {
 					if(x == 0 || y == 0 || x == Width-1 || y == Height-1)
 						Tiles[x,y] = TileType.Wall;
-					else if(tempMap[y][x] == 'W'){
+					/*else if(tempMap[y][x] == 'W'){
 						Tiles[x,y] = TileType.DeepWater;
 					}
 					else if(tempMap[y][x] == 'w'){
@@ -135,8 +135,8 @@ namespace Forays {
 					else if(tempMap[y][x] == '#'){
 						Tiles[x,y] = TileType.Wall;
 					}
-					else Tiles[x,y] = TileType.Floor;
-					/*else if(x < 7 && y < 7){
+					else Tiles[x,y] = TileType.Floor;*/
+					else if(x < 7 && y < 7){
 						Tiles[x,y] = TileType.Floor;
 						Features.Add(x, y, FeatureType.Water);
 					}
@@ -149,7 +149,7 @@ namespace Forays {
 					else {
 						Tiles[x,y] = TileType.DeepWater;
 						Features.Add(x, y, FeatureType.Ice);
-					}*/
+					}
 					/*else if(MapRNG.OneIn(wallRarity))
 						Tiles[x,y] = TileType.Wall;
 					else if(MapRNG.OneIn(waterRarity))

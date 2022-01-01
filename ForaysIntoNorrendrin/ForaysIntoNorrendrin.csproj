@@ -79,6 +79,7 @@
     <Compile Include="GameUniverse\Events\CreatureEvents\DamageEvents.cs" />
     <Compile Include="GameUniverse\Events\CreatureEvents\MeleeAttackEvents.cs" />
     <Compile Include="GameUniverse\Events\ItemEvents.cs" />
+    <Compile Include="GameUniverse\Events\MapEvents.cs" />
     <Compile Include="UI\Program.cs" />
     <Compile Include="UI\Grammar.cs" />
     <Compile Include="UI\StringWrapBuffer.cs" />
