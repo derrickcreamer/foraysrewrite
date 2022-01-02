@@ -270,7 +270,7 @@ namespace ForaysUI.ScreenUI{
 				Creature creature = CreatureAt(p);
 				if(creature != null && creature != Player && Player.CanSee(creature)){
 					string creatureStatus = "(unhurt, unaware)"; //todo
-					items.Add(ScreenUIMain.Grammar.Get(Determinative.AAn, Names.Get(creature.OriginalType), extraText: creatureStatus));
+					items.Add(Grammar.Get(Determinative.AAn, Names.Get(creature.OriginalType), extraText: creatureStatus));
 				}
 			}
 			Item item = ItemAt(p);
@@ -278,11 +278,14 @@ namespace ForaysUI.ScreenUI{
 				string itemExtra = "";
 				//check item ID here, todo
 				ItemType finalType = item.Type; //todo, check ID for this too
-				items.Add(ScreenUIMain.Grammar.Get(Determinative.AAn, Names.Get(finalType), extraText: itemExtra));
+				items.Add(Grammar.Get(Determinative.AAn, Names.Get(finalType), extraText: itemExtra));
 			}
 			TileType tileType = TileTypeAt(p);
 			//todo, check tile known status?
-			//todo, features here
+			FeatureType features = FeaturesAt(p);
+			if(features != FeatureType.None){
+				items.AddRange(Names.GetAllFeatures(features)); //todo, needs articles sometimes
+			}
 			//todo, traps, shrines, idols, etc.
 			return GetDescriptionInternal(items, tileType, "You see ");
 		}
@@ -296,7 +299,7 @@ namespace ForaysUI.ScreenUI{
 				//todo, ID?
 				//todo, extra info?
 				string itemExtra = "";
-				items.Add(ScreenUIMain.Grammar.Get(Determinative.AAn, Names.Get(itemType), extraText: itemExtra));
+				items.Add(Grammar.Get(Determinative.AAn, Names.Get(itemType), extraText: itemExtra));
 			}
 			TileType tileType = tilesLastSeen[p];
 			//todo, check tile known status?
@@ -304,9 +307,15 @@ namespace ForaysUI.ScreenUI{
 			//todo, traps, shrines, idols, etc.
 			return GetDescriptionInternal(items, tileType, "You remember seeing ");
 		}
+		//todo, this is going to need to be reworked a bit once everything is present, because
+		// of cases like flying monsters, items under water, ice chunks in water, etc.,
+		// possibly all at the same time, so there will be some special cases.
+		// "You see a red potion, a vragling, and a layer of ice over deep water."
+		// "You see a bat-thing over deep water, chunks of ice on the surface,
+		// and a red potion under the surface."
 		private string GetDescriptionInternal(List<string> items, TileType tileType, string initialText){
 			string tileConnector = GetConnectingWordForTile(tileType);
-			string tileName = ScreenUIMain.Grammar.Get(Determinative.AAn, Names.Get(tileType));
+			string tileName = Grammar.Get(Determinative.AAn, Names.Get(tileType));
 			if(items.Count > 0 && tileConnector == "and"){ // If it's "and", just handle it like the others:
 				items.Add(tileName);
 			}
