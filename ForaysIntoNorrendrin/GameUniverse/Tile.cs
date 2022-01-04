@@ -1,7 +1,9 @@
 ﻿using System;
 
 namespace Forays {
-	public enum TileType { Floor, Wall, DeepWater, Staircase, ThickIce
+	public enum TileType { Floor, Wall, DeepWater, Staircase, ThickIce, FirePit, FirePitUnlit,
+		Statue, Brush, PoppyField, GlowingFungus, StandingTorch, WallMountedTorch, Barrel,
+		Demonstone, LightCrystal, GiantMushroom, DeepMud, Lava
 	};
 
 	public enum TrapType { Fire, Light, Teleport, SlidingWall, Grenade, Shock, Alarm, Darkness,
@@ -26,21 +28,46 @@ namespace Forays {
 				case TileType.DeepWater:
 				case TileType.Staircase:
 				case TileType.ThickIce:
-				return true;
+				case TileType.FirePit:
+				case TileType.FirePitUnlit:
+				case TileType.Brush:
+				case TileType.PoppyField:
+				case TileType.GlowingFungus:
+				case TileType.WallMountedTorch:
+				case TileType.Demonstone:
+				case TileType.DeepMud:
+				case TileType.Lava:
+					return true;
+				default:
+					return false;
 			}
-			return false;
 		}
 		public static bool IsOpaque(TileType type){
 			switch(type){
 				case TileType.Wall:
-				return true;
+				case TileType.GiantMushroom:
+					return true;
+				default:
+					return false;
 			}
-			return false;
 		}
-		public static int LightRadius(TileType type){
-			/*switch(type){
-			}*/
-			return 0;
+		///<summary>Null means no light radius, while a radius of 0 will illuminate only this tile's cell.</summary>
+		public static int? LightRadius(TileType type){
+			switch(type){
+				case TileType.FirePit:
+					return 1;
+				case TileType.GlowingFungus:
+					return 0;
+				case TileType.StandingTorch:
+				case TileType.WallMountedTorch:
+					return 3;
+				case TileType.LightCrystal:
+					return 5;
+				case TileType.Lava:
+					return 2;
+				default:
+					return null;
+			}
 		}
 	}
 }

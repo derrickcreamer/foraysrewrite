@@ -33,9 +33,10 @@ namespace Forays {
 		public static bool HasFeature(this FeatureType feature, FeatureType flag) => (feature & flag) == flag;
 		private const FeatureType opaqueMask = FeatureType.Fog | FeatureType.ThickDust;
 		public static bool IsOpaque(this FeatureType feature) => (feature & opaqueMask) > 0L;
-		public static int LightRadius(this FeatureType feature){ //todo, not used yet, right?
+		///<summary>Null means no light radius, while a radius of 0 will illuminate only this feature's cell.</summary>
+		public static int? LightRadius(this FeatureType feature){ //todo, not used yet, right?
 			if(feature.HasFeature(FeatureType.Fire)) return 1;
-			return 0;
+			return null;
 		}
 	}
 

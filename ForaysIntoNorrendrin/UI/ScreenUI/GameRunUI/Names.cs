@@ -57,6 +57,20 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.DeepWater, "deep water", uncountable: true);
 			Add(TileType.Staircase, "staircase"); //todo check
 			Add(TileType.ThickIce, "thick ice", uncountable: true);
+			Add(TileType.FirePit, "stone-ringed firepit~ (lit)"); //todo check
+			Add(TileType.FirePitUnlit, "stone-ringed firepit~ (unlit)");
+			Add(TileType.Statue, "statue");
+			Add(TileType.Brush, "brush", uncountable: true);
+			Add(TileType.PoppyField, "poppy field");
+			Add(TileType.GlowingFungus, "patch~~ of glowing fungus");
+			Add(TileType.StandingTorch, "standing torch sconce");
+			Add(TileType.WallMountedTorch, "mounted torch sconce");
+			Add(TileType.Barrel, "barrel~ of oil");
+			Add(TileType.Demonstone, "demonstone", uncountable: true);
+			Add(TileType.LightCrystal, "shining crystal");
+			Add(TileType.GiantMushroom, "giant mushroom");
+			Add(TileType.DeepMud, "deep mud", uncountable: true);
+			Add(TileType.Lava, "lava", uncountable: true);
 
 			Add(FeatureType.Fire, "fire", uncountable: true);
 			Add(FeatureType.PoisonGas, "thick cloud~ of poison gas");

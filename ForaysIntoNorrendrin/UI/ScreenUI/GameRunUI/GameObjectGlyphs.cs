@@ -34,6 +34,20 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.DeepWater, '~', Color.Cyan, Color.DarkBlue);
 			Add(TileType.Staircase, '>', Color.White);
 			Add(TileType.ThickIce, '~', Color.White, Color.Gray);
+			Add(TileType.FirePit, '0', Color.Red);
+			Add(TileType.FirePitUnlit, '0', Color.TerrainDarkGray);
+			Add(TileType.Statue, '5', Color.Gray);
+			Add(TileType.Brush, '"', Color.DarkYellow); //todo, brush gets special color code
+			Add(TileType.PoppyField, '"', Color.Red);
+			Add(TileType.GlowingFungus, ',', Color.RandomGlowingFungus);
+			Add(TileType.StandingTorch, '|', Color.RandomTorch); //todo check for new symbols
+			Add(TileType.WallMountedTorch, '\'', Color.RandomTorch);
+			Add(TileType.Barrel, '0', Color.DarkYellow);
+			Add(TileType.Demonstone, '~', Color.RandomDoom);
+			Add(TileType.LightCrystal, '#', Color.White); //todo color?
+			Add(TileType.GiantMushroom, '#', Color.Cyan); //todo color?
+			Add(TileType.DeepMud, '~', Color.Gray, Color.DarkYellow);
+			Add(TileType.Lava, '~', Color.DarkRed, Color.Red);
 
 			Add(FeatureType.Fire, '&', Color.RandomFire);
 			Add(FeatureType.PoisonGas, '*', Color.DarkGreen);
