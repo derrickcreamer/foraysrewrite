@@ -98,7 +98,7 @@ namespace Forays {
 		}
 		//todo, rename to IsOutOfRange, and should this actually check IgnoreRange, or should that be checked in Execute?
 		public bool OutOfRange => !IgnoreRange && Creature.Position.ChebyshevDistanceFrom(Destination) > 1;
-		public bool IsBlockedByTerrain => TileTypeAt(Destination) == TileType.Wall;
+		public bool IsBlockedByTerrain => !TileDefinition.IsPassable(TileTypeAt(Destination));
 		//todo: IsInvalid shows the call to base.IsValid which actually checks the same thing right now:
 		public override bool IsInvalid => base.IsInvalid || !Destination.ExistsOnMap();
 		protected override PassFailResult Execute() {

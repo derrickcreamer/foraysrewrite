@@ -43,7 +43,7 @@ namespace ForaysUI.ScreenUI{
 					}
 					else{
 						Point targetPoint = Player.Position.PointInDir(walkDir.Value);
-						if(TileTypeAt(targetPoint) == TileType.Wall || CreatureAt(targetPoint) != null){ //todo
+						if(!TileDefinition.IsPassable(TileTypeAt(targetPoint)) || CreatureAt(targetPoint) != null){
 							walkDir = null;
 						}
 						else{
@@ -62,7 +62,7 @@ namespace ForaysUI.ScreenUI{
 					else{
 						//todo, check for interruptions etc. - Interruption should share code between walk+autoexplore.
 						if(!Screen.WindowUpdate()) Program.Quit();
-						Thread.Sleep(100); //todo, make configurable
+						Thread.Sleep(10); //todo, make configurable
 						ChooseAutoexploreAction(e);
 						if(e.ChosenAction != null) return;
 					}
@@ -129,16 +129,16 @@ namespace ForaysUI.ScreenUI{
 			}
 			// Check for wall sliding:
 			bool wallSliding = false;
-			if(TileTypeAt(targetPoint) == TileType.Wall){ //todo, terrain types etc.
+			if(!TileDefinition.IsPassable(TileTypeAt(targetPoint))){
 				Point cwPoint = Player.Position.PointInDir(dir.Rotate(true));
 				Point ccwPoint = Player.Position.PointInDir(dir.Rotate(false));
-				if(TileTypeAt(cwPoint) != TileType.Wall && TileTypeAt(ccwPoint) == TileType.Wall) {
+				if(TileDefinition.IsPassable(TileTypeAt(cwPoint)) && !TileDefinition.IsPassable(TileTypeAt(ccwPoint))) {
 					wallSliding = true;
 					dir = dir.Rotate(true);
 					targetPoint = Player.Position.PointInDir(dir);
 					targetCreature = CreatureAt(targetPoint);
 				}
-				else if(TileTypeAt(cwPoint) == TileType.Wall && TileTypeAt(ccwPoint) != TileType.Wall) {
+				else if(!TileDefinition.IsPassable(TileTypeAt(cwPoint)) && TileDefinition.IsPassable(TileTypeAt(ccwPoint))) {
 					wallSliding = true;
 					dir = dir.Rotate(false);
 					targetPoint = Player.Position.PointInDir(dir);
@@ -179,7 +179,7 @@ namespace ForaysUI.ScreenUI{
 			}
 			dm2.RescanWithCurrentValues();
 			//CharacterScreens.PrintDijkstraTest(dm2);
-			var dm = new DijkstraMap(p => (!Map.Seen[p] || TileTypeAt(p) == TileType.Wall)? -1 : 10){
+			var dm = new DijkstraMap(p => (!Map.Seen[p] || !TileDefinition.IsPassable(TileTypeAt(p)))? -1 : 10){
 				IsSource = p => !Map.Seen[p],
 				GetSourceValue = p => p.IsMapEdge()? DijkstraMap.Blocked : -(dm2[p])
 			};

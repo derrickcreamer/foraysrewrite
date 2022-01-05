@@ -1,5 +1,6 @@
 using System;
 using Forays;
+using GrammarUtility;
 
 namespace ForaysUI.ScreenUI{
 	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
@@ -19,7 +20,7 @@ namespace ForaysUI.ScreenUI{
 				case WalkAction e:
 					if(e.IsBlockedByTerrain){
 						//todo, get terrain name
-						Messages.Add("There is a wall in the way. ");
+						Messages.Add($"There is {Grammar.Get(Determinative.AAn, Names.Get(TileTypeAt(e.Destination)))} in the way. ");
 						return true;
 					}
 					break;
