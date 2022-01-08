@@ -44,9 +44,9 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.WallMountedTorch, '\'', Color.RandomTorch);
 			Add(TileType.Barrel, '0', Color.DarkYellow);
 			Add(TileType.Demonstone, '~', Color.RandomDoom);
-			Add(TileType.LightCrystal, '#', Color.White); //todo color?
+			Add(TileType.LightCrystal, '#', Color.RandomLightning); //todo color?
 			Add(TileType.GiantMushroom, '#', Color.Cyan); //todo color?
-			Add(TileType.DeepMud, '~', Color.Gray, Color.DarkYellow);
+			Add(TileType.DeepMud, '~', Color.DarkGray, Color.DarkYellow);
 			Add(TileType.Lava, '~', Color.DarkRed, Color.Red);
 
 			Add(FeatureType.Fire, '&', Color.RandomFire);

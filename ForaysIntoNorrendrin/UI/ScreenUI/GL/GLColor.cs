@@ -26,7 +26,7 @@ namespace ForaysUI.ScreenUI{
 			rgbaArrays[(int)Color.DarkCyan] = GetFloatsFromBytes(0, 139, 139);
 			rgbaArrays[(int)Color.Transparent] = new float[]{0.0f, 0.0f, 0.0f, 0.0f};
 
-			rgbaArrays[(int)Color.DarkerGray] = GetFloatsFromBytes(50, 50, 50);
+			rgbaArrays[(int)Color.DarkerGray] = GetFloatsFromBytes(35, 35, 35); //todo, not sure if I want to keep this at 35
 			rgbaArrays[(int)Color.DarkerRed] = GetFloatsFromBytes(80, 0, 0); //(DarkRed is 139 red)
 			// todo, will the ones like ForestGreen be used by others?
 			//   (it would probably be easy to let one color be a reference to another...just have the same array in 2 places)
@@ -35,7 +35,7 @@ namespace ForaysUI.ScreenUI{
 			rgbaArrays[(int)Color.DarkForestGreen] = GetFloatsFromBytes(10, 80, 10);
 
 			// UI colors reference other colors by default, but can be overridden:
-			rgbaArrays[(int)Color.OutOfSight] = rgbaArrays[(int)Color.DarkBlue]; //todo check...how does this interact with the option?
+			rgbaArrays[(int)Color.OutOfSight] = rgbaArrays[(int)Color.DarkerGray]; //todo check...how does this interact with the option?
 			//todo, check this. TerrainDarkGray exists to make sure 'unseen' differs from 'dark gray coloration'. Rename?
 			rgbaArrays[(int)Color.TerrainDarkGray] = rgbaArrays[(int)Color.DarkGray];
 			rgbaArrays[(int)Color.HealthBar] = rgbaArrays[(int)Color.DarkerRed];

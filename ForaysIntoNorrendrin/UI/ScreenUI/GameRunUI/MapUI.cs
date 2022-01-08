@@ -58,7 +58,7 @@ namespace ForaysUI.ScreenUI{
 						Map.Seen[p] = true; //todo!!! This one does NOT stay here. Temporary hack to get map memory working. Should be done in the player turn action or similar.
 						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
 						if(!Map.Light.CellAppearsLitToObserver(p, Player.Position)){
-							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan); //todo, only some tiles get darkened this way, right?
+							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan, cg.BackgroundColor); //todo, only some tiles get darkened this way, right?
 						}
 						else{
 							DrawToMap(i, j, cg);
@@ -110,7 +110,12 @@ namespace ForaysUI.ScreenUI{
 			if(itemsLastSeen.TryGetValue(p, out ItemType item)) lastKnownItem = item;
 			else lastKnownItem = null; //todo ID?
 			ColorGlyph cg = DetermineVisibleColorGlyph(tilesLastSeen[p], featuresLastSeen[p], lastKnownItem);
-			if(useOutOfSightColor) return new ColorGlyph(cg.GlyphIndex, Color.OutOfSight, cg.BackgroundColor);
+			if(useOutOfSightColor){
+				if(cg.BackgroundColor != Color.Black)
+					return new ColorGlyph(cg.GlyphIndex, Color.Black, Color.OutOfSight);
+				else
+					return new ColorGlyph(cg.GlyphIndex, Color.OutOfSight, Color.Black);
+			}
 			else return cg;
 		}
 		private void RecordMapMemory(Point p){

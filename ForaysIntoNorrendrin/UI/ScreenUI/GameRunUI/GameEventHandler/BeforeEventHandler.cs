@@ -25,6 +25,10 @@ namespace ForaysUI.ScreenUI{
 				case DieEvent e:
 					Messages.AddSimple(e.Creature, "die");
 					break;
+				case IceCrackingEvent e: //todo
+					break;
+				case IceBreakingEvent e:
+					break;
 			}
 		}
 	}
