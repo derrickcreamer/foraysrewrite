@@ -24,6 +24,12 @@ namespace ForaysUI.ScreenUI{
 			rgbaArrays[(int)Color.DarkYellow] = GetFloatsFromBytes(184, 134, 11);
 			rgbaArrays[(int)Color.DarkMagenta] = GetFloatsFromBytes(139, 0, 139);
 			rgbaArrays[(int)Color.DarkCyan] = GetFloatsFromBytes(0, 139, 139);
+			//todo remove:
+			for(int i=0;i<9;++i){
+				int enumValue = i + (int)Color.Grayscale10;
+				float colorValue = 0.1f * (i+1);
+				rgbaArrays[enumValue] = new float[]{colorValue, colorValue, colorValue, 1.0f};
+			}
 			rgbaArrays[(int)Color.Transparent] = new float[]{0.0f, 0.0f, 0.0f, 0.0f};
 
 			rgbaArrays[(int)Color.DarkerGray] = GetFloatsFromBytes(35, 35, 35); //todo, not sure if I want to keep this at 35
