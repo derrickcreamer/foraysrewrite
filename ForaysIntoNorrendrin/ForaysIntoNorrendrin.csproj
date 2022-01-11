@@ -72,6 +72,7 @@
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\Light.cs" />
+    <Compile Include="GameUniverse\PerlinNoise.cs" />
     <Compile Include="GameUniverse\PointArray.cs" />
     <Compile Include="GameUniverse\Tile.cs" />
     <Compile Include="GameUniverse\Events\BaseEvents.cs" />
