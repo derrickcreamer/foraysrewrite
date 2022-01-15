@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Forays;
 
 namespace ForaysUI.ScreenUI{
+	// GameObjectGlyphs holds the info about what everything looks like and whether each tile can have any color variations,
+	// while the MapUI tracks the concrete color variations and decides what actually gets drawn.
 	public static class GameObjectGlyphs{
 		private static Dictionary<CreatureType, ColorGlyph> creatures;
 		private static Dictionary<TileType, ColorGlyph> tiles;
@@ -19,6 +21,12 @@ namespace ForaysUI.ScreenUI{
 		private static void Add(FeatureType type, char ch, Color color, Color bgColor = Color.Black) => features.Add(type, new ColorGlyph(ch, color, bgColor));
 		private static void Add(ItemType type, char ch, Color color) => items.Add(type, new ColorGlyph(ch, color));
 
+//todo next
+// move some parts of THIS to the specific screens.
+// Change map drawing so it's more like... the screen is applying its own logic based on
+//    all the items in that tile...
+//  so it can handle gases.
+//
 		public static void Initialize(){
 			if(creatures != null) return; // Initialize only once
 			creatures = new Dictionary<CreatureType, ColorGlyph>();

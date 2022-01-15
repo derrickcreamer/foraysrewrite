@@ -25,11 +25,14 @@ namespace ForaysUI.ScreenUI{
 		//todo, shrines, idols?
 		private Dictionary<Point, ItemType> itemsLastSeen;
 
+		private PointArray<Color> colorVariations; // for terrain variations that don't change after creation
+
 		public MapUI(GameRunUI ui) : base(ui) {
 			tilesLastSeen = new PointArray<TileType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 			featuresLastSeen = new PointArray<FeatureType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 			trapsLastSeen = new Dictionary<Point, TrapType>();
 			itemsLastSeen = new Dictionary<Point, ItemType>();
+			colorVariations = new PointArray<Color>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 		}
 		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+RowOffset, col+ColOffset, glyphIndex, color, bgColor);

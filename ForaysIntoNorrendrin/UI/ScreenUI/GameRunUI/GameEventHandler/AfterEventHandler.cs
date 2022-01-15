@@ -28,6 +28,9 @@ namespace ForaysUI.ScreenUI{
 						if(msg != null) Messages.Add(msg);
 					}
 					break;
+				case DescendAction e:
+					//todo
+					break;
 			}
 		}
 	}

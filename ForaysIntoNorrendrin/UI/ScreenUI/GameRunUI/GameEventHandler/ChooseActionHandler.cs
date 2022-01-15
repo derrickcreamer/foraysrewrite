@@ -94,6 +94,9 @@ namespace ForaysUI.ScreenUI{
 					case ConsoleKey.NumPad7:
 						ChooseActionFromDirection(e, Dir8.NW, shift);
 						break;
+					case ConsoleKey.D: //todo, 'd' is definitely not 'descend'
+						e.ChosenAction = new DescendAction(Player);
+						break;
 					case ConsoleKey.Escape:
 						EscapeMenu.Open();
 						break;

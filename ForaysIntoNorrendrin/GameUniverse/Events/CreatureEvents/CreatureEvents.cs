@@ -131,21 +131,12 @@ namespace Forays {
 		public DescendAction(Creature creature) : base(creature){ }
 		protected override PassFailResult Execute() {
 			if(Creature.TileTypeAt(Creature.Position) != TileType.Staircase) return Failure();
-			//todo, Grid.Clear method?
-			//todo, repeated code here:
-			Map.Creatures = new Grid<Creature, Point>(p => p.X >= 0 && p.X < GameUniverse.MapWidth && p.Y >= 0 && p.Y < GameUniverse.MapHeight);
-			GameUniverse.CurrentDepth++;
-			Map.CurrentLevelType = GameUniverse.MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
+			GameUniverse.CurrentDepth++; //todo, move most of this into its own event
+			GameUniverse.Map = new DungeonMap(GameUniverse);
 			Map.GenerateMap();
 
-			Map.Creatures.Add(Player, new Point(15, 8));
-
-			int numEnemies = GameUniverse.MapRNG.GetNext(8 + GameUniverse.CurrentDepth);
-			for(int i = 0; i<numEnemies; ++i) {
-				Creature c = new Creature(GameUniverse);
-				Map.Creatures.Add(c, new Point(GameUniverse.MapRNG.GetNext(GameUniverse.MapWidth-2)+1, GameUniverse.MapRNG.GetNext(GameUniverse.MapHeight-2)+1));
-				Q.Schedule(new AiTurnEvent(c), Turns(10), Q.GetCurrentInitiative());
-			}
+			Map.Creatures.Add(Player, new Point(1, 20));
+			Map.Light.AddLightSource(Player.Position, 5); //todo, where should these end up?
 
 			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
 			return Success();
