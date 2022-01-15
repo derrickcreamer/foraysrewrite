@@ -97,4 +97,17 @@ namespace Forays {
 			return null;
 		}
 	}
+	public class MoveToNextLevelEvent : SimpleEvent {
+		public MoveToNextLevelEvent(GameUniverse g) : base(g){}
+		protected override void ExecuteSimpleEvent(){
+			GameUniverse.CurrentDepth++;
+			GameUniverse.Map = new DungeonMap(GameUniverse);
+			Map.GenerateMap();
+
+			Map.Creatures.Add(Player, new Point(1, 20));
+			Map.Light.AddLightSource(Player.Position, 5); //todo, where should these end up?
+
+			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
+		}
+	}
 }

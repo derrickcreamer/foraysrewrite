@@ -130,15 +130,8 @@ namespace Forays {
 
 		public DescendAction(Creature creature) : base(creature){ }
 		protected override PassFailResult Execute() {
-			if(Creature.TileTypeAt(Creature.Position) != TileType.Staircase) return Failure();
-			GameUniverse.CurrentDepth++; //todo, move most of this into its own event
-			GameUniverse.Map = new DungeonMap(GameUniverse);
-			Map.GenerateMap();
-
-			Map.Creatures.Add(Player, new Point(1, 20));
-			Map.Light.AddLightSource(Player.Position, 5); //todo, where should these end up?
-
-			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
+			if(TileTypeAt(Creature.Position) != TileType.Staircase) return Failure();
+			Q.Execute(new MoveToNextLevelEvent(GameUniverse));
 			return Success();
 		}
 	}
