@@ -34,7 +34,7 @@ namespace ForaysUI.ScreenUI{
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
 				switch(key.Key){
-					case ConsoleKey.Tab:
+					case ConsoleKey.Tab: //todo, what about adding Insert as an alternative to Tab, so you can easily access this screen and switch with the numpad?
 						if(shift) return CharacterScreen.Equipment;
 						else return CharacterScreen.AdventureLog;
 					case ConsoleKey.Escape:

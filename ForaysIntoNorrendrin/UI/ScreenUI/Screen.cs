@@ -27,7 +27,7 @@ namespace ForaysUI.ScreenUI{
 		/// <param name="forceResume">If forceResume is true, return to the default state and immediately resume updates.</param>
 		void ResumeUpdates(bool forceResume = false);
 
-		///<summary>If true, the cursor should be blinking at the position indicated by CursorTop and CursorLeft</summary>
+		///<summary>If true, the cursor should be blinking at the position indicated by CursorRow and CursorCol</summary>
 		bool CursorVisible {get;set;}
 		///<summary>Row position of the blinking cursor</summary>
 		int CursorRow {get;set;}

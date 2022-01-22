@@ -19,6 +19,14 @@ namespace ForaysUI.ScreenUI{
 		public MessageBuffer Messages => GameRunUI.Messages;
 		public Sidebar Sidebar => GameRunUI.Sidebar;
 		public MapUI MapUI => GameRunUI.MapUI;
+		public MapMemory MapMemory => GameRunUI.MapMemory;
+		//  TODO NEXT:
+
+		// so the next step is to go into lookmode and the main loop and whatever and actually MAKE IT USE MAPRENDERER.
+		//
+		// And once it's working against the interface like that, then I can start to actually implement it.
+
+
 		public EscapeMenu EscapeMenu => GameRunUI.EscapeMenu;
 		public CharacterScreens CharacterScreens => GameRunUI.CharacterScreens;
 		public GameEventHandler GameEventHandler => GameRunUI.GameEventHandler;
@@ -29,6 +37,7 @@ namespace ForaysUI.ScreenUI{
 		public MessageBuffer Messages;
 		public Sidebar Sidebar;
 		public MapUI MapUI;
+		public MapMemory MapMemory;
 		public EscapeMenu EscapeMenu;
 		public CharacterScreens CharacterScreens;
 		public GameEventHandler GameEventHandler;
@@ -42,6 +51,7 @@ namespace ForaysUI.ScreenUI{
 			Messages = new MessageBuffer(this);
 			Sidebar = new Sidebar(this);
 			MapUI = new MapUI(this);
+			MapMemory = new MapMemory(this); //todo check
 			EscapeMenu = new EscapeMenu(this);
 			CharacterScreens = new CharacterScreens(this);
 			GameEventHandler = new GameEventHandler(this);

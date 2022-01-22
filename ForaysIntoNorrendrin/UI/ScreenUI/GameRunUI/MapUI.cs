@@ -98,7 +98,7 @@ namespace ForaysUI.ScreenUI{
 		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item){ //todo, add trap, shrine, etc.
 			//todo features
 			if(item != null) return GameObjectGlyphs.Get(item.Value);
-			if(features.HasFeature(FeatureType.Ice)) return new ColorGlyph('~', Color.Cyan, Color.Gray);
+			if(features.HasFeature(FeatureType.Ice)) return GameObjectGlyphs.Get(FeatureType.Ice);// new ColorGlyph('~', Color.Cyan, Color.Gray);
 			if(features.HasFeature(FeatureType.CrackedIce)) return new ColorGlyph('~', Color.Red, Color.Gray);
 			if(features.HasFeature(FeatureType.BrokenIce)) return new ColorGlyph('~', Color.Gray, Color.DarkBlue);
 			if(features.HasFeature(FeatureType.Water)) return new ColorGlyph('~', Color.Cyan, Color.DarkCyan);
@@ -163,6 +163,9 @@ namespace ForaysUI.ScreenUI{
 				ColorGlyph currentGlyph = hasLOS? GetCachedAtMapPosition(p)
 					: seen? GetLastSeenColorGlyph(p, true)
 					: new ColorGlyph(' ', Color.White);
+				// todo, I think these next 2 lines will eventually be more like "start showing the position (Y,X) as highlighted with Targeting"
+				//	so that the screen can interpret that as it wants.
+				// Similarly, I think "show the blinking cursor at map position (Y,X)" will be added at some point, to support modes that show only part of the map etc.
 				ColorGlyph highlighted = Screen.GetHighlighted(currentGlyph, HighlightType.Targeting);
 				DrawToMap(p.Y, p.X, highlighted);
 				string lookDescription = hasLOS? GetDescriptionAtCell(p)
