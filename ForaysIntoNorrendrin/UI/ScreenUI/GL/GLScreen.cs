@@ -226,17 +226,22 @@ namespace ForaysUI.ScreenUI{
 
 		public ColorGlyph GetHighlighted(ColorGlyph cg, HighlightType highlightType){
 			//todo, does this need to check color options?
-			if(highlightType == HighlightType.Targeting){
-				float[] colorRgba = cg.ForegroundColor.GetRGBA();
-				float[] highlightColorRgba = Color.TargetingHighlight.GetRGBA();
-				for(int i=0;i<4;++i){
-					if(colorRgba[i] != highlightColorRgba[i]) // If any part is different, return the regular highlight:
-						return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, Color.TargetingHighlight);
-				}
-				return new ColorGlyph(cg.GlyphIndex, Color.Black, Color.TargetingHighlight); // Otherwise, draw it in black.
+			if(highlightType == HighlightType.Button){
+				return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, Color.Blue);
 			}
 			else{
-				return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, Color.Blue);
+				Color color;
+				if(highlightType == HighlightType.TargetingValid) color = Color.TargetingHighlightValid;
+				else if(highlightType == HighlightType.TargetingInvalid) color = Color.TargetingHighlightInvalid;
+				else if(highlightType == HighlightType.TargetingValidFocused) color = Color.TargetingHighlightValidFocused;
+				else color = Color.TargetingHighlightInvalidFocused;
+				float[] colorRgba = cg.ForegroundColor.GetRGBA();
+				float[] highlightColorRgba = color.GetRGBA();
+				for(int i=0;i<4;++i){
+					if(colorRgba[i] != highlightColorRgba[i]) // If any part is different, return the regular highlight:
+						return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, color);
+				}
+				return new ColorGlyph(cg.GlyphIndex, Color.Black, color); // Otherwise, draw it in black.
 			}
 		}
 	}

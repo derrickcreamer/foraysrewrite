@@ -167,7 +167,7 @@ namespace ForaysUI.ScreenUI{
 							}
 						}
 					}
-					MapUI.DrawToMap(i, j, ch, color, bgColor);
+					//MapUI.DrawToMap(i, j, ch, color, bgColor);
 				}
 			}
 			Screen.ResumeUpdates();

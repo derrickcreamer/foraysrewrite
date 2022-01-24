@@ -17,6 +17,7 @@ namespace ForaysUI.ScreenUI{
 
 		public void Show(PlayerTurnEvent e, CharacterScreen screen){
 			CharacterScreen? nextScreen = screen;
+			MapRenderer.HideMap();
 			do{
 				if(nextScreen == CharacterScreen.Inventory) nextScreen = ShowInventory(e);
 				else if(nextScreen == CharacterScreen.Equipment) nextScreen = ShowEquipment(e);
@@ -31,7 +32,6 @@ namespace ForaysUI.ScreenUI{
 			GameRunUI.DrawGameUI(
 				sidebar: DrawOption.Darkened,
 				messages: DrawOption.DoNotDraw,
-				map: DrawOption.DoNotDraw,
 				environmentalDesc: DrawOption.DoNotDraw,
 				commands: DrawOption.DoNotDraw
 			);

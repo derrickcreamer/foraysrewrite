@@ -17,7 +17,6 @@ namespace ForaysUI.ScreenUI{
 			GameRunUI.DrawGameUI(
 				sidebar: DrawOption.Darkened,
 				messages: DrawOption.DoNotDraw,
-				map: DrawOption.DoNotDraw,
 				environmentalDesc: bottomUI,
 				commands: bottomUI
 			);

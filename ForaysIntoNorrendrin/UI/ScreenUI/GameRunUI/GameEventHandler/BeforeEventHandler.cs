@@ -14,6 +14,7 @@ namespace ForaysUI.ScreenUI{
 		public void BeforeGameEvent(GameObject gameEvent){
 			switch(gameEvent){
 				case PlayerTurnEvent e:
+					//todo okay so let's see what is seen, and record map memory here...
 					ChooseAction(e);
 					break;
 				case MeleeHitEvent e:

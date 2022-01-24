@@ -6,7 +6,7 @@ namespace ForaysUI.ScreenUI{
 	public static class StaticScreen{
 		public static IScreen Screen;
 	}
-	public enum HighlightType { Targeting, Button };
+	public enum HighlightType { TargetingValid, TargetingInvalid, TargetingValidFocused, TargetingInvalidFocused, Button };
 	///<summary>Represents an abstract terminal-like display</summary>
 	public interface IScreen{
 		int Rows {get;}

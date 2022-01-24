@@ -30,6 +30,7 @@ namespace ForaysUI.ScreenUI{
 				StaticScreen.Screen = new ConsoleScreen(Rows, Cols);
 				StaticInput.Input = new ConsoleInput();
 			}
+			MapRendering.MapRenderer.SetFactoryMethod(ui => new MapRendering.BasicMapRenderer(ui));
 
 			Option.Initialize(); //todo, load options here
 			InitializeGrammar();

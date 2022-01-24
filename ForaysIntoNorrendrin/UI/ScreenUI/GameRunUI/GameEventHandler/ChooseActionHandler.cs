@@ -24,10 +24,11 @@ namespace ForaysUI.ScreenUI{
 				GameRunUI.DrawGameUI(
 					sidebar: DrawOption.Normal,
 					messages: DrawOption.Normal,
-					map: DrawOption.Normal,
 					environmentalDesc: DrawOption.Normal,
 					commands: DrawOption.Normal
 				);
+				MapRenderer.UpdateAllSettings(Player.Position);
+				MapRenderer.DrawMap();
 				//window update, set suspend if false...
 				/*if(!Screen.Update()){
 					GameUniverse.Suspend = true;
@@ -35,7 +36,6 @@ namespace ForaysUI.ScreenUI{
 				}*/
 				//
 				//
-				MapUI.SetCursorPositionOnMap(Player.Position.Y, Player.Position.X);
 				if(walkDir != null){
 					if(Input.KeyIsAvailable){
 						Input.FlushInput();

@@ -62,6 +62,9 @@ namespace Forays {
 
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
+		//todo, need a method here which is always called in ExecuteSimpleEvent but which can ALSO be called from the 'before event' handler.
+		// the method would be the thing which sets Map.Seen and which caches any LOS stuff for this turn.
+
 		protected override void ExecuteSimpleEvent() {
 			//if(Player.State == CreatureState.Dead) return;
 
