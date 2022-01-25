@@ -55,7 +55,7 @@ namespace ForaysUI.ScreenUI{
 				DrawToMap(p.Y, p.X, highlighted);*/
 				Highlight highlight = new Highlight(MapHighlightType.SinglePoint) { Destination = p };
 				MapRenderer.UpdateAllSettings(p, highlight);
-				MapRenderer.DrawMap();
+				MapRenderer.DrawMap(e);
 				string lookDescription = hasLOS? GetDescriptionAtCell(p)
 					: seen? GetLastKnownDescriptionAtCell(p)
 					: "";

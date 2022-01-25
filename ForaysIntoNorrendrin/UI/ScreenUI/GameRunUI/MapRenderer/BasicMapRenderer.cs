@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using Forays;
 using GameComponents;
-using GameComponents.DirectionUtility;
-using static ForaysUI.ScreenUI.StaticScreen; //todo check
+using static ForaysUI.ScreenUI.StaticScreen;
 
 namespace ForaysUI.ScreenUI.MapRendering{
 	// BasicMapRenderer makes use of Screen to draw the map
@@ -11,53 +10,22 @@ namespace ForaysUI.ScreenUI.MapRendering{
 
 		public BasicMapRenderer(GameRunUI ui) : base(ui) {}
 
-		/*public override void DrawMap(){
-			for(int i = 0; i < GameUniverse.MapHeight; i++) { //todo, cache all LOS + lighting for player turn... conditionally? for certain commands?
+		public override void DrawMap(PlayerTurnEvent e){
+			e.CalculateVisibility();
+			for(int i = 0; i < GameUniverse.MapHeight; i++) {
 				for(int j = 0; j < GameUniverse.MapWidth; j++) {
 					Point p = new Point(j, i);
 					Creature creature = CreatureAt(p);
 					ItemType? item = ItemAt(p)?.Type; //todo check ID
-					if(drawEnemies && creature != null && Player.CanSee(creature)){ //todo, any optimizations for this CanSee check?
+					if(drawEnemies && creature != null && e.CreaturesVisibleThisTurn.Contains(creature)){
 						DrawToMap(i, j, DetermineCreatureColorGlyph(creature.OriginalType, TileTypeAt(p), FeaturesAt(p), item));
 						//todo, need to consider inverting colors when colors are the same.
-						MapUI.RecordMapMemory(p); // todo, should map memory always get recorded here?
-					}
-					else if(Player.Position.HasLOS(p, Map.Tiles)){
-						Map.Seen[p] = true; //todo!!! This one does NOT stay here. Temporary hack to get map memory working. Should be done in the player turn action or similar.
-						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
-						if(!Map.Light.CellAppearsLitToObserver(p, Player.Position)){
-							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan, cg.BackgroundColor); //todo, only some tiles get darkened this way, right?
-						}
-						else{
-							DrawToMap(i, j, cg);
-						}
 						MapUI.RecordMapMemory(p);
 					}
-					else if(false){ // todo, this is where the dcss-style option for seeing previous monster locations will be added
-					}
-					else if(Map.Seen[p]){
-						DrawToMap(i, j, GetLastSeenColorGlyph(p, true));
-					}
-					else{
-						DrawToMap(i, j, ' ', Color.White);
-					}
-				}
-			}
-			if(cursor != null) SetCursorPositionOnMap(cursor.Value.Y, cursor.Value.X);
-		}*/
-		public override void DrawMap(){
-			for(int i = 0; i < GameUniverse.MapHeight; i++) { //todo, cache all LOS + lighting for player turn... conditionally? for certain commands?
-				for(int j = 0; j < GameUniverse.MapWidth; j++) {
-					Point p = new Point(j, i);
-					Creature creature = CreatureAt(p);
-					ItemType? item = ItemAt(p)?.Type; //todo check ID
-					if(drawEnemies && creature != null && visibleCreatures.Contains(creature)){
-						DrawToMap(i, j, DetermineCreatureColorGlyph(creature.OriginalType, TileTypeAt(p), FeaturesAt(p), item));
-						//todo, need to consider inverting colors when colors are the same.
-					}
-					else if(playerTurnLos[p]){
+					else if(e.CellsVisibleThisTurn[p]){
+						MapUI.RecordMapMemory(p); //todo, can I avoid calling RecordMapMemory more than once per turn?
 						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
-						if(!playerTurnLit[p]){
+						if(!e.CellsLitThisTurn[p]){
 							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan, cg.BackgroundColor); //todo, only some tiles get darkened this way, right?
 						}
 						else{
@@ -144,12 +112,11 @@ namespace ForaysUI.ScreenUI.MapRendering{
 
 		}
 
-		public void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
+		private static void DrawToMap(int row, int col, int glyphIndex, Color color, Color bgColor = Color.Black)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+MapUI.RowOffset, col+MapUI.ColOffset, glyphIndex, color, bgColor);
-		public void DrawToMap(int row, int col, ColorGlyph cg)
+		private static void DrawToMap(int row, int col, ColorGlyph cg)
 			=> Screen.Write(GameUniverse.MapHeight-1-row+MapUI.RowOffset, col+MapUI.ColOffset, cg);
-		//todo public ColorGlyph GetCachedAtMapPosition(Point p) => cachedMapDisplay[GameUniverse.MapHeight-1-p.Y][p.X];
-		private void SetCursorPositionOnMap(int row, int col)
+		private static void SetCursorPositionOnMap(int row, int col)
 			=> Screen.SetCursorPosition(GameUniverse.MapHeight-1-row+MapUI.RowOffset, col+MapUI.ColOffset);
 
 		private static ColorGlyph DetermineCreatureColorGlyph(CreatureType creature, TileType tile, FeatureType features, ItemType? item){

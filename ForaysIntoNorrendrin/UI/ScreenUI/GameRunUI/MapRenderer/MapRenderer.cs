@@ -1,10 +1,11 @@
 using System;
+using Forays;
 using GameComponents;
 
 namespace ForaysUI.ScreenUI.MapRendering{
 	//todo, pretty sure that the maprenderer also needs to provide a method for telling us the map position of a mouse coord, eventually.
 	public abstract class MapRenderer : GameUIObject{
-		protected Point? cursor; // todo, if this Point is also highlighted, AUTOMATICALLY make it bright green or equivalent.
+		protected Point? cursor;
 		protected Highlight highlight;
 		protected bool memoryFullyVisible;
 		protected bool drawEnemies;
@@ -18,9 +19,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 		}
 		public static MapRenderer Create(GameRunUI ui) => createMapRenderer.Invoke(ui);
 
-		public abstract void DrawMap();
-		// todo, somewhere i need to make available a map of what's visible this turn, right?
-		// also need list of visible enemies this turn - is that handled by MapMemory or passed directly in?
+		public abstract void DrawMap(PlayerTurnEvent e);
 		public abstract void HideMap();
 		// The Update methods should be overridden if there's any unique update logic (such as setting dirty flags etc.):
 		public virtual void UpdateCursorPosition(Point? cursor){ this.cursor = cursor; }
