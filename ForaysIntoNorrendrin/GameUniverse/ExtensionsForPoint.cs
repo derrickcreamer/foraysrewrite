@@ -46,6 +46,13 @@ namespace Forays{
 		public static bool IsMapEdge(this Point p){
 			return p.X==0 || p.Y==0 || p.X==GameUniverse.MapWidth-1 || p.Y==GameUniverse.MapHeight-1;
 		}
+		///<summary>The distance is 10 per cardinal step plus 15 per diagonal step, so this metric is closer to Euclidean than the others.</summary>
+		public static int GetHalfStepMetricDistance(this Point p1, Point p2){
+			int dy = Math.Abs(p1.Y - p2.Y);
+			int dx = Math.Abs(p1.X - p2.X);
+			if(dx > dy) return dx*10 + dy*5;
+			else return dy*10 + dx*5;
+		}
 		///<summary>Returns the point at the given distance in the given direction.</summary>
 		public static Point PointInDir(this Point source, Dir8 dir, int distance){
 			switch(dir){

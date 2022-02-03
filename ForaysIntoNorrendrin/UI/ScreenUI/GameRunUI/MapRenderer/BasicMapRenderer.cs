@@ -98,6 +98,13 @@ namespace ForaysUI.ScreenUI.MapRendering{
 					ColorGlyph highlighted = Screen.GetHighlighted(currentGlyph, highlightType);
 					DrawToMap(p.Y, p.X, highlighted);
 				}
+				if(!valid.Contains(highlight.Destination)){
+					Point p = highlight.Destination;
+					ColorGlyph currentGlyph = drawn[GameUniverse.MapHeight-1-p.Y][p.X];
+					HighlightType highlightType = highlight.Destination == p ? HighlightType.TargetingValidFocused : HighlightType.TargetingValid;
+					ColorGlyph highlighted = Screen.GetHighlighted(currentGlyph, highlightType);
+					DrawToMap(p.Y, p.X, highlighted);
+				}
 				if(invalid != null){
 					foreach(Point p in invalid){
 						ColorGlyph currentGlyph = drawn[GameUniverse.MapHeight-1-p.Y][p.X];

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Forays;
 using ForaysUI.ScreenUI.MapRendering;
 using GameComponents;
@@ -14,9 +16,23 @@ namespace ForaysUI.ScreenUI{
 	// MapMemory.cs
 	// MapUI.cs (has constructor)
 	public partial class MapUI : GameUIObject {
-		public void LookMode(PlayerTurnEvent e, bool startInTravelMode = false){
+		public enum TravelDestinationPriority { Explore, Stairs }
+		public void LookMode(PlayerTurnEvent e, bool startInTravelMode = false, TravelDestinationPriority travelPriority = TravelDestinationPriority.Explore){
 			bool travelMode = startInTravelMode;
-			Point p = Player.Position; //todo
+			List<Point> travelDestinations = GetTravelDestinations(travelPriority); //todo, start this as null or not?
+			//todo... a few notes about travel destinations and interesting targets:
+			// could i make it pick ONLY SEVERAL unexplored cells to be interesting? grab the closest and then DON'T pick any others nearby.
+			// Autoexplore would be unaffected since it'd always use the closest.
+			// Based on the options given, the first travel destination will be different: an explore target, or stairs if '>' is pressed.
+			// (Interesting _look_ targets are completely different and done separately.)
+			DijkstraMap playerMovementMap = new DijkstraMap(point => (!Map.Seen[point] || !TileDefinition.IsPassable(TileTypeAt(point)))? -1 : 10){
+				IsSource = point => point == Player.Position
+			};
+			playerMovementMap.Scan();
+			PointArray<bool> knownReachable = null;
+			DijkstraMap distanceToKnownReachable = null;
+			int travelIndex = 0;
+			Point p = travelDestinations[0];
 			while(true){
 				Screen.HoldUpdates();
 				Screen.Clear(MessageBuffer.RowOffset, ColOffset, 4, MapDisplayWidth);
@@ -42,20 +58,43 @@ namespace ForaysUI.ScreenUI{
 					Screen.Write(MessageBuffer.RowOffset + 3, ColOffset, "[x] to enter travel mode");
 					Screen.Write(MessageBuffer.RowOffset + 3, ColOffset + 1, 'x', Color.Cyan);
 				}
-				//todo, show path if travel mode
-				bool hasLOS = Player.Position.HasLOS(p, Map.Tiles);
-				bool seen = Map.Seen[p];
-				/*ColorGlyph currentGlyph = hasLOS? GetCachedAtMapPosition(p)
-					: seen? GetLastSeenColorGlyph(p, true)
-					: new ColorGlyph(' ', Color.White);
-				// todo, I think these next 2 lines will eventually be more like "start showing the position (Y,X) as highlighted with Targeting"
-				//	so that the screen can interpret that as it wants.
-				// Similarly, I think "show the blinking cursor at map position (Y,X)" will be added at some point, to support modes that show only part of the map etc.
-				ColorGlyph highlighted = Screen.GetHighlighted(currentGlyph, HighlightType.Targeting);
-				DrawToMap(p.Y, p.X, highlighted);*/
-				Highlight highlight = new Highlight(MapHighlightType.SinglePoint) { Destination = p };
+				Highlight highlight;
+				if(travelMode){
+					Point pathTarget = p;
+					// First, figure out whether the destination cell is known-reachable:
+					if(knownReachable == null){
+						knownReachable = FloodFill.ScanToArray(Player.Position, CellIsKnownPassable);
+					}
+					if(!knownReachable[p]){
+						// If not, then find the nearest known reachable spaces:
+						if(distanceToKnownReachable == null){
+							distanceToKnownReachable = new DijkstraMap(point => 1){
+								IsSource = point => knownReachable[point]
+							};
+							distanceToKnownReachable.Scan();
+						}
+						if(distanceToKnownReachable[p] > 1){ // If distance is 1, then we can reach it anyway
+							pathTarget = p.EnumeratePointsAtChebyshevDistance(distanceToKnownReachable[p], true, false) // We know the distance already, so check only those cells...
+								.Where(nearby => nearby.ExistsBetweenMapEdges() && knownReachable[nearby]) // ...make sure only reachable ones are considered...
+								.WhereLeast(nearby => p.GetHalfStepMetricDistance(nearby)) // ...get the nearest ones to the targeted point...
+								.WhereLeast(nearby => Player.Position.GetHalfStepMetricDistance(nearby))[0]; // ...and finally get whichever one of those is closest to the player.
+						}
+					}
+					List<Point> path = playerMovementMap.GetDownhillPath(pathTarget, preferCardinalDirections: true, includePathSource: true, includePathDestination: false, ignorePathSourceCost: true);
+					path.Reverse();
+					highlight = new Highlight(MapHighlightType.Path){
+						Source = Player.Position,
+						Destination = p,
+						LineOrPath = path
+					};
+				}
+				else{
+					highlight = new Highlight(MapHighlightType.SinglePoint) { Destination = p };
+				}
 				MapRenderer.UpdateAllSettings(p, highlight);
 				MapRenderer.DrawMap(e);
+				bool hasLOS = e.CellsVisibleThisTurn[p];
+				bool seen = Map.Seen[p];
 				string lookDescription = hasLOS? GetDescriptionAtCell(p)
 					: seen? GetLastKnownDescriptionAtCell(p)
 					: "";
@@ -90,7 +129,11 @@ namespace ForaysUI.ScreenUI{
 					bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
 					switch(key.Key){
 						case ConsoleKey.Tab:
-							//todo
+							if(shift) travelIndex--;
+							else travelIndex++;
+							if(travelIndex < 0) travelIndex = travelDestinations.Count - 1;
+							else if(travelIndex >= travelDestinations.Count) travelIndex = 0;
+							p = travelDestinations[travelIndex];
 							needsRedraw = true;
 							break;
 						case ConsoleKey.Escape:
@@ -106,6 +149,7 @@ namespace ForaysUI.ScreenUI{
 							break;
 						case ConsoleKey.X:
 							if(travelMode){
+								// TODO NEXT:  make continuous autoexplore no longer the default. Make 'x' actually set the chosen path.
 								GameEventHandler.Autoexplore = true;
 								return;
 							}
@@ -161,6 +205,12 @@ namespace ForaysUI.ScreenUI{
 					}
 				}
 			}
+		}
+		private bool CellIsKnownPassable(Point point){
+			return Map.Seen[point] && TileDefinition.IsPassable(TileTypeAt(point));
+		}
+		public List<Point> GetTravelDestinations(TravelDestinationPriority priority){
+			return new List<Point>{ new Point(11, 11), new Point(15, 15) };
 		}
 	}
 }

@@ -66,9 +66,11 @@
     <Compile Include="GameUniverse\PriorityQueue\SimplePriorityQueue.cs" />
     <Compile Include="GameUniverse\DungeonMap.cs" />
     <Compile Include="GameUniverse\EventQueue.cs" />
-    <Compile Include="GameUniverse\ExtensionsForRNG.cs" />
+    <Compile Include="GameUniverse\ExtensionsForEnumerable.cs" />
     <Compile Include="GameUniverse\ExtensionsForPoint.cs" />
+    <Compile Include="GameUniverse\ExtensionsForRNG.cs" />
     <Compile Include="GameUniverse\Feature.cs" />
+    <Compile Include="GameUniverse\FloodFill.cs" />
     <Compile Include="GameUniverse\GameUniverse.cs" />
     <Compile Include="GameUniverse\Item.cs" />
     <Compile Include="GameUniverse\Light.cs" />

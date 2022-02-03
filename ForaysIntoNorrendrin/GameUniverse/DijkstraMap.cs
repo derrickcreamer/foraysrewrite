@@ -66,7 +66,7 @@ namespace Forays{
 				Point current = frontier.Dequeue();
 				foreach(Dir8 dir in EightDirections.Enumerate(true, false, false)){
 					Point neighbor = current.PointInDir(dir);
-					if(!neighbor.ExistsBetweenMapEdges()) continue;
+					if(!neighbor.ExistsOnMap()) continue;
 					int neighborCost = GetCellCost(neighbor);
 					if(neighborCost < 0){
 						if(this[neighbor] == Unexplored) this[neighbor] = Blocked;
@@ -107,7 +107,7 @@ namespace Forays{
 				Point current = frontier.Dequeue();
 				foreach(Dir8 dir in EightDirections.Enumerate(true, false, false)){
 					Point neighbor = current.PointInDir(dir);
-					if(!neighbor.ExistsBetweenMapEdges()) continue;
+					if(!neighbor.ExistsOnMap()) continue;
 					if(this[neighbor] == Blocked) continue;
 					int neighborCost = GetCellCost(neighbor);
 					if(neighborCost < 0){
@@ -126,6 +126,59 @@ namespace Forays{
 						}
 					}
 				}
+			}
+		}
+
+		///<summary>Get a list of points from pathSource to a local minimum on an already-scanned DijkstraMap.</summary>
+		public List<Point> GetDownhillPath(Point pathSource, bool preferCardinalDirections, bool includePathSource = false, bool includePathDestination = true,
+			bool ignorePathSourceCost = false)
+		{
+			List<Point> path = new List<Point>();
+			Point current = pathSource;
+			List<Point> lowestPoints = new List<Point>();
+			if(includePathSource) path.Add(current);
+			while(true){
+				int lowestCost = this[current];
+				if (ignorePathSourceCost){
+					ignorePathSourceCost = false;
+					lowestCost = int.MaxValue;
+				}
+				foreach(Point neighbor in current.GetNeighbors()){
+					if(!neighbor.ExistsBetweenMapEdges()) continue;
+					int value = this[neighbor];
+					if(value == Unexplored || value == Blocked) continue;
+					if(value == lowestCost){
+						lowestPoints.Add(neighbor);
+					}
+					else if(value < lowestCost){
+						lowestPoints.Clear();
+						lowestPoints.Add(neighbor);
+						lowestCost = value;
+					}
+				}
+				if(lowestPoints.Count == 0){
+					if(!includePathDestination){
+						path.RemoveAt(path.Count - 1); // It was already added, so simply remove it before returning
+					}
+					return path;
+				}
+				if(preferCardinalDirections){
+					int lowestIndex = int.MaxValue;
+					int lowestHalfStepCost = int.MaxValue;
+					for(int i=0;i<lowestPoints.Count;++i){
+						int value = current.GetHalfStepMetricDistance(lowestPoints[i]);
+						if(value < lowestHalfStepCost){
+							lowestIndex = i;
+							lowestHalfStepCost = value;
+						}
+					}
+					current = lowestPoints[lowestIndex];
+				}
+				else{
+					current = lowestPoints[0];
+				}
+				path.Add(current);
+				lowestPoints.Clear();
 			}
 		}
 	}
