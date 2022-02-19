@@ -131,24 +131,26 @@ namespace Forays{
 
 		///<summary>Get a list of points from pathSource to a local minimum on an already-scanned DijkstraMap.</summary>
 		public List<Point> GetDownhillPath(Point pathSource, bool preferCardinalDirections, bool includePathSource = false, bool includePathDestination = true,
-			bool ignorePathSourceCost = false)
+			bool ignorePathSourceCost = true, Func<Point, bool> earlyStopCondition = null) //todo, does preferCardinal need to be an enum that allows calculation from the source OR the target?
 		{
 			List<Point> path = new List<Point>();
 			Point current = pathSource;
 			List<Point> lowestPoints = new List<Point>();
 			if(includePathSource) path.Add(current);
 			while(true){
-				int lowestCost = this[current];
+				int currentCost = this[current];
+				int lowestCost = currentCost;
 				if (ignorePathSourceCost){
 					ignorePathSourceCost = false;
+					currentCost = int.MaxValue;
 					lowestCost = int.MaxValue;
 				}
 				foreach(Point neighbor in current.GetNeighbors()){
 					if(!neighbor.ExistsBetweenMapEdges()) continue;
 					int value = this[neighbor];
 					if(value == Unexplored || value == Blocked) continue;
-					if(value == lowestCost){
-						lowestPoints.Add(neighbor);
+					if(value == lowestCost && value < currentCost){ // If there are several cells with the same cost, consider them all. However,
+						lowestPoints.Add(neighbor); // we only want to do this for the ones that are LOWER than where we started.
 					}
 					else if(value < lowestCost){
 						lowestPoints.Clear();
@@ -176,6 +178,10 @@ namespace Forays{
 				}
 				else{
 					current = lowestPoints[0];
+				}
+				if(earlyStopCondition?.Invoke(current) == true){
+					if(includePathDestination) path.Add(current);
+					return path;
 				}
 				path.Add(current);
 				lowestPoints.Clear();

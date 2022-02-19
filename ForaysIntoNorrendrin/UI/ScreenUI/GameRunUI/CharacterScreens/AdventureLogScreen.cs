@@ -120,17 +120,19 @@ namespace ForaysUI.ScreenUI{
 			Input.ReadKey();
 			PrintDijkstraTest(dm2);*/
 		}
-		public void PrintDijkstraTest(PointArray<int> dm){
+		public void PrintDijkstraTest(PointArray<int> dm2){
+			PointArray<int> dm = new PointArray<int>(dm2.Width, dm2.Height);
 			Screen.HoldUpdates();
 			int min = int.MaxValue;
 			for(int i = 0;i<GameUniverse.MapHeight;++i){
 				for(int j=0;j<GameUniverse.MapWidth;++j){
+					dm[j,i] = dm2[j,i];
 					if(dm[j,i] != DijkstraMap.Blocked && dm[j,i] < min){
 						min = dm[j,i];
 					}
 				}
 			}
-			if(min < 0){
+			if(min != 0){
 				for(int i = 0;i<GameUniverse.MapHeight;++i){
 					for(int j=0;j<GameUniverse.MapWidth;++j){
 						if(dm[j,i] != DijkstraMap.Blocked && dm[j,i] != DijkstraMap.Unexplored){
@@ -147,7 +149,6 @@ namespace ForaysUI.ScreenUI{
 					Color color = Color.Black;
 					if(num != DijkstraMap.Unexplored && num != DijkstraMap.Blocked){
 						bgColor = Color.Black;
-						num = num/10;
 						if(num < 10){
 							color = Color.Yellow;
 							ch = num.ToString()[0];
@@ -167,7 +168,7 @@ namespace ForaysUI.ScreenUI{
 							}
 						}
 					}
-					//MapUI.DrawToMap(i, j, ch, color, bgColor);
+					Screen.Write(GameUniverse.MapHeight-1-i+MapUI.RowOffset, j+MapUI.ColOffset, ch, color, bgColor);
 				}
 			}
 			Screen.ResumeUpdates();

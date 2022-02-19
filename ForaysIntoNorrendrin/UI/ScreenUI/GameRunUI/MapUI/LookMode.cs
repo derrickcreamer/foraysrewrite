@@ -20,15 +20,8 @@ namespace ForaysUI.ScreenUI{
 		public void LookMode(PlayerTurnEvent e, bool startInTravelMode = false, TravelDestinationPriority travelPriority = TravelDestinationPriority.Explore){
 			bool travelMode = startInTravelMode;
 			List<Point> travelDestinations = GetTravelDestinations(travelPriority); //todo, start this as null or not?
-			//todo... a few notes about travel destinations and interesting targets:
-			// could i make it pick ONLY SEVERAL unexplored cells to be interesting? grab the closest and then DON'T pick any others nearby.
-			// Autoexplore would be unaffected since it'd always use the closest.
-			// Based on the options given, the first travel destination will be different: an explore target, or stairs if '>' is pressed.
-			// (Interesting _look_ targets are completely different and done separately.)
-			DijkstraMap playerMovementMap = new DijkstraMap(point => (!Map.Seen[point] || !TileDefinition.IsPassable(TileTypeAt(point)))? -1 : 10){
-				IsSource = point => point == Player.Position
-			};
-			playerMovementMap.Scan();
+			DijkstraMap playerMovementMap = new DijkstraMap(point => (!Map.Seen[point] || !TileDefinition.IsPassable(TileTypeAt(point)))? -1 : 10);
+			playerMovementMap.Scan(Player.Position);
 			PointArray<bool> knownReachable = null;
 			DijkstraMap distanceToKnownReachable = null;
 			int travelIndex = 0;
@@ -210,7 +203,55 @@ namespace ForaysUI.ScreenUI{
 			return Map.Seen[point] && TileDefinition.IsPassable(TileTypeAt(point));
 		}
 		public List<Point> GetTravelDestinations(TravelDestinationPriority priority){
-			return new List<Point>{ new Point(11, 11), new Point(15, 15) };
+			List<Point> result = new List<Point>();
+			Point? stairs = Map.GetAllPoints(false).FirstOrDefault(p => TileTypeAt(p) == TileType.Staircase);
+			Point? exploreTarget = GetExploreDestination();
+			if(priority == TravelDestinationPriority.Explore){
+				if(exploreTarget != null) result.Add(exploreTarget.Value);
+				if(stairs != null) result.Add(stairs.Value);
+			}
+			else if(priority == TravelDestinationPriority.Stairs){
+				if(stairs != null) result.Add(stairs.Value);
+				if(exploreTarget != null) result.Add(exploreTarget.Value);
+			}
+			result.Add(new Point(11, 11));
+			result.Add(new Point(15, 15));
+			result.Add(new Point(44, 8));
+			result.Add(new Point(32, 19));
+			return result;
+			//todo... a few notes about travel destinations and interesting targets:
+			// so, what are travel destinations?...
+			// could i make it pick ONLY SEVERAL unexplored cells to be interesting? grab the closest and then DON'T pick any others nearby.
+			// Autoexplore would be unaffected since it'd always use the closest.
+			// Based on the options given, the first travel destination will be different: an explore target, or stairs if '>' is pressed.
+			// (Interesting _look_ targets are completely different and done separately.)
+			// so...
+			// for now let's just find the closest unexplored, and add the stairs if known.
+		}
+		private Point? GetExploreDestination(){
+			//todo, clean up later
+			var potentiallyReachable = FloodFill.ScanToArray(Player.Position, point => !point.IsMapEdge() && (!Map.Seen[point] || TileDefinition.IsPassable(TileTypeAt(point))));
+			var dm2 = new DijkstraMap(p => (Map.Seen[p] || p.IsMapEdge())? -1 : 1){ //todo, seen==blocked?
+				IsSource = p => (Map.Seen[p] || p.IsMapEdge())
+			};
+			dm2.Scan();
+			//CharacterScreens.PrintDijkstraTest(dm2);
+			foreach(Point p in Map.GetAllPoints(false)){
+				if(dm2[p] == DijkstraMap.Unexplored || dm2[p] == DijkstraMap.Blocked) continue;
+				dm2[p] = -(dm2[p] * dm2[p]);
+			}
+			dm2.RescanWithCurrentValues();
+			//CharacterScreens.PrintDijkstraTest(dm2);
+			var dm = new DijkstraMap(p => (!Map.Seen[p] || !TileDefinition.IsPassable(TileTypeAt(p)))? -1 : 1){
+				IsSource = p => !Map.Seen[p] && potentiallyReachable[p],
+				GetSourceValue = p => -(dm2[p])
+			};
+			dm.Scan();
+			//CharacterScreens.PrintDijkstraTest(dm2);
+			//CharacterScreens.PrintDijkstraTest(dm);
+			List<Point> playerPath = dm.GetDownhillPath(Player.Position, true, earlyStopCondition: p => !Map.Seen[p]);
+			if(playerPath.Count == 0) return null;
+			else return playerPath[playerPath.Count - 1];
 		}
 	}
 }
