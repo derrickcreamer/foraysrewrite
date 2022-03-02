@@ -140,7 +140,7 @@ namespace Forays{
 			while(true){
 				int currentCost = this[current];
 				int lowestCost = currentCost;
-				if (ignorePathSourceCost){
+				if (ignorePathSourceCost || currentCost == Blocked){
 					ignorePathSourceCost = false;
 					currentCost = int.MaxValue;
 					lowestCost = int.MaxValue;

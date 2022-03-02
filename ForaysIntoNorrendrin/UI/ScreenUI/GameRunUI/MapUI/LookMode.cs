@@ -53,28 +53,7 @@ namespace ForaysUI.ScreenUI{
 				}
 				Highlight highlight;
 				if(travelMode){
-					Point pathTarget = p;
-					// First, figure out whether the destination cell is known-reachable:
-					if(knownReachable == null){
-						knownReachable = FloodFill.ScanToArray(Player.Position, CellIsKnownPassable);
-					}
-					if(!knownReachable[p]){
-						// If not, then find the nearest known reachable spaces:
-						if(distanceToKnownReachable == null){
-							distanceToKnownReachable = new DijkstraMap(point => 1){
-								IsSource = point => knownReachable[point]
-							};
-							distanceToKnownReachable.Scan();
-						}
-						if(distanceToKnownReachable[p] > 1){ // If distance is 1, then we can reach it anyway
-							pathTarget = p.EnumeratePointsAtChebyshevDistance(distanceToKnownReachable[p], true, false) // We know the distance already, so check only those cells...
-								.Where(nearby => nearby.ExistsBetweenMapEdges() && knownReachable[nearby]) // ...make sure only reachable ones are considered...
-								.WhereLeast(nearby => p.GetHalfStepMetricDistance(nearby)) // ...get the nearest ones to the targeted point...
-								.WhereLeast(nearby => Player.Position.GetHalfStepMetricDistance(nearby))[0]; // ...and finally get whichever one of those is closest to the player.
-						}
-					}
-					List<Point> path = playerMovementMap.GetDownhillPath(pathTarget, preferCardinalDirections: true, includePathSource: true, includePathDestination: false, ignorePathSourceCost: true);
-					path.Reverse();
+					List<Point> path = GetPathToNearbyReachable(p, playerMovementMap, ref knownReachable, ref distanceToKnownReachable);
 					highlight = new Highlight(MapHighlightType.Path){
 						Source = Player.Position,
 						Destination = p,
@@ -140,10 +119,17 @@ namespace ForaysUI.ScreenUI{
 								return;
 							}
 							break;
+						case ConsoleKey.Enter:
+							if(travelMode) goto case ConsoleKey.X; // Allow Enter to confirm travel destination, or cancel look mode.
+							else goto case ConsoleKey.Escape;
 						case ConsoleKey.X:
 							if(travelMode){
-								// TODO NEXT:  make continuous autoexplore no longer the default. Make 'x' actually set the chosen path.
-								GameEventHandler.Autoexplore = true;
+								List<Point> path = GetPathToNearbyReachable(p, playerMovementMap, ref knownReachable, ref distanceToKnownReachable);
+								if(path.Count > 0){
+									GameEventHandler.Path = path;
+									GameEventHandler.NextPathIndex = 0;
+								}
+								//if(false) GameEventHandler.Autoexplore = true; //todo, option here
 								return;
 							}
 							else{
@@ -201,6 +187,33 @@ namespace ForaysUI.ScreenUI{
 		}
 		private bool CellIsKnownPassable(Point point){
 			return Map.Seen[point] && TileDefinition.IsPassable(TileTypeAt(point));
+		}
+		private List<Point> GetPathToNearbyReachable(Point potentialDestination, DijkstraMap playerMovementMap, ref PointArray<bool> knownReachable, ref DijkstraMap distanceToKnownReachable){
+			Point destination = potentialDestination;
+			// First, figure out whether the destination cell is known-reachable:
+			if(knownReachable == null){
+				knownReachable = FloodFill.ScanToArray(Player.Position, CellIsKnownPassable);
+			}
+			PointArray<bool> knownReachable2 = knownReachable; // Can't use a ref parameter inside a lambda, but using a 2nd variable works.
+			if(!knownReachable[destination]){
+				// If not, then find the nearest known reachable spaces:
+				if(distanceToKnownReachable == null){
+					distanceToKnownReachable = new DijkstraMap(point => 1){
+						IsSource = point => knownReachable2[point]
+					};
+					distanceToKnownReachable.Scan();
+				}
+				if(distanceToKnownReachable[destination] > 1){ // If distance is 1, then we can reach it anyway
+					destination = destination.EnumeratePointsAtChebyshevDistance(distanceToKnownReachable[destination], true, false) // We know the distance already, so check only those cells...
+						.Where(nearby => nearby.ExistsBetweenMapEdges() && knownReachable2[nearby]) // ...make sure only reachable ones are considered...
+						.WhereLeast(nearby => destination.GetHalfStepMetricDistance(nearby)) // ...get the nearest ones to the targeted point...
+						.WhereLeast(nearby => Player.Position.GetHalfStepMetricDistance(nearby))[0]; // ...and finally get whichever one of those is closest to the player.
+				}
+			}
+			if(destination == Player.Position) return new List<Point>();
+			List<Point> path = playerMovementMap.GetDownhillPath(destination, preferCardinalDirections: true, includePathSource: true, includePathDestination: false, ignorePathSourceCost: true);
+			path.Reverse();
+			return path;
 		}
 		public List<Point> GetTravelDestinations(TravelDestinationPriority priority){
 			List<Point> result = new List<Point>();

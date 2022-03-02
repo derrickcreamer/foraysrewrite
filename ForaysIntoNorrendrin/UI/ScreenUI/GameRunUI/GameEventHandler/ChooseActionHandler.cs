@@ -17,8 +17,8 @@ namespace ForaysUI.ScreenUI{
 	// StatusEventHandler.cs
 	public partial class GameEventHandler : GameUIObject{
 		public bool Autoexplore;
-		private List<Point> Path;
-		private int NextPathIndex;
+		public List<Point> Path;
+		public int NextPathIndex;
 		private Dir8? walkDir;
 
 		private void ChooseAction(PlayerTurnEvent e){
@@ -55,21 +55,21 @@ namespace ForaysUI.ScreenUI{
 						}
 					}
 				}
-				else if(Autoexplore && (Path == null || NextPathIndex >= Path.Count)){
+				else if(Autoexplore){
 					if(Input.KeyIsAvailable){
 						Interrupt();
 					}
 					else{
-						Path = ChooseAutoexplorePath();
-						NextPathIndex = 0;
-						if(Path.Count == 0){
-							Autoexplore = false;
-							Path = null;
+						ChooseAutoexploreAction(e);
+						if(e.ChosenAction != null){
+							if(!Screen.WindowUpdate()) Program.Quit();
+							Thread.Sleep(10); //todo, make configurable
 						}
+						else Interrupt("You don't see a path for further exploration. ");
+						return;
 					}
 				}
-
-				if(Path != null && NextPathIndex < Path.Count){
+				else if(Path != null && NextPathIndex < Path.Count){
 					if(Input.KeyIsAvailable){
 						Interrupt();
 					}
@@ -82,22 +82,7 @@ namespace ForaysUI.ScreenUI{
 							Interrupt();
 						}
 						else if(!TileDefinition.IsPassable(TileTypeAt(pointInDir))){
-							if(Autoexplore){
-								Path = ChooseAutoexplorePath();
-								NextPathIndex = 0;
-								if(Path.Count == 0){
-									Autoexplore = false;
-									Path = null;
-								}
-							}
-							else{
-								Interrupt();
-							}
-							//  ultimately, do I want to keep checking all the _visible_ cells in the path to see if any are blocked?
-							//		...if one is blocked, what should happen?
-							// ALSO, should autoexplore actually recalculate the path after every STEP?
-							//
-							// ...but AFTER THAT...
+							Interrupt();
 							// There's still more to consider regarding autoexplore AND travel destination calculation:
 							//	-do I want to make it weigh AGAINST the stairs, once they're known?
 							//	-it seems like I might want to allow some of the 'avoid this area' to _cross_ narrow bridges of known space, because
@@ -108,28 +93,13 @@ namespace ForaysUI.ScreenUI{
 						else{
 							e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(dir));
 							NextPathIndex++;
-							if(Autoexplore) Path = null; //todo, testing this.
 							//todo, interruptedPath? (and index?)
-							//todo, BUT, the interrupted path should probably only matter if it was MANUALLY chosen. autoexplore doesn't matter much.
 							if(!Screen.WindowUpdate()) Program.Quit();
 							Thread.Sleep(10); //todo, make configurable
 							return;
 						}
 					}
 				}
-				/*else if(Autoexplore){
-					if(Input.KeyIsAvailable){
-						Input.FlushInput();
-						Autoexplore = false;
-					}
-					else{
-						//todo, check for interruptions etc. - Interruption should share code between walk+autoexplore.
-						if(!Screen.WindowUpdate()) Program.Quit();
-						Thread.Sleep(10); //todo, make configurable
-						ChooseAutoexploreAction(e);
-						if(e.ChosenAction != null) return;
-					}
-				}todo remove */
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
 				switch(key.Key){
@@ -177,16 +147,14 @@ namespace ForaysUI.ScreenUI{
 						break;
 					case ConsoleKey.Tab:
 						MapUI.LookMode(e);
-						if(Autoexplore) StartAutoexplorePathing(e);
 						break;
 					case ConsoleKey.X:
 						MapUI.LookMode(e, true);
-						if(Autoexplore) StartAutoexplorePathing(e);
 						break;
 				}
 			} while(e.ChosenAction == null);
 		}
-		private void Interrupt(){
+		private void Interrupt(string message = null){
 			if(Path != null && NextPathIndex < Path.Count){
 				//todo, remember interrupted path here
 			}
@@ -194,6 +162,7 @@ namespace ForaysUI.ScreenUI{
 			Autoexplore = false;
 			Path = null;
 			NextPathIndex = 0;
+			if(message != null) Messages.Add(message);
 		}
 		private void ChooseActionFromDirection(PlayerTurnEvent e, Dir8 dir, bool shift){
 			Point targetPoint = Player.Position.PointInDir(dir);
@@ -228,82 +197,25 @@ namespace ForaysUI.ScreenUI{
 				if(shift && !wallSliding) walkDir = dir; // Don't set walkDir for attacks or wall slides
 			}
 		}
-		private List<Point> ChooseAutoexplorePath(){
-			//todo...need a better way to know autoexplore is done.
-			List<Point> destinations = MapUI.GetTravelDestinations(MapUI.TravelDestinationPriority.Explore);
-			Point destination = destinations[0];
-			//todo, this could be A* eventually:
-			DijkstraMap playerMovementMap = new DijkstraMap(point => (!Map.Seen[point] || !TileDefinition.IsPassable(TileTypeAt(point)))? -1 : 10);
-			playerMovementMap.Scan(Player.Position);
-			//todo, if destination valid?
-			List<Point> path = playerMovementMap.GetDownhillPath(destination, preferCardinalDirections: true, includePathSource: true, includePathDestination: false);
-			path.Reverse();
-			return path;
-		}
-		private void StartAutoexplorePathing(PlayerTurnEvent e){
-			Path = ChooseAutoexplorePath();
-			NextPathIndex = 0;
-			if(Path.Count == 0){
-				Autoexplore = false;
-				Path = null;
-			}
-			else{
-				Point next = Path[NextPathIndex];
-				//todo check distance, walkable, etc.?
-				Dir8 dir = Player.Position.GetDirectionOfNeighbor(next);
-				e.ChosenAction = new WalkAction(Player, Player.Position.PointInDir(dir));
-				NextPathIndex++;
-			}
-		}
 		private void ChooseAutoexploreAction(PlayerTurnEvent e){
-			// dijkstra map from unknown cells, or BFS stopping at unknown - todo.
-			/*var dm = new DijkstraMap2(p => (!Map.Seen[p] || TileTypeAt(p) == TileType.Wall)? -1 : 10){
-				IsSource = p => !Map.Seen[p]
-			};
-			dm.Scan();
-			var dm2 = new DijkstraMap2(p => 10){
-				IsSource = p => (Map.Seen[p] || p.IsMapEdge())
-			};
-			dm2.Scan();*/
-			// make unexplored map first
-			// use unexplored map to determine SOURCE VALUES in 2nd map -
-			//    specifically, double the unexplored map values, negate, and rescan unexplored map.
-			//    Then, negate again and use those values as starting values. So the one near the big unexplored issue might be 8,
-			//    while the other is maybe 2.
 			var potentiallyReachable = FloodFill.ScanToArray(Player.Position, point => !point.IsMapEdge() && (!Map.Seen[point] || TileDefinition.IsPassable(TileTypeAt(point))));
-			var dm2 = new DijkstraMap(p => Map.Seen[p]? -1 : 1){ //todo, seen==blocked?
+			var distanceToKnown = new DijkstraMap(p => (Map.Seen[p] || p.IsMapEdge())? -1 : 1){
 				IsSource = p => (Map.Seen[p] || p.IsMapEdge())
 			};
-			dm2.Scan();
-			//CharacterScreens.PrintDijkstraTest(dm2);
+			distanceToKnown.Scan();
 			foreach(Point p in Map.GetAllPoints(false)){
-				if(dm2[p] == DijkstraMap.Unexplored || dm2[p] == DijkstraMap.Blocked) continue;
-				dm2[p] = -(dm2[p] * dm2[p]);
+				if(distanceToKnown[p] == DijkstraMap.Unexplored || distanceToKnown[p] == DijkstraMap.Blocked) continue;
+				distanceToKnown[p] = -(distanceToKnown[p] * distanceToKnown[p]);
 			}
-			dm2.RescanWithCurrentValues();
-			//CharacterScreens.PrintDijkstraTest(dm2);
-			var dm = new DijkstraMap(p => (!Map.Seen[p] || !TileDefinition.IsPassable(TileTypeAt(p)))? -1 : 1){
+			distanceToKnown.RescanWithCurrentValues();
+			var exploreMap = new DijkstraMap(p => (!Map.Seen[p] || !TileDefinition.IsPassable(TileTypeAt(p)))? -1 : 1){ // todo, needs items, shrines, etc. eventually
 				IsSource = p => !Map.Seen[p] && potentiallyReachable[p],
-				GetSourceValue = p => p.IsMapEdge()? DijkstraMap.Blocked : -(dm2[p])
+				GetSourceValue = p => -(distanceToKnown[p])
 			};
-			dm.Scan();
-			//CharacterScreens.PrintDijkstraTest(dm);
-			int min = int.MaxValue;
-			List<Point> valid = new List<Point>();
-			foreach(Dir8 dir in EightDirections.Enumerate(true, false, true)){
-				Point neighbor = Player.Position.PointInDir(dir);
-				if(dm[neighbor] == DijkstraMap.Blocked) continue;
-				if(dm[neighbor] < min){
-					min = dm[neighbor];
-					valid.Clear();
-					valid.Add(neighbor);
-				}
-				else if(dm[neighbor] == min){
-					valid.Add(neighbor);
-				}
-			}
-			Point dest = ScreenRNG.ChooseFromList(valid);
-			e.ChosenAction = new WalkAction(Player, dest);
+			exploreMap.Scan();
+			List<Point> playerPath = exploreMap.GetDownhillPath(Player.Position, true, earlyStopCondition: p => true);
+			if(playerPath.Count == 0) return;
+			else e.ChosenAction = new WalkAction(Player, playerPath[0]);
 		}
 	}
 }
