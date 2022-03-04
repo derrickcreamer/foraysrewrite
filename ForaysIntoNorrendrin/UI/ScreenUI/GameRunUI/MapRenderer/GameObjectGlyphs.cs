@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Forays;
+using GameComponents;
 
-namespace ForaysUI.ScreenUI{
+namespace ForaysUI.ScreenUI.MapRendering{
 	// GameObjectGlyphs holds the info about what everything looks like and whether each tile can have any color variations,
-	// while the MapUI tracks the concrete color variations and decides what actually gets drawn.
+	// while the MapUI tracks the concrete color variations and decides what actually gets drawn. todo update comment.
 	public static class GameObjectGlyphs{
 		private static Dictionary<CreatureType, ColorGlyph> creatures;
 		private static Dictionary<TileType, ColorGlyph> tiles;
@@ -12,27 +13,34 @@ namespace ForaysUI.ScreenUI{
 		private static Dictionary<ItemType, ColorGlyph> items;
 
 		public static ColorGlyph Get(CreatureType type) => creatures[type];
-		public static ColorGlyph Get(TileType type) => tiles[type];
 		public static ColorGlyph Get(FeatureType type) => features[type];
 		public static ColorGlyph Get(ItemType type) => items[type];
+		public static ColorGlyph Get(TileType type, ulong colorVariationSeed, Point p){
+			ColorGlyph cg = tiles[type];
+			Func<ulong, Point, Color> getColorVariation;
+			if(colorVariationFuncs.TryGetValue(type, out getColorVariation)){
+				ulong hashValue = MicroHash(p, colorVariationSeed);
+				Color color = getColorVariation(hashValue, p);
+				if(cg.BackgroundColor == Color.Black) return new ColorGlyph(cg.GlyphIndex, color);
+				else return new ColorGlyph(cg.GlyphIndex, Color.Black, color);
+			}
+			else return cg;
+		}
+
+		private static Dictionary<TileType, Func<ulong, Point, Color>> colorVariationFuncs;
 
 		private static void Add(CreatureType type, char ch, Color color) => creatures.Add(type, new ColorGlyph(ch, color));
 		private static void Add(TileType type, char ch, Color color, Color bgColor = Color.Black) => tiles.Add(type, new ColorGlyph(ch, color, bgColor));
 		private static void Add(FeatureType type, char ch, Color color, Color bgColor = Color.Black) => features.Add(type, new ColorGlyph(ch, color, bgColor));
 		private static void Add(ItemType type, char ch, Color color) => items.Add(type, new ColorGlyph(ch, color));
 
-//todo next
-// move some parts of THIS to the specific screens.
-// Change map drawing so it's more like... the screen is applying its own logic based on
-//    all the items in that tile...
-//  so it can handle gases.
-//
 		public static void Initialize(){
 			if(creatures != null) return; // Initialize only once
 			creatures = new Dictionary<CreatureType, ColorGlyph>();
 			tiles = new Dictionary<TileType, ColorGlyph>();
 			features = new Dictionary<FeatureType, ColorGlyph>();
 			items = new Dictionary<ItemType, ColorGlyph>();
+			colorVariationFuncs = new Dictionary<TileType, Func<ulong, Point, Color>>();
 
 			Add(CreatureType.Player, '@', Color.White);
 			Add(CreatureType.Goblin, 'g', Color.Green);
@@ -45,7 +53,12 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.FirePit, '0', Color.Red);
 			Add(TileType.FirePitUnlit, '0', Color.TerrainDarkGray);
 			Add(TileType.Statue, '5', Color.Gray);
-			Add(TileType.Brush, '"', Color.DarkYellow); //todo, brush gets special color code
+			Add(TileType.Brush, '"', Color.DarkYellow);
+			colorVariationFuncs[TileType.Brush] = (hash, p) => {
+				if(hash.OneIn(20)) return Color.Green;
+				else if(hash.CoinFlip()) return Color.Yellow;
+				else return Color.DarkYellow;
+			};
 			Add(TileType.PoppyField, '"', Color.Red);
 			Add(TileType.GlowingFungus, ',', Color.RandomGlowingFungus);
 			Add(TileType.StandingTorch, '|', Color.RandomTorch); //todo check for new symbols
@@ -85,5 +98,14 @@ namespace ForaysUI.ScreenUI{
 			// However... care should be taken here, because the potion colors should be the same during a replay, or when 2 players play the same seed...
 			// I guess that's as simple as reading (but not changing) the current GameUniverse RNG value for this purpose.
 		}
+		private static ulong MicroHash(Point point, ulong seed){ // Thanks to Tommy Ettinger for this one!
+			seed += ((ulong)point.Y + seed + ((ulong)point.X + seed) * 0xABC98388FB8FAC03UL) * 0x8CB92BA72F3D8DD7UL;
+			return ((seed = (seed ^ seed >> 20) * 0xF1357AEA2E62A9C5UL) ^ seed >> 41);
+		}
+		private static int GetWithinRange(this ulong source, int upperExclusiveBound){
+			return (int)(((ulong)upperExclusiveBound * (source & 0xFFFFFFFFUL)) >> 32);
+		}
+		private static bool CoinFlip(this ulong source) => source < 0x8000000000000000UL;
+		private static bool OneIn(this ulong source, int x) => source.GetWithinRange(x) == 0;
 	}
 }

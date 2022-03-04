@@ -95,9 +95,9 @@
     <Compile Include="UI\ScreenUI\Console\ConsoleInput.cs" />
     <Compile Include="UI\ScreenUI\Console\ConsoleScreen.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\EscapeMenu.cs" />
-    <Compile Include="UI\ScreenUI\GameRunUI\GameObjectGlyphs.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\GameUIObject.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MapRenderer\BasicMapRenderer.cs" />
+    <Compile Include="UI\ScreenUI\GameRunUI\MapRenderer\GameObjectGlyphs.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MapRenderer\Highlight.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MapRenderer\MapRenderer.cs" />
     <Compile Include="UI\ScreenUI\GameRunUI\MapUI\LookMode.cs" />

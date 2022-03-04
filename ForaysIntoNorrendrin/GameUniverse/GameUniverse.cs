@@ -18,6 +18,8 @@ namespace Forays {
 		public bool Suspend = true;
 		public bool GameOver;
 
+		public ulong GameSeed;
+
 		public Creature Player;
 
 		public EventQueue Q;
@@ -68,10 +70,9 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 				DeadCreatures.Clear();
 			}
 		}
-		public void InitializeNewGame(ulong? seed = null)
-		{ // NEXT: (maybe.) fix the init here - is the Map actually created yet?
-
-			R = new RNG(seed ?? (ulong)DateTime.Now.Ticks);
+		public void InitializeNewGame(ulong? seed = null){
+			GameSeed = seed ?? (ulong)DateTime.Now.Ticks;
+			R = new RNG(GameSeed);
 			MapRNG = new RNG(R.GetNext());
 			Q = new EventQueue();
 			Map = new DungeonMap(this);

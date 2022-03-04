@@ -15,6 +15,10 @@ namespace Forays {
 		[Obsolete("CAUTION: This is the regular RNG, not the mapgen RNG.")]
 		new public RNG R => GameUniverse.R;
 
+		///<summary>CurrentDepthSeed is grabbed from MapRNG at level creation, to allow for
+		/// deterministic effects that don't change as the RNG state changes.</summary>
+		public ulong CurrentDepthSeed;
+
 		public Grid<Creature, Point> Creatures;
 		//public List<CreatureGroup> CreatureGroups;
 		public PointArray<TileType> Tiles;
@@ -48,6 +52,7 @@ namespace Forays {
 		public PointArray<bool> Seen;
 
 		public DungeonMap(GameUniverse g) : base(g) {
+			CurrentDepthSeed = MapRNG.GetNext();
 			Func<Point, bool> isInBounds = p => p.X >= 0 && p.X < Width && p.Y >= 0 && p.Y < Height;
 			Creatures = new Grid<Creature, Point>(isInBounds);
 			Tiles = new PointArray<TileType>(Width, Height);
@@ -104,14 +109,14 @@ namespace Forays {
 "-###-#####-####-#######-------###########-#------#----------------",
 "##########-###-----#--###-----#---------#-#------#----------------",
 "-------------------#--#-------#-#######-#-#------#----------------",
-"---#######--------------------#-#>------#-#------#----------------",
-"#-----####--------------------#-#########-#------#----------------",
-"####--####--------------------#-----------#------#----------------",
-"#-----####-------------#########################################--",
-"#-##--####-------------#------------------------------------------",
-"#--###-########-##-----#------------------------------------------",
-"##-###-##-#------#-----#------------------------------------------",
-"#>-#--###-#------#-----#------------------------------------------",
+"---#######----BBBB------------#-#>------#-#------#----------------",
+"#-----####-BBBBBBBBBBBBBBBBB--#-#########-#------#----------------",
+"####--####-BBBBBBBBBBB--------#-----------#------#----------------",
+"#-----####--BBBBBBBBB--#########################################--",
+"#-##--####--BBB----BBBB#------------------------------------------",
+"#--###-########-##-BBBB#------------------------------------------",
+"##-###-##-#------#B-BBB#------------------------------------------",
+"#>-#--###-#------#BBBB-#------------------------------------------",
 "###################-----------------------------------------------"
 			},
 			new string[]{

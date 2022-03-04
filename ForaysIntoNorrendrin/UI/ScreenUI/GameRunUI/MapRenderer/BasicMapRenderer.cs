@@ -8,7 +8,9 @@ namespace ForaysUI.ScreenUI.MapRendering{
 	// BasicMapRenderer makes use of Screen to draw the map
 	public class BasicMapRenderer : MapRenderer{
 
-		public BasicMapRenderer(GameRunUI ui) : base(ui) {}
+		public BasicMapRenderer(GameRunUI ui) : base(ui){
+			GameObjectGlyphs.Initialize();
+		}
 
 		public override void DrawMap(PlayerTurnEvent e){
 			e.CalculateVisibility();
@@ -24,7 +26,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 					}
 					else if(e.CellsVisibleThisTurn[p]){
 						MapUI.RecordMapMemory(p); //todo, can I avoid calling RecordMapMemory more than once per turn?
-						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
+						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item, Map.CurrentDepthSeed, p);
 						if(!e.CellsLitThisTurn[p]){
 							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan, cg.BackgroundColor); //todo, only some tiles get darkened this way, right?
 						}
@@ -40,7 +42,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 								//todo, if this tile type is unknown until seen in light...
 							}
 							else{
-								ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item);
+								ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item, Map.CurrentDepthSeed, p);
 								DrawToMap(i, j, cg);
 							}
 						}
@@ -140,7 +142,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			ColorGlyph cg = GameObjectGlyphs.Get(creature);
 			return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, bgColor);
 		}
-		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item){ //todo, add trap, shrine, etc.
+		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item, ulong currentDepthSeed, Point p){ //todo, add trap, shrine, etc.
 			//todo features
 			if(item != null) return GameObjectGlyphs.Get(item.Value);
 			if(features.HasFeature(FeatureType.Ice)) return GameObjectGlyphs.Get(FeatureType.Ice);// new ColorGlyph('~', Color.Cyan, Color.Gray);
@@ -151,10 +153,10 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			//so... if background color... then return a modified version.
 			//bg colors are currently black, gray, dark blue... plus targeting/mouseover stuff.
 
-			return GameObjectGlyphs.Get(tile);
+			return GameObjectGlyphs.Get(tile, currentDepthSeed, p);
 		}
 		private ColorGlyph GetLastSeenColorGlyph(Point p, bool useOutOfSightColor){
-			ColorGlyph cg = DetermineVisibleColorGlyph(MapUI.LastKnownTile(p), MapUI.LastKnownFeatures(p), MapUI.LastKnownItem(p));
+			ColorGlyph cg = DetermineVisibleColorGlyph(MapUI.LastKnownTile(p), MapUI.LastKnownFeatures(p), MapUI.LastKnownItem(p), Map.CurrentDepthSeed, p);
 			if(useOutOfSightColor){
 				if(cg.BackgroundColor != Color.Black)
 					return new ColorGlyph(cg.GlyphIndex, Color.Black, Color.OutOfSight);

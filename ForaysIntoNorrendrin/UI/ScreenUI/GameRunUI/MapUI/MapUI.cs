@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Forays;
 using GameComponents;
-using static ForaysUI.ScreenUI.StaticScreen; //todo check
 
 namespace ForaysUI.ScreenUI{
 	// This class uses 'partial' so these large methods can be in separate files at no runtime cost.
@@ -19,14 +18,11 @@ namespace ForaysUI.ScreenUI{
 		public static int RowOffset;
 		public static int ColOffset;
 
-		private PointArray<Color> colorVariations; // for terrain variations that don't change after creation
-
 		public MapUI(GameRunUI ui) : base(ui) {
 			tilesLastSeen = new PointArray<TileType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 			featuresLastSeen = new PointArray<FeatureType>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 			trapsLastSeen = new Dictionary<Point, TrapType>();
 			itemsLastSeen = new Dictionary<Point, ItemType>();
-			colorVariations = new PointArray<Color>(GameUniverse.MapWidth, GameUniverse.MapHeight);
 		}
 	}
 }
