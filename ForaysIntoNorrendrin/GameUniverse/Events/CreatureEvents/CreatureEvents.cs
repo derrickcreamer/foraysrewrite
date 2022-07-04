@@ -57,6 +57,20 @@ namespace Forays {
 		}
 	}
 
+	public class AiChangeBehaviorStateEvent : SimpleEvent {
+		public Creature Creature { get; set; }
+		public CreatureBehaviorState NewBehaviorState { get; set; }
+
+		public AiChangeBehaviorStateEvent(Creature creature, CreatureBehaviorState newBehaviorState) : base(creature.GameUniverse) {
+			this.Creature = creature;
+			this.NewBehaviorState = newBehaviorState;
+		}
+
+		protected override void ExecuteSimpleEvent() {
+			Creature.BehaviorState = NewBehaviorState;
+		}
+	}
+
 	public class PlayerTurnEvent : SimpleEvent {
 		//todo xml: must be Event<TResult>
 		public GameObject ChosenAction { get; set; } = null;

@@ -177,7 +177,7 @@ namespace ForaysUI.ScreenUI{
 		public void AddSimple(Creature subj, string verb,
 			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireSubject,
 			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
-				=> Add(Determinative.The, subj, verb, Determinative.None, null, punctuation, visibility,
+				=> Add(Determinative.The, subj, verb, Determinative.None, null, punctuation, visibility, //todo, is assumeObjectVisible unused here?
 					assumeSubjectVisible, false, noInterrupt, requireMorePrompt);
 }
 }

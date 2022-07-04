@@ -30,6 +30,12 @@ namespace ForaysUI.ScreenUI{
 					break;
 				case IceBreakingEvent e:
 					break;
+				case AiChangeBehaviorStateEvent e:
+					if(e.NewBehaviorState == CreatureBehaviorState.Wandering)
+						Messages.AddSimple(e.Creature, "wake up");
+					else if(e.NewBehaviorState == CreatureBehaviorState.Hunting)
+						Messages.Add(e.Creature, "notice", Player);
+					break;
 			}
 		}
 	}

@@ -43,6 +43,7 @@ namespace ForaysUI.ScreenUI{
 			Names.Initialize(Grammar);
 			Grammar.AddVerb("do", "does");
 			Grammar.AddVerb("are", "is");
+			Grammar.AddVerb("wake up", "wakes up");
 			Grammar.AddVerb("feel", "looks"); // To automatically handle "you feel stronger" vs. "the foo looks stronger"
 		}
 		private static void ShowTitleScreen(){
