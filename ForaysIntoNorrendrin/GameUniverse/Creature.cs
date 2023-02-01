@@ -15,7 +15,17 @@ namespace Forays {
 		public GroupType Type;
 		List<Creature> Members;
 	}*/
-	public enum CreatureBehaviorState { Idle, Wandering, Searching, Hunting };
+	public enum CreatureBehaviorState { Unaware, Searching, Tracking, Hunting };
+	// Unaware: Affected by stealth.
+	// 		-at start of level, many enemies will be set to Asleep/Dormant, which gives a penalty to notice the player
+	//			-but this Asleep/Dormant status doesn't affect this behavior state beyond that.
+	//		 	(once woken up, they are Unaware, Hunting, etc., as normal)
+	// Wandering might become unstated...?
+	// Hunting might be split into Hunting and Tracking, where Tracking means it can no longer see you.
+	// Searching can still be "will spot you but doesn't know where you are"...*
+	// (if a shout or shriek alerts an enemy, it probably goes to Searching.)
+	//	(the difference between Tracking and Searching is that Searching ticks down back to Unaware, but Tracking doesn't.)
+
 
 	public class Creature : CreatureBase /*CreatureBase, IPhysicalObject*/ {
 		public bool HasPosition => Map.Creatures.Contains(this);
@@ -25,7 +35,7 @@ namespace Forays {
 		public int CurrentHealth;
 
 		public CreatureBehaviorState BehaviorState;
-		public int InitialTurnsIdle;
+		public int InitialTurnsIdle; //todo, does this need a 'can start idle' flag on CreatureDefinition?
 		//todo path for wandering?
 		//todo last seen etc.?
 
@@ -88,10 +98,14 @@ namespace Forays {
 
 		///<summary>Return value is the cost of the action taken</summary>
 		public int ExecuteMonsterTurn(){
-			if (HasPosition && BehaviorState != CreatureBehaviorState.Hunting){ //todo, what about Searching?
+			if (false && false){ //todo, if the current tile is a major hazard, we want to escape it....but not if Mindless.
+				return MoveTowardSafety();
+				//todo, if we haven't spotted the player yet, is there a check for that here too?
+			}
+			if (HasPosition && BehaviorState != CreatureBehaviorState.Hunting){ //todo, what about Searching? is the HasPosition check needed here?
 				if(CanSee(Player)){
 					bool playerSpotted = true;
-					if(BehaviorState == CreatureBehaviorState.Idle){
+					if(BehaviorState == CreatureBehaviorState.Unaware){
 						playerSpotted = R.CoinFlip();
 					}
 					if(playerSpotted){
@@ -103,10 +117,10 @@ namespace Forays {
 				//todo, what about updating 'last seen'?
 			}
 			switch(BehaviorState){
-				case CreatureBehaviorState.Idle:
+				case CreatureBehaviorState.Unaware:
 					return Idle();
-				case CreatureBehaviorState.Wandering:
-					return Wander();
+				//todo case CreatureBehaviorState.Wandering:
+					//return Wander();
 				case CreatureBehaviorState.Searching:
 					return Search();
 				case CreatureBehaviorState.Hunting:
@@ -133,7 +147,10 @@ namespace Forays {
 			//   if none of that, then, wandering? or just idle?
 
 		}
-		private int Idle(){
+		private int MoveTowardSafety(){
+			//todo
+		}
+		private int Idle(){ // todo, what's the best name for this one? Idle vs Unaware vs...
 			if(InitialTurnsIdle > 0){
 				InitialTurnsIdle--;
 				if(InitialTurnsIdle == 0){
@@ -166,7 +183,7 @@ namespace Forays {
 		}
 		private int? TakeSpecialAction(){
 			return null;
-			// TODO NEXT:
+			// TODO:
 			//
 			//  Can it be true that EVERYTHING in part 2 (move to ideal distance) and part 3 (make an attack) don't
 			//     care about creaturetype, just statuses/AI traits?
@@ -189,6 +206,21 @@ namespace Forays {
 		private int? MoveToIdealDistance(){
 			int distRangeMin = 1; //todo
 			int distRangeMax = 1;
+			DijkstraMap dm = new DijkstraMap(GetEffectiveCost);
+			dm.IsSource = p => {
+				int dist = p.ChebyshevDistanceFrom(Player.Position);
+				return (dist >= distRangeMin && dist <= distRangeMax);
+			};
+			dm.Scan();
+			List<Point> nextSteps = dm.GetPossibleNextStepsDownhill(Position);
+			//TODO NEXT:
+
+			// i was considering making 'normal' AI avoid hazards a bit more, but instead let's try a random chance to step through or step around.
+			//
+			// Then, did I need some kind of check so that certain enemies (mindless?) would only follow next steps that move closer to the player on at least one axis?
+			//    But, do those use a dijkstra map at all? (if player visible, step toward. Maybe be able to step diagonally around a pillar.)
+
+
 			int currentDist = Position.ChebyshevDistanceFrom(Player.Position);
 			Dir8 dir = Position.GetDirectionOfNeighbor(Player.Position);
 			if(currentDist > distRangeMax){ // advance
@@ -274,6 +306,20 @@ namespace Forays {
 
 			//
 			//
+		}
+		private int GetEffectiveCost(Point p){
+			//todo
+			//hmm, getCellCost. Need to consider obstacles for THIS enemy, with all inherent and temporary statuses,
+				//as well as using different costs for Cowardly enemies.
+				//so... for this creature, for each Point I need to know if it's blocked (major hazard or really just blocked),
+				//  and what the cost is (could be increased for minor hazards)
+				//  and of course the cost can change naturally for each type of monster, based on immunities etc.,
+
+				// so I think hazards that don't extend beyond their tiles will just be checked directly,
+				// and hazards that DO extend beyond their tiles will be tracked as tiles on the map are updated, so that data will be cached and ready.
+				// Would it work to basically just have a dijkstra map of 'distance from hazard' ? Or maybe it just gets cut off and uses a radius like light sources.
+			//
+			return 1;
 		}
 	}
 }

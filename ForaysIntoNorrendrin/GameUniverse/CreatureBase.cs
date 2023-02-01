@@ -82,11 +82,10 @@ namespace Forays {
 
 			Define(Goblin, 10, CanOpenDoors, VulnerableToNeckSnap, LowLightVision)
 			//todo: can spawn with item. is SpawnRule a whole different enum?
-				.WithAiTraits(Aggressive, UnderstandsDoors) //todo, will any smaller ones like UnderstandsDoors be grouped together at all? Hazards, too...
 				.WithAttack("fake attack but this would really specify damage and crit effect, if any");
 
 			Define(Rat, 5, LowLightVision)
-				.WithAiTraits(KeepsDistance)
+				.WithAiTraits(Cowardly)
 				.WithAttack("todo");
 
 			//and so on!

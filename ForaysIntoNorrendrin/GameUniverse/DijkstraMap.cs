@@ -187,5 +187,31 @@ namespace Forays{
 				lowestPoints.Clear();
 			}
 		}
+		///<summary>Get a list of the points adjacent to source with the lowest cost on an already-scanned DijkstraMap.
+		/// Goes clockwise, starting at North.
+		/// Returns an empty list if there are no neighbors with lower costs, unless ignoreSourceCost is true.</summary>
+		public List<Point> GetPossibleNextStepsDownhill(Point source, bool ignoreSourceCost = true)
+		{
+			int sourceCost = this[source];
+			if (ignoreSourceCost || sourceCost == Blocked){
+				sourceCost = int.MaxValue;
+			}
+			int lowestCost = sourceCost;
+			List<Point> lowestPoints = new List<Point>();
+			foreach(Point neighbor in source.GetNeighbors()){
+				if(!neighbor.ExistsBetweenMapEdges()) continue;
+				int value = this[neighbor];
+				if(value == Unexplored || value == Blocked) continue;
+				if(value == lowestCost && value < sourceCost){ // If there are several cells with the same cost, consider them all. However,
+					lowestPoints.Add(neighbor); // we only want to do this for the ones that are LOWER than where we started.
+				}
+				else if(value < lowestCost){
+					lowestPoints.Clear();
+					lowestPoints.Add(neighbor);
+					lowestCost = value;
+				}
+			}
+			return lowestPoints;
+		}
 	}
 }

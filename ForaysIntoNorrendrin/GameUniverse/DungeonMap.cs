@@ -276,7 +276,12 @@ namespace Forays {
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
 				Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
-				Creatures.Add(c, new Point(MapRNG.GetNext(Width-2)+1, MapRNG.GetNext(Height-2)+1));
+				Point p;
+				do{
+					p = new Point(MapRNG.GetNext(Width-2)+1, MapRNG.GetNext(Height-2)+1);
+				} while(CreatureAt(p) != null || !TileDefinition.IsPassable(TileTypeAt(p)));
+
+				Creatures.Add(c, p);
 				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
 			}

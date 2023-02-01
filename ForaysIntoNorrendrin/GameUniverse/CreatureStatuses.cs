@@ -8,9 +8,8 @@ namespace Forays {
 		Roots, Hasted, SilenceAura, ShadowCloak, MysticMind,
 		LAST };
 	public enum Skill { Combat = Status.LAST+1, Defense, Magic, Spirit, Stealth, LAST }; //todo, might want to reorder these so all the bools and ints are grouped together?
-	public enum AiTrait { Aggressive = Skill.LAST+1, KeepsDistance, UnderstandsDoors, LAST };
-	// todo, possible AI traits... 'understands doors' might be useful in combination with 'can open doors'...
-	//    could encourage the AI to wait at a door rather than wander, and might even allow an Ambusher trait where
+	public enum AiTrait { Mindless = Skill.LAST+1, Clever, Cowardly, LAST };
+		//UnderstandsDoors can be rolled into 'clever', and any 'clever' enemy that understands doors but is incapable of opening them can wait on the other side.
 	public enum Counter { Lifespan = AiTrait.LAST+1, Shielded, LAST };
 	//todo, MIGHT have 'SpellEffect' here as an enum _if_ that becomes important, such as for antimagic effects.
 		// The same idea will become important if certain statuses are 'always refresh' statuses if there are also OTHER effects that want to use those statuses.
