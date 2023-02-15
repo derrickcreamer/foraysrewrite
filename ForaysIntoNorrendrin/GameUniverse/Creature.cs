@@ -98,63 +98,61 @@ namespace Forays {
 
 		///<summary>Return value is the cost of the action taken</summary>
 		public int ExecuteMonsterTurn(){
-			if (false && false){ //todo, if the current tile is a major hazard, we want to escape it....but not if Mindless.
-				return MoveTowardSafety();
-				//todo, if we haven't spotted the player yet, is there a check for that here too?
+			// todo, check for inability to act here? asleep, etc.?
+			if(!HasPosition){
+				return ExecuteMonsterTurnOffMap();
 			}
-			if (HasPosition && BehaviorState != CreatureBehaviorState.Hunting){ //todo, what about Searching? is the HasPosition check needed here?
-				if(CanSee(Player)){
+			if(CurrentCellIsMajorHazard()){
+				return MoveTowardSafety();
+			}
+			bool canSeePlayer = CanSee(Player);
+			if(BehaviorState == CreatureBehaviorState.Hunting){
+				if(!canSeePlayer){
+					Q.Execute(new AiChangeBehaviorStateEvent(this, CreatureBehaviorState.Tracking));
+				}
+			}
+			else{
+				if(canSeePlayer){
 					bool playerSpotted = true;
 					if(BehaviorState == CreatureBehaviorState.Unaware){
-						playerSpotted = R.CoinFlip();
+						playerSpotted = R.CoinFlip(); //todo
 					}
 					if(playerSpotted){
 						//todo, this will change to a shout for some enemies, which will create noise, right?
+						SetPlayerLastKnownPosition();
 						Q.Execute(new AiChangeBehaviorStateEvent(this, CreatureBehaviorState.Hunting));
 						return Turns(1);
 					}
 				}
-				//todo, what about updating 'last seen'?
 			}
 			switch(BehaviorState){
 				case CreatureBehaviorState.Unaware:
 					return Idle();
-				//todo case CreatureBehaviorState.Wandering:
-					//return Wander();
 				case CreatureBehaviorState.Searching:
 					return Search();
+				case CreatureBehaviorState.Tracking:
+					return Track();
 				case CreatureBehaviorState.Hunting:
 					return Hunt();
 				default: throw new InvalidOperationException("Unknown state");
 			}
-			//hmm... a good amount of code goes at the start of each turn...
-			// ... and a bit of it is shared by the player.
-
-						// switch on state? Idle / Wandering / Searching / Hunting?
-			// but note that the implementation might have more subdivisions within these. Searching could be investigating a sound,
-			//   or trying to find the player after losing track. Hunting could be when the player is visible, or just while moving toward last_seen.
-
-			// Maybe there's a 'single-minded' flag here, or maybe not. It'd be for things that run the same AI all the time.
-
-			// is there actually an enum for this state? for now let's assume there is.
-
-			// if hunting, call HuntingAI or whatever it's called
-			// else
-			//   check whether the player might be spotted...
-			//   if we see the player, spend the turn shouting or something, and switch to Hunting
-			//   otherwise, searching? ...
-			//   otherwise, what things can switch something from idle/wandering to searching? sound and scent?
-			//   if none of that, then, wandering? or just idle?
-
+		}
+		private int ExecuteMonsterTurnOffMap(){
+			return Turns(1); //todo
+		}
+		private bool CurrentCellIsMajorHazard(){
+			//todo
+			return false;
 		}
 		private int MoveTowardSafety(){
-			//todo
+			//todo (this method should use some of the same logic as normal turns to decide whether to walk through minor hazards)
+			return Turns(1); //todo
 		}
 		private int Idle(){ // todo, what's the best name for this one? Idle vs Unaware vs...
 			if(InitialTurnsIdle > 0){
 				InitialTurnsIdle--;
 				if(InitialTurnsIdle == 0){
-					Q.Execute(new AiChangeBehaviorStateEvent(this, CreatureBehaviorState.Wandering));
+					//todo, this is just for the Asleep status now - does it even need a separate timer?
 				}
 			}
 			return Turns(1);
@@ -171,7 +169,15 @@ namespace Forays {
 			//todo
 			return Turns(1);
 		}
+		private int Track(){
+			//todo
+			return Turns(1);
+		}
+		private void SetPlayerLastKnownPosition(){
+			//todo
+		}
 		private int Hunt(){
+			SetPlayerLastKnownPosition();
 			int? actionCost = TakeSpecialAction();
 			//todo, this doesn't seem right. if TakeSpecialAction returns a value, is the turn already done?
 			// also, do some things need to TakeSpecialAction while idle, wandering, etc.?

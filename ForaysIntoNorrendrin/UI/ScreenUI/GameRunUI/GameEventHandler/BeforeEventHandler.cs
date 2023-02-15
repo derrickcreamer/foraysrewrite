@@ -31,10 +31,21 @@ namespace ForaysUI.ScreenUI{
 				case IceBreakingEvent e:
 					break;
 				case AiChangeBehaviorStateEvent e:
-					if(e.NewBehaviorState == CreatureBehaviorState.Wandering) //todo, how do I want to track this if I remove it from the AI state?
-						Messages.AddSimple(e.Creature, "wake up");
-					else if(e.NewBehaviorState == CreatureBehaviorState.Hunting)
+					if(e.Creature.BehaviorState == CreatureBehaviorState.Unaware && e.NewBehaviorState == CreatureBehaviorState.Hunting){
 						Messages.Add(e.Creature, "notice", Player);
+					}
+					else if(e.Creature.BehaviorState == CreatureBehaviorState.Unaware && e.NewBehaviorState == CreatureBehaviorState.Searching){
+						// This should only happen as the result of a shout/shriek/alarm - do I want a message for this?
+					}
+					else if(e.Creature.BehaviorState == CreatureBehaviorState.Searching && e.NewBehaviorState == CreatureBehaviorState.Hunting){
+						Messages.Add(e.Creature, "notice", Player);
+					}
+					else if(e.Creature.BehaviorState == CreatureBehaviorState.Searching && e.NewBehaviorState == CreatureBehaviorState.Unaware){
+						Messages.AddSimple(e.Creature, "stop searching");
+					}
+					else if(e.Creature.BehaviorState == CreatureBehaviorState.Tracking && e.NewBehaviorState == CreatureBehaviorState.Searching){
+						// Does this need a message?..
+					}
 					break;
 			}
 		}
