@@ -37,6 +37,7 @@ namespace Forays {
 		public CreatureBehaviorState BehaviorState;
 		public int InitialTurnsIdle; //todo, does this need a 'can start idle' flag on CreatureDefinition?
 		//todo path for wandering?
+		public Point LastKnownPlayerPosition;
 		//todo last seen etc.?
 
 		//inherent attributes too
@@ -113,15 +114,17 @@ namespace Forays {
 			}
 			else{
 				if(canSeePlayer){
-					bool playerSpotted = true;
 					if(BehaviorState == CreatureBehaviorState.Unaware){
-						playerSpotted = R.CoinFlip(); //todo
+						if(R.CoinFlip()){ //todo, stealth here
+							//todo, this will change to a shout for some enemies, which will create noise, right?
+							LastKnownPlayerPosition = Player.Position;
+							Q.Execute(new AiChangeBehaviorStateEvent(this, CreatureBehaviorState.Hunting));
+							return Turns(1);
+						}
 					}
-					if(playerSpotted){
-						//todo, this will change to a shout for some enemies, which will create noise, right?
-						SetPlayerLastKnownPosition();
+					else{
+						LastKnownPlayerPosition = Player.Position;
 						Q.Execute(new AiChangeBehaviorStateEvent(this, CreatureBehaviorState.Hunting));
-						return Turns(1);
 					}
 				}
 			}
@@ -166,14 +169,11 @@ namespace Forays {
 			return Turns(1);
 		}
 		private int Track(){
-			//todo
-			return Turns(1);
-		}
-		private void SetPlayerLastKnownPosition(){
-			//todo
+			if(!HasPosition) return Turns(1);
+			return MoveToMeleeRange(LastKnownPlayerPosition) ?? Turns(1);
 		}
 		private int Hunt(){
-			SetPlayerLastKnownPosition();
+			LastKnownPlayerPosition = Player.Position;
 			int? actionCost = TakeSpecialAction();
 			//todo, this doesn't seem right. if TakeSpecialAction returns a value, is the turn already done?
 			// also, do some things need to TakeSpecialAction while idle, wandering, etc.?
@@ -216,22 +216,24 @@ namespace Forays {
 			// single-cell hazards can be checked directly.
 			return false;
 		}
+		private bool IsImpassable(Point p){
+			return !TileDefinition.IsPassable(Map.TileTypeAt(p)) || IsMajorHazard(p);
+		}
 		private int? MoveToIdealDistance(){
 			int distRangeMin = 1; //todo, get actual range here
 			int distRangeMax = 1;
 			if (distRangeMax > 1)
 				return MoveToRange(distRangeMin, distRangeMax);
 			else
-				return MoveToMeleeRange();
+				return MoveToMeleeRange(Player.Position);
 		}
-		private int? MoveToMeleeRange(){
+		private int? MoveToMeleeRange(Point targetPosition){
 			//todo, this method probably needs checks so that enemies don't step out of LOS of the player by going around a corner too soon
-			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(Player.Position));
-			if(IsMajorHazard(idealStep)){
+			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(targetPosition));
+			if(IsImpassable(idealStep) || !idealStep.HasLOS(targetPosition, Map.Tiles)){
 				//todo... clever enemies will do full pathfinding to get around.
 				// Others will try the other cell(s) that'll get this enemy closer on one axis, if possible, but otherwise will wait on the other side.
-				//todo, return null for now:
-				return null;
+				return TryAlternateStepTowardTarget(targetPosition);
 			}
 			else if(IsMinorHazard(idealStep)){
 				//todo... most enemies will look at the 'ideal path' (ignoring hazards) to decide what to do here.
@@ -259,7 +261,7 @@ namespace Forays {
 				//    If this enemy is clever, we do real pathfinding to get us around.
 				//    Else, we only look at adjacent cells which get us closer on the major axis. TODO: do we still have a chance for random movement here if we don't move yet?
 
-				List<Point> idealPath = GetIdealPath(Player.Position);
+				List<Point> idealPath = GetIdealPath(targetPosition);
 				int minorHazardsBeforeSafety = 0, majorHazardsBeforeSafety = 0;
 				foreach(Point p in idealPath){
 					if(IsMajorHazard(p)) ++majorHazardsBeforeSafety;
@@ -274,25 +276,28 @@ namespace Forays {
 					return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
 				}
 				else{
-					if(false && this[AiTrait.Clever]){
-						//todo, if clever, do real pathfinding here.
-						return null;
-					}
-					else{
-						Point? alternativeStep = GetNextStepOnMajorAxisOnly(Position, Player.Position);
-						if(alternativeStep != null && !IsMajorHazard(alternativeStep.Value) && !IsMinorHazard(alternativeStep.Value)){
-							return (int)Q.Execute(new WalkAction(this, alternativeStep.Value)).Cost;
-						}
-						else{
-							//todo, 20% chance to move randomly?
-							//for now let's just end turn:
-							return null;
-						}
-					}
+					return TryAlternateStepTowardTarget(targetPosition);
 				}
 			}
 			else{
 				return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
+			}
+		}
+		private int? TryAlternateStepTowardTarget(Point targetPosition){
+			if(false && this[AiTrait.Clever]){
+				//todo, if clever, do real pathfinding here.
+				return null;
+			}
+			else{
+				Point? alternativeStep = GetNextStepOnMajorAxisOnly(Position, targetPosition);
+				if(alternativeStep != null && !IsMajorHazard(alternativeStep.Value) && !IsMinorHazard(alternativeStep.Value)){
+					return (int)Q.Execute(new WalkAction(this, alternativeStep.Value)).Cost;
+				}
+				else{
+					//todo, 20% chance to move randomly?
+					//for now let's just end turn:
+					return null;
+				}
 			}
 		}
 		//todo desc -- returns what would be the ideal path if we ignore hazards, other creatures in the way, etc., but checking LOS at each step.
