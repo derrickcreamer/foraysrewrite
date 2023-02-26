@@ -46,6 +46,7 @@ namespace ForaysUI.ScreenUI{
 					else if(e.Creature.BehaviorState == CreatureBehaviorState.Tracking && e.NewBehaviorState == CreatureBehaviorState.Searching){
 						// Does this need a message?..
 					}
+					Messages.AddSimple(e.Creature, $"state from {e.Creature.BehaviorState} to {e.NewBehaviorState} change", visibility: Visibility.AlwaysVisible);
 					break;
 			}
 		}

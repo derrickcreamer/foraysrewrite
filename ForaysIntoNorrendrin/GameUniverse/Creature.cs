@@ -100,9 +100,9 @@ namespace Forays {
 		public int ExecuteMonsterTurn(){
 			// todo, check for inability to act here? asleep, etc.?
 			if(!HasPosition){
-				return ExecuteMonsterTurnOffMap();
+				return ExecuteTurnNotOnMap();
 			}
-			if(CurrentCellIsMajorHazard()){
+			if(IsMajorHazard(Position)){
 				return MoveTowardSafety();
 			}
 			bool canSeePlayer = CanSee(Player);
@@ -137,12 +137,8 @@ namespace Forays {
 				default: throw new InvalidOperationException("Unknown state");
 			}
 		}
-		private int ExecuteMonsterTurnOffMap(){
+		private int ExecuteTurnNotOnMap(){
 			return Turns(1); //todo
-		}
-		private bool CurrentCellIsMajorHazard(){
-			//todo
-			return false;
 		}
 		private int MoveTowardSafety(){
 			//todo (this method should use some of the same logic as normal turns to decide whether to walk through minor hazards)
@@ -209,7 +205,161 @@ namespace Forays {
 			// and 'slips past'
 			//
 		}
+		private bool IsMinorHazard(Point p){
+			//todo, need to cache any hazards that extend to other tiles.
+			// single-cell hazards can be checked directly.
+			return false;
+			// todo: maybe player-adjacent cells should be considered minor hazards by anything with range >1 ?
+		}
+		private bool IsMajorHazard(Point p){
+			//todo, need to cache any hazards that extend to other tiles.
+			// single-cell hazards can be checked directly.
+			return false;
+		}
 		private int? MoveToIdealDistance(){
+			int distRangeMin = 1; //todo, get actual range here
+			int distRangeMax = 1;
+			if (distRangeMax > 1)
+				return MoveToRange(distRangeMin, distRangeMax);
+			else
+				return MoveToMeleeRange();
+		}
+		private int? MoveToMeleeRange(){
+			//todo, this method probably needs checks so that enemies don't step out of LOS of the player by going around a corner too soon
+			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(Player.Position));
+			if(IsMajorHazard(idealStep)){
+				//todo... clever enemies will do full pathfinding to get around.
+				// Others will try the other cell(s) that'll get this enemy closer on one axis, if possible, but otherwise will wait on the other side.
+				//todo, return null for now:
+				return null;
+			}
+			else if(IsMinorHazard(idealStep)){
+				//todo... most enemies will look at the 'ideal path' (ignoring hazards) to decide what to do here.
+				// The thing that matters is how soon, on that path, there is another safe cell.
+				// If the very next cell (after the minor hazard) is safe, they should walk through almost 100% of the time.
+				//		(maybe base it on this PLUS current HP, so if it's almost dead it'll probably wait a turn instead? maybe 50% HP + next cell safe is still 95%-100%?)
+				// If there is a major hazard on this path BEFORE a safe cell, it's way less likely to step. Maybe 5% or so.
+				// Otherwise it scales based on the number of minor hazards before a safe cell. Maybe 15% per hazard, or maybe 5% + 20% after the first, whatever.
+				// Either way, only AFTER that is decided will it check for alternate paths. If there's a safe cell right next to this one, and we decided to wait,
+				// then take that one instead if it gets us closer on one axis. Otherwise just wait.
+				//
+
+
+				// THEREFORE:
+
+				// we need to GET the ideal path here.
+				// we count the following on that path:
+				//   -number of minor hazards that appear on this path before a safe cell appears
+				//   -does at least one major hazard appear before a safe cell?
+				// if at least one major hazard exists, note this -- TODO, it should be much less likely to take a step here, but how much exactly?
+				// else, determine the likelihood to take a step based on the number of minor hazards we found -- TODO, maybe 5% + 20% per?
+				// Based on those two values, now we actually decide: step or no?
+				// if yes, take the action and we're done.
+				// else, we look for alternate paths:
+				//    If this enemy is clever, we do real pathfinding to get us around.
+				//    Else, we only look at adjacent cells which get us closer on the major axis. TODO: do we still have a chance for random movement here if we don't move yet?
+
+				List<Point> idealPath = GetIdealPath(Player.Position);
+				int minorHazardsBeforeSafety = 0, majorHazardsBeforeSafety = 0;
+				foreach(Point p in idealPath){
+					if(IsMajorHazard(p)) ++majorHazardsBeforeSafety;
+					else if(IsMinorHazard(p)) ++minorHazardsBeforeSafety; // Note that the initial hazard is counted here.
+					else break; // Stop counting if we encounter a safe location.
+				}
+				int chanceToBraveHazard = 115 - (minorHazardsBeforeSafety * 20); // 95% chance if the initial hazard was the only one. -20% per additional hazard.
+				if(majorHazardsBeforeSafety > 0){
+					chanceToBraveHazard = 2; // Let's just make it very unlikely but not impossible.
+				}
+				if(R.PercentChance(chanceToBraveHazard)){
+					return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
+				}
+				else{
+					if(false && this[AiTrait.Clever]){
+						//todo, if clever, do real pathfinding here.
+						return null;
+					}
+					else{
+						Point? alternativeStep = GetNextStepOnMajorAxisOnly(Position, Player.Position);
+						if(alternativeStep != null && !IsMajorHazard(alternativeStep.Value) && !IsMinorHazard(alternativeStep.Value)){
+							return (int)Q.Execute(new WalkAction(this, alternativeStep.Value)).Cost;
+						}
+						else{
+							//todo, 20% chance to move randomly?
+							//for now let's just end turn:
+							return null;
+						}
+					}
+				}
+			}
+			else{
+				return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
+			}
+		}
+		//todo desc -- returns what would be the ideal path if we ignore hazards, other creatures in the way, etc., but checking LOS at each step.
+		private List<Point> GetIdealPath(Point destination){
+			List<Point> result = new List<Point>();
+			//find the dx and dy
+			// loop...
+			//   look at next cell
+			//   if LOS, add it and move to next
+			//   if no LOS, look at the alternative cell instead:
+			//		if LOS, add it and move to next (from the alternative cell!)
+			//      else, assume LOS is broken and just return what we have. Always return at least 1 point.
+			//todo clean up comments
+			int dx = (Position.X < destination.X)? 1 : (Position.X > destination.X)? -1 : 0;
+			int dy = (Position.Y < destination.Y)? 1 : (Position.Y > destination.Y)? -1 : 0;
+			Point nextPos = new Point(Position.X + dx, Position.Y + dy);
+			while(true){
+				if(Position.HasLOS(nextPos, Map.Tiles)){
+					result.Add(nextPos);
+					nextPos = new Point(nextPos.X + dx, nextPos.Y + dy);
+				}
+				else{
+					Point? alternativeStep = GetNextStepOnMajorAxisOnly(nextPos, destination);
+					if(alternativeStep == null) return result; // This means we have no LOS on a straight diagonal, so it must be blocked.
+					result.Add(alternativeStep.Value);
+					nextPos = alternativeStep.Value;
+				}
+			}
+		}
+		//todo desc -- returns the second choice cell, the one that gets closer on only the major axis, or null if there is no such cell.
+		private static Point? GetNextStepOnMajorAxisOnly(Point start, Point destination){
+			int dx = destination.X - start.X;
+			int dy = destination.Y - start.Y;
+			int dxAbs = Math.Abs(dx);
+			int dyAbs = Math.Abs(dy);
+			if(dxAbs == dyAbs) return null;
+			else if(dxAbs > dyAbs){
+				if(dx > 0) return new Point(start.X + 1, start.Y);
+				else return new Point(start.X - 1, start.Y);
+			}
+			else{ //dxAbs < dyAbs
+				if(dy > 0) return new Point(start.X, start.Y + 1);
+				else return new Point(start.X, start.Y - 1);
+			}
+		}
+		private int? MoveToRange(int distRangeMin, int distRangeMax){
+			// let's plan range >1 with 'move to range' while considering minor hazards... there must be something reasonable to do by default.
+			//
+			// i think the main thing I can relax on is:  circle kiting isn't nearly as big a concern as the range grows.
+			// but that's no reason not to TRY to move closer on both axes, right?
+			// so let's... build the set of cells (at the correct range from the player) which this enemy has LOS to / can see,
+			// and find the subset of those that are closest to this enemy...
+			// (could alternatively check for danger BEFORE checking distance, but both should work...)
+			//...
+			//>>> re:the above, do this:
+			// find all at dist X
+			// filter out ones with no LOS
+			// filter out ones that aren't closest to the enemy
+			// use proximity to the cardinal direction as a tiebreaker here
+			// (that is, if we can step toward that, do it. otherwise try another...)
+			// -or- what if i did almost the same thing, but I built a list of best steps, in that order (so tiebreaker is preserved), and try any of them?
+			//
+			//
+			//
+			return null; //todo
+		}
+		/* old version, delete after using the important parts for ranged approaches: private int? MoveToIdealDistance2(){
 			int distRangeMin = 1; //todo
 			int distRangeMax = 1;
 			DijkstraMap dm = new DijkstraMap(GetEffectiveCost);
@@ -219,12 +369,6 @@ namespace Forays {
 			};
 			dm.Scan();
 			List<Point> nextSteps = dm.GetPossibleNextStepsDownhill(Position);
-			//TODO NEXT:
-
-			// i was considering making 'normal' AI avoid hazards a bit more, but instead let's try a random chance to step through or step around.
-			//
-			// Then, did I need some kind of check so that certain enemies (mindless?) would only follow next steps that move closer to the player on at least one axis?
-			//    But, do those use a dijkstra map at all? (if player visible, step toward. Maybe be able to step diagonally around a pillar.)
 
 
 			int currentDist = Position.ChebyshevDistanceFrom(Player.Position);
@@ -257,62 +401,7 @@ namespace Forays {
 			//
 			//
 
-//maybe split it better, like: 'potential first picks' - any of these that are valid can be used right away?
-//potential second picks... because these lists will change for noneuclidean, maybe even for 'needs LOE'...
-// and then i guess 'backup plans' ... but is 1/2/3 really the way? or should it be arbitrary? might not need to be so complicated...
-//the whole idea of the 3rd group is just to not get forever stuck on stuff...
-
-
-			//pasting:
-			//
-			//
-             /* todo remove   public bool AI_Step(PhysicalObject obj,bool flee){
-                        if(HasAttr(AttrType.IMMOBILE) || (type == ActorType.MECHANICAL_KNIGHT && attrs[AttrType.COOLDOWN_1] == 2)) return false;
-                        if(SlippedOrStruggled()) return true;
-                        List<int> dirs = new List<int>();
-                        List<int> sideways_directions = new List<int>();
-                        AI_Step_Build_Direction_Lists(tile(),obj,flee,dirs,sideways_directions);
-                        List<int> partially_blocked_dirs = new List<int>();
-                        foreach(int i in dirs){
-                                if(ActorInDirection(i) != null && ActorInDirection(i).IsHiddenFrom(this)){
-                                        player_visibility_duration = -1;
-                                        if(ActorInDirection(i) == player){
-                                                attrs[AttrType.PLAYER_NOTICED]++;
-                                        }
-                                        target = player; //not extensible yet
-                                        target_location = M.tile[player.row,player.col];
-                                        string walks = " walks straight into you! ";
-                                        if(!IsHiddenFrom(player)){
-                                               B.Add(GetName(false,The) + " looks just as surprised as you. ");
-                                        }
-                                        return true;
-                                }
-                                Tile t = TileInDirection(i);
-                                if(t.Is(TileType.RUBBLE) && (path == null || path.Count == 0 || t != M.tile[path[0]])){ //other tiles might go here eventually
-                                        partially_blocked_dirs.Add(i);
-                                }
-                                else{
-                                        if(AI_WillingToMove(tile(),t,obj) && AI_MoveOrOpen(i)){
-                                                return true;
-                                        }
-                                }
-                        }
-                        foreach(int i in partially_blocked_dirs){
-                                if(AI_WillingToMove(tile(),TileInDirection(i),obj) && AI_MoveOrOpen(i)){
-                                        return true;
-                                }
-                        }
-                        foreach(int i in sideways_directions){
-                                if(AI_WillingToMove(tile(),TileInDirection(i),obj) && AI_MoveOrOpen(i)){
-                                        return true;
-                                }
-                        }
-                        return false;
-                }*/
-
-			//
-			//
-		}
+		}*/
 		private int GetEffectiveCost(Point p){
 			//todo
 			//hmm, getCellCost. Need to consider obstacles for THIS enemy, with all inherent and temporary statuses,
