@@ -206,31 +206,35 @@ namespace Forays {
 			//
 		}
 		private bool IsMinorHazard(Point p){
+			return FeaturesAt(p).HasFeature(FeatureType.PoisonGas);
 			//todo, need to cache any hazards that extend to other tiles.
 			// single-cell hazards can be checked directly.
 			return false;
 			// todo: maybe player-adjacent cells should be considered minor hazards by anything with range >1 ?
 		}
 		private bool IsMajorHazard(Point p){
+			//todo, check mindless here?
+			return FeaturesAt(p).HasFeature(FeatureType.Fire);
 			//todo, need to cache any hazards that extend to other tiles.
 			// single-cell hazards can be checked directly.
 			return false;
 		}
-		private bool IsImpassable(Point p){
-			return !TileDefinition.IsPassable(Map.TileTypeAt(p)) || IsMajorHazard(p);
+		private bool IsConsideredImpassable(Point p, bool ignoreHazards = false){
+			return !TileDefinition.IsPassable(Map.TileTypeAt(p)) || (!ignoreHazards && IsMajorHazard(p));
 		}
 		private int? MoveToIdealDistance(){
-			int distRangeMin = 1; //todo, get actual range here
-			int distRangeMax = 1;
+			int distRangeMin = 3; //todo, get actual range here
+			int distRangeMax = 4;
+			distRangeMin = this.OriginalType == CreatureType.Goblin? 1 : 3;
+			distRangeMax = this.OriginalType == CreatureType.Goblin? 1 : 4;
 			if (distRangeMax > 1)
-				return MoveToRange(distRangeMin, distRangeMax);
+				return MoveToRange(Player.Position, distRangeMin, distRangeMax);
 			else
 				return MoveToMeleeRange(Player.Position);
 		}
 		private int? MoveToMeleeRange(Point targetPosition){
-			//todo, this method probably needs checks so that enemies don't step out of LOS of the player by going around a corner too soon
 			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(targetPosition));
-			if(IsImpassable(idealStep) || !idealStep.HasLOS(targetPosition, Map.Tiles)){
+			if(IsConsideredImpassable(idealStep) || !idealStep.HasLOS(targetPosition, Map.Tiles)){
 				//todo... clever enemies will do full pathfinding to get around.
 				// Others will try the other cell(s) that'll get this enemy closer on one axis, if possible, but otherwise will wait on the other side.
 				return TryAlternateStepTowardTarget(targetPosition);
@@ -261,16 +265,19 @@ namespace Forays {
 				//    If this enemy is clever, we do real pathfinding to get us around.
 				//    Else, we only look at adjacent cells which get us closer on the major axis. TODO: do we still have a chance for random movement here if we don't move yet?
 
-				List<Point> idealPath = GetIdealPath(targetPosition);
+				List<Point> idealPath = GetIdealPath(Position, targetPosition);
 				int minorHazardsBeforeSafety = 0, majorHazardsBeforeSafety = 0;
 				foreach(Point p in idealPath){
 					if(IsMajorHazard(p)) ++majorHazardsBeforeSafety;
 					else if(IsMinorHazard(p)) ++minorHazardsBeforeSafety; // Note that the initial hazard is counted here.
 					else break; // Stop counting if we encounter a safe location.
 				}
-				int chanceToBraveHazard = 115 - (minorHazardsBeforeSafety * 20); // 95% chance if the initial hazard was the only one. -20% per additional hazard.
+				int chanceToBraveHazard = 125 - (minorHazardsBeforeSafety * 30); // 95% chance if the initial hazard was the only one. -30% per additional hazard.
 				if(majorHazardsBeforeSafety > 0){
-					chanceToBraveHazard = 2; // Let's just make it very unlikely but not impossible.
+					chanceToBraveHazard = Math.Min(2, chanceToBraveHazard); // Let's just make it very unlikely but not impossible.
+				}
+				if(IsMinorHazard(Position)){ // If this location is already a hazard, might as well keep going.
+					chanceToBraveHazard = 100;
 				}
 				if(R.PercentChance(chanceToBraveHazard)){
 					return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
@@ -294,14 +301,101 @@ namespace Forays {
 					return (int)Q.Execute(new WalkAction(this, alternativeStep.Value)).Cost;
 				}
 				else{
+					int dx = targetPosition.X - Position.X;
+					int dy = targetPosition.Y - Position.Y;
+					if(dx == 0 || dy == 0){ // If the target is in the same row or same column...
+						Point[] twoAlternateSteps = GetTwoAlternateStepsForCardinalDirection(Position, targetPosition);
+						if(twoAlternateSteps != null){
+							if(R.CoinFlip()){ // Randomize the order in which these 2 cells are checked
+								Point swap = twoAlternateSteps[0];
+								twoAlternateSteps[0] = twoAlternateSteps[1];
+								twoAlternateSteps[1] = swap;
+							}
+							foreach(Point p in twoAlternateSteps){
+								if(!IsConsideredImpassable(p) && !IsMinorHazard(p)){
+									return (int)Q.Execute(new WalkAction(this, p)).Cost;
+								}
+							}
+						}
+
+					}
 					//todo, 20% chance to move randomly?
 					//for now let's just end turn:
 					return null;
 				}
 			}
 		}
+		//todo, this is untested and I'm not certain I want to use it yet. It might depend on how predictable I want enemies to be.
+		// also needs desc -- should be called only when the ideal path is hazardous. Finds the closest-to-ideal path that doesn't go through
+		//  any hazards. This one is for average enemies, NOT clever ones, which can do full pathfinding instead of this limited version.
+		private Point? FindNextStepAroundHazards(Point targetPosition, List<Point> idealPath){ //todo, is this the best name?
+			int dxTotal = targetPosition.X - Position.X;
+			int dyTotal = targetPosition.Y - Position.Y;
+			int dxTotalAbs = Math.Abs(dxTotal); //todo, is all of this needed?
+			int dyTotalAbs = Math.Abs(dyTotal);
+			if(dxTotal == 0 || dyTotal == 0 || dxTotalAbs == dyTotalAbs) return null; // Return early if this is a cardinal or diagonal line
+			bool xMajor = dxTotalAbs > dyTotalAbs;
+			Point minorAxisStepVector;
+			if(xMajor) minorAxisStepVector = new Point(0, dyTotal > 0? -1 : 1); // Note that this vector's direction is reversed; it steps from the target toward the source.
+			else minorAxisStepVector = new Point(dxTotal > 0? -1 : 1, 0);
+			//todo clean up comments, add some examples.
+			Point lastHazard = idealPath.FindLast(p => p != targetPosition && (IsConsideredImpassable(p) || IsMinorHazard(p)));
+			Point nextWaypointAvoidingHazard = lastHazard;
+			while(true){
+				nextWaypointAvoidingHazard = nextWaypointAvoidingHazard + minorAxisStepVector;
+				// If we go past the source on the minor axis, there is no path:
+				if(xMajor){
+					if(dyTotal > 0 && nextWaypointAvoidingHazard.Y < this.Position.Y) return null;
+					if(dyTotal < 0 && nextWaypointAvoidingHazard.Y > this.Position.Y) return null;
+				}
+				else{
+					if(dxTotal > 0 && nextWaypointAvoidingHazard.X < this.Position.X) return null;
+					if(dxTotal < 0 && nextWaypointAvoidingHazard.X > this.Position.X) return null;
+				}
+				// If this cell is not a hazard, break out and see if we can connect it to source + target.
+				if(!IsConsideredImpassable(nextWaypointAvoidingHazard) && !IsMinorHazard(nextWaypointAvoidingHazard)) break;
+			}
+			// First, ensure that this cell can connect to the target. If there is no valid path from this cell, I think it's guaranteed that there is no path at all.
+			List<Point> waypointToTarget = GetIdealPath(nextWaypointAvoidingHazard, targetPosition);
+			int waypointToTargetHazardIdx = waypointToTarget.FindLastIndex(p => p != targetPosition && (IsConsideredImpassable(p) || IsMinorHazard(p)));
+			if(waypointToTargetHazardIdx != -1) return null; // No path
+			// Now we need a path from the source to this waypoint:
+			List<Point> sourceToWaypoint = GetIdealPath(Position, nextWaypointAvoidingHazard);
+			int sourceToWaypointHazardIdx = sourceToWaypoint.FindLastIndex(p => p != targetPosition && (IsConsideredImpassable(p) || IsMinorHazard(p)));
+			if(sourceToWaypointHazardIdx == -1){
+				// If there is no hazard here, then we have a complete path. Move toward the waypoint:
+				if(sourceToWaypoint.Count == 0) return nextWaypointAvoidingHazard; // If the source is adjacent to the waypoint the count could be 0.
+				else return sourceToWaypoint[0];
+			}
+			else{
+				// Recursively try to connect back to the source cell:
+				Point? resultStep = FindNextStepAroundHazards(nextWaypointAvoidingHazard, sourceToWaypoint);
+				return resultStep;
+			}
+			//new algo? :
+			// find LAST haz in ideal.
+			// increment in right (minor) direction.
+			// (if new cell is haz, keep going)
+			// try to connect new pos to target.
+			// if it fails, is there really no path? I think this might be true.
+			// otherwise we know we can reach the target from this new cell, so now try to find a path from source->newCell.
+			// same idea here - if no haz, done (return first step of source->newCell!).
+			//					if haz, find the last one and increment in the minor direction.
+			// so this is recursive, and if we can connect the chain then it's a success.
+			// so since the recursive part is the part closer to the source, maybe it looks like this?:
+			// from ideal path:
+			//		if no haz, done(success)
+			//		else, find first non-haz in minor direction.
+			//			if none, done(fail).
+			//			else, goto 'from A'
+			// from A:
+			//		if no connection to target, done(fail).
+			//		else, find ideal path from source to A and goto 'from ideal path'.-
+			//create array. major axis length is (major axis difference - 1) because neither source nor target need to be included.
+			// minor axis length is (minor axis difference + 1) because both source and target lines need to be included.
+		}
 		//todo desc -- returns what would be the ideal path if we ignore hazards, other creatures in the way, etc., but checking LOS at each step.
-		private List<Point> GetIdealPath(Point destination){
+		private List<Point> GetIdealPath(Point source, Point destination){
 			List<Point> result = new List<Point>();
 			//find the dx and dy
 			// loop...
@@ -311,19 +405,21 @@ namespace Forays {
 			//		if LOS, add it and move to next (from the alternative cell!)
 			//      else, assume LOS is broken and just return what we have. Always return at least 1 point.
 			//todo clean up comments
-			int dx = (Position.X < destination.X)? 1 : (Position.X > destination.X)? -1 : 0;
-			int dy = (Position.Y < destination.Y)? 1 : (Position.Y > destination.Y)? -1 : 0;
-			Point nextPos = new Point(Position.X + dx, Position.Y + dy);
+			Point currentPos = source;
 			while(true){
-				if(Position.HasLOS(nextPos, Map.Tiles)){
+				int dx = (currentPos.X < destination.X)? 1 : (currentPos.X > destination.X)? -1 : 0;
+				int dy = (currentPos.Y < destination.Y)? 1 : (currentPos.Y > destination.Y)? -1 : 0;
+				Point nextPos = new Point(currentPos.X + dx, currentPos.Y + dy);
+				if(nextPos == destination) return result; // We're done - don't include the destination cell.
+				if(source.HasLOS(nextPos, Map.Tiles) && !IsConsideredImpassable(nextPos, true)){
 					result.Add(nextPos);
-					nextPos = new Point(nextPos.X + dx, nextPos.Y + dy);
+					currentPos = nextPos;
 				}
 				else{
 					Point? alternativeStep = GetNextStepOnMajorAxisOnly(nextPos, destination);
 					if(alternativeStep == null) return result; // This means we have no LOS on a straight diagonal, so it must be blocked.
 					result.Add(alternativeStep.Value);
-					nextPos = alternativeStep.Value;
+					currentPos = alternativeStep.Value;
 				}
 			}
 		}
@@ -343,58 +439,51 @@ namespace Forays {
 				else return new Point(start.X, start.Y - 1);
 			}
 		}
-		private int? MoveToRange(int distRangeMin, int distRangeMax){
-			// let's plan range >1 with 'move to range' while considering minor hazards... there must be something reasonable to do by default.
-			//
-			// i think the main thing I can relax on is:  circle kiting isn't nearly as big a concern as the range grows.
-			// but that's no reason not to TRY to move closer on both axes, right?
-			// so let's... build the set of cells (at the correct range from the player) which this enemy has LOS to / can see,
-			// and find the subset of those that are closest to this enemy...
-			// (could alternatively check for danger BEFORE checking distance, but both should work...)
-			//...
-			//>>> re:the above, do this:
-			// find all at dist X
-			// filter out ones with no LOS
-			// filter out ones that aren't closest to the enemy
-			// use proximity to the cardinal direction as a tiebreaker here
-			// (that is, if we can step toward that, do it. otherwise try another...)
-			// -or- what if i did almost the same thing, but I built a list of best steps, in that order (so tiebreaker is preserved), and try any of them?
-			//
-			//
-			//
-			return null; //todo
+		//todo desc -- returns null if same cell or not a cardinal line. Otherwise, returns smaller (x,y) value first.
+		private static Point[] GetTwoAlternateStepsForCardinalDirection(Point start, Point destination){
+			int dx = destination.X - start.X;
+			int dy = destination.Y - start.Y;
+			if((dx != 0 && dy != 0) || (dx == 0 && dy == 0)) return null;
+			else if(dx > 0) return new Point[] { new Point(start.X + 1, start.Y - 1), new Point(start.X + 1, start.Y + 1) };
+			else if(dx < 0) return new Point[] { new Point(start.X - 1, start.Y - 1), new Point(start.X - 1, start.Y + 1) };
+			else if(dy > 0) return new Point[] { new Point(start.X - 1, start.Y + 1), new Point(start.X + 1, start.Y + 1) };
+			else /*dy < 0*/ return new Point[] { new Point(start.X - 1, start.Y - 1), new Point(start.X + 1, start.Y - 1) };
 		}
-		/* old version, delete after using the important parts for ranged approaches: private int? MoveToIdealDistance2(){
-			int distRangeMin = 1; //todo
-			int distRangeMax = 1;
-			DijkstraMap dm = new DijkstraMap(GetEffectiveCost);
-			dm.IsSource = p => {
-				int dist = p.ChebyshevDistanceFrom(Player.Position);
-				return (dist >= distRangeMin && dist <= distRangeMax);
-			};
-			dm.Scan();
-			List<Point> nextSteps = dm.GetPossibleNextStepsDownhill(Position);
-
-
-			int currentDist = Position.ChebyshevDistanceFrom(Player.Position);
-			Dir8 dir = Position.GetDirectionOfNeighbor(Player.Position);
-			if(currentDist > distRangeMax){ // advance
-				//todo, will anything else be changed here?
+		private int? MoveToRange(Point targetPosition, int distRangeMin, int distRangeMax){
+			// Find all points within range, in order of euclidean distance, and check for blocked movement, LOS from here, and LOS from target.
+			// Note the least distance of any valid points so that we can consider those first. (I would have sorted by distance if I had a stable sort readily available.)
+			List<Point> pointsWithinTargetRange = new List<Point>();
+			int leastDistance = int.MaxValue;
+			foreach(Point nearby in targetPosition.EnumeratePointsWithinChebyshevDistance(distRangeMax, true, true)){
+				if(targetPosition.ChebyshevDistanceFrom(nearby) >= distRangeMin
+					&& nearby.ExistsBetweenMapEdges()
+					&& !IsConsideredImpassable(nearby)
+					&& Position.HasLOS(nearby, Map.Tiles)
+					&& targetPosition.HasLOS(nearby, Map.Tiles))
+				{
+					pointsWithinTargetRange.Add(nearby);
+					int dist = Position.ChebyshevDistanceFrom(nearby);
+					if(dist < leastDistance) leastDistance = dist;
+				}
 			}
-			else if(currentDist < distRangeMin){ // retreat
-				dir = dir.Rotate(true, 4);
+			foreach(Point potentialDestination in pointsWithinTargetRange){
+				if(Position.ChebyshevDistanceFrom(potentialDestination) > leastDistance) continue; // On the first pass through, consider only the closest.
+				int? result = MoveToMeleeRange(potentialDestination);
+				if(result != null) return result;
 			}
-			return (int)Q.Execute(new WalkAction(this, Position.PointInDir(dir))).Cost;
-			//
+			foreach(Point potentialDestination in pointsWithinTargetRange){
+				if(Position.ChebyshevDistanceFrom(potentialDestination) == leastDistance) continue; // Skip the ones already checked. Maybe inefficient but this code will rarely be reached.
+				int? result = MoveToMeleeRange(potentialDestination);
+				if(result != null) return result;
+			}
+			return null;
+		}
 			//todo, what needs to be done here?
 			//each type needs a distance range. default 1...
 			//then, what AI traits and abilities need to be considered here?
 			//noneuclidean, slither, flit, light attraction, immobile, <frostling stuff>,
 			// ...what about 'needs LOE' for ranged enemies?...
 			//
-
-
-
 
 
 
@@ -406,7 +495,6 @@ namespace Forays {
 			//
 			//
 
-		}*/
 		private int GetEffectiveCost(Point p){
 			//todo
 			//hmm, getCellCost. Need to consider obstacles for THIS enemy, with all inherent and temporary statuses,

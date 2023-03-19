@@ -22,6 +22,10 @@ namespace Forays {
 	}
 
 	public static class TileDefinition{
+		// todo: on the surface, having IsPassable seems like it might conflict with the idea that certain enemy types are able
+		// or unable to move through certain terrain, but I think this might work
+		// (1) as passability for projectiles etc., and (2) as a default for creature movement - maybe there's a dictionary that only exists if
+		// a specific creature type overrides any of these.
 		public static bool IsPassable(TileType type){
 			switch(type){
 				case TileType.Floor:

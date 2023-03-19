@@ -149,6 +149,8 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			if(features.HasFeature(FeatureType.CrackedIce)) return new ColorGlyph('~', Color.Red, Color.Gray);
 			if(features.HasFeature(FeatureType.BrokenIce)) return new ColorGlyph('~', Color.Gray, Color.DarkBlue);
 			if(features.HasFeature(FeatureType.Water)) return new ColorGlyph('~', Color.Cyan, Color.DarkCyan);
+			if(features.HasFeature(FeatureType.Fire)) return GameObjectGlyphs.Get(FeatureType.Fire);
+			if(features.HasFeature(FeatureType.PoisonGas)) return GameObjectGlyphs.Get(FeatureType.PoisonGas);
 			//todo, should change color for creatures based on background, right? do I need rules for which colors to modify/invert?
 			//so... if background color... then return a modified version.
 			//bg colors are currently black, gray, dark blue... plus targeting/mouseover stuff.

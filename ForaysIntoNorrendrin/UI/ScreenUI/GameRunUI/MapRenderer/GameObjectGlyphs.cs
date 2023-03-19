@@ -44,6 +44,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 
 			Add(CreatureType.Player, '@', Color.White);
 			Add(CreatureType.Goblin, 'g', Color.Green);
+			Add(CreatureType.Cleric, 'p', Color.Yellow);
 
 			Add(TileType.Wall, '#', Color.Gray);
 			Add(TileType.Floor, '.', Color.White);

@@ -50,7 +50,8 @@ namespace ForaysUI.ScreenUI{
 			grammar.AddNoun("something", noArticles: true);
 
 			Add(CreatureType.Player, "you", noArticles: true);
-			Add(CreatureType.Goblin, "goblin");
+			Add(CreatureType.Goblin, "goblin"); //todo, do I need to specify all of these?
+			Add(CreatureType.Cleric, "cleric");
 
 			Add(TileType.Wall, "wall");
 			Add(TileType.Floor, "the ground", noArticles: true); // Use "the ground" as the name so it'll work with sentences that ask for 'a/an'.
@@ -73,7 +74,7 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.Lava, "lava", uncountable: true);
 
 			Add(FeatureType.Fire, "fire", uncountable: true);
-			Add(FeatureType.PoisonGas, "thick cloud~ of poison gas");
+			Add(FeatureType.PoisonGas, "thick cloud~ of poison gas"); //todo, this currently displays as "you see thick cloud [...]"
 			Add(FeatureType.Fog, "cloud~ of fog");
 			Add(FeatureType.Spores, "cloud~ of spores");
 			Add(FeatureType.ThickDust, "thick cloud~ of dust");
