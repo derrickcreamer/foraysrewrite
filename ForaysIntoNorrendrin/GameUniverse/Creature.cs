@@ -144,10 +144,29 @@ namespace Forays {
 			return Turns(1); //todo
 		}
 		private int MoveTowardSafety(){
+			//todo: i think ranged enemies are currently happy to stand in minor hazards - is this okay?
+			DijkstraMap dm = new DijkstraMap(p => {
+				if(Position.ChebyshevDistanceFrom(p) > 6) return -1;
+				else if(IsConsideredImpassable(p, true)) return -1;
+				else if(Position.ChebyshevDistanceFrom(p) == 1 && CreatureAt(p) != null) return 2; //todo, higher cost here or no?
+				else return 1; //todo, use real movement costs here.
+			});
+			dm.IsSource = p => Position.ChebyshevDistanceFrom(p) <= 6 && !IsConsideredImpassable(p);
+			dm.Scan();
+			List<Point> points = dm.GetPossibleNextStepsDownhill(Position);
+			if(points.Count == 0){
+				//todo, panic and move randomly
+			}
+			else{
+				//todo, if hunting/tracking, could use distance from target as a tiebreaker here:
+				Point destination = R.ChooseFromList(points);
+				return (int)Q.Execute(new WalkAction(this, destination)).Cost;
+			}
 			//todo (this method should use some of the same logic as normal turns to decide whether to walk through minor hazards)
 			return Turns(1); //todo
 		}
 		private int Idle(){ // todo, what's the best name for this one? Idle vs Unaware vs...
+		//todo, if idle or searching, we want to move to safety if in a MINOR hazard, too.
 			if(InitialTurnsIdle > 0){
 				InitialTurnsIdle--;
 				if(InitialTurnsIdle == 0){
@@ -232,7 +251,9 @@ namespace Forays {
 			else
 				return MoveToMeleeRange(Player.Position);
 		}
-		private int? MoveToMeleeRange(Point targetPosition){
+		///<param name="rollToBraveHazards">Creatures should use only a single roll per turn for hazards, to prevent multiple rolls from greatly
+		/// increasing the chance to brave hazards on any given turn.</param>
+		private int? MoveToMeleeRange(Point targetPosition, int? rollToBraveHazards = null){
 			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(targetPosition));
 			if(IsConsideredImpassable(idealStep) || !idealStep.HasLOS(targetPosition, Map.Tiles)){
 				//todo... clever enemies will do full pathfinding to get around.
@@ -266,20 +287,31 @@ namespace Forays {
 				//    Else, we only look at adjacent cells which get us closer on the major axis. TODO: do we still have a chance for random movement here if we don't move yet?
 
 				List<Point> idealPath = GetIdealPath(Position, targetPosition);
-				int minorHazardsBeforeSafety = 0, majorHazardsBeforeSafety = 0;
+				int minorHazards = 0, majorHazards = 0;
 				foreach(Point p in idealPath){
-					if(IsMajorHazard(p)) ++majorHazardsBeforeSafety;
-					else if(IsMinorHazard(p)) ++minorHazardsBeforeSafety; // Note that the initial hazard is counted here.
-					else break; // Stop counting if we encounter a safe location.
+					if(IsMajorHazard(p)) ++majorHazards;
+					else if(IsMinorHazard(p)) ++minorHazards; // Note that the initial hazard is counted here.
 				}
-				int chanceToBraveHazard = 125 - (minorHazardsBeforeSafety * 30); // 95% chance if the initial hazard was the only one. -30% per additional hazard.
-				if(majorHazardsBeforeSafety > 0){
-					chanceToBraveHazard = Math.Min(2, chanceToBraveHazard); // Let's just make it very unlikely but not impossible.
+				// Chance is divided once per hazard found. So, 1 hazard is 90+1 or a 91% chance to brave the hazard each turn.
+				int chanceToBraveHazard = 180; // 2 hazards are 45+1 or a 46% chance to brave the hazard each turn.
+				for(int i=0;i<minorHazards;++i){ // 3 are 22+1, or 23% chance, and so on...
+					chanceToBraveHazard /= 2;
+				}
+				chanceToBraveHazard += 1; // Minimum 1% chance
+				if(majorHazards > 0){
+					chanceToBraveHazard = Math.Min(1, chanceToBraveHazard); // If there is a major hazard farther on, make it very unlikely but not impossible.
 				}
 				if(IsMinorHazard(Position)){ // If this location is already a hazard, might as well keep going.
 					chanceToBraveHazard = 100;
 				}
-				if(R.PercentChance(chanceToBraveHazard)){
+				bool braveHazards;
+				if(rollToBraveHazards != null){
+					braveHazards = (chanceToBraveHazard >= rollToBraveHazards.Value);
+				}
+				else{
+					braveHazards = R.PercentChance(chanceToBraveHazard);
+				}
+				if(braveHazards){
 					return (int)Q.Execute(new WalkAction(this, idealStep)).Cost;
 				}
 				else{
@@ -466,14 +498,15 @@ namespace Forays {
 					if(dist < leastDistance) leastDistance = dist;
 				}
 			}
+			int rollToBraveHazards = R.Between(1, 100);
 			foreach(Point potentialDestination in pointsWithinTargetRange){
 				if(Position.ChebyshevDistanceFrom(potentialDestination) > leastDistance) continue; // On the first pass through, consider only the closest.
-				int? result = MoveToMeleeRange(potentialDestination);
+				int? result = MoveToMeleeRange(potentialDestination, rollToBraveHazards);
 				if(result != null) return result;
 			}
 			foreach(Point potentialDestination in pointsWithinTargetRange){
 				if(Position.ChebyshevDistanceFrom(potentialDestination) == leastDistance) continue; // Skip the ones already checked. Maybe inefficient but this code will rarely be reached.
-				int? result = MoveToMeleeRange(potentialDestination);
+				int? result = MoveToMeleeRange(potentialDestination, rollToBraveHazards);
 				if(result != null) return result;
 			}
 			return null;

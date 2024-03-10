@@ -87,7 +87,10 @@ namespace ForaysUI.ScreenUI{
 			Screen.HoldUpdates();
 			Screen.Clear(0, MidScreenDividerCol, ScreenUIMain.Rows, 1);
 			Screen.Clear(0, ScreenEdgeDividerCol, ScreenUIMain.Rows, 1);
-			Sidebar.Draw(sidebar);
+			Sidebar.Draw(sidebar); //TODO NEXT: doesn't the sidebar need to get a list of visible stuff somehow? how?
+			// WELLL, the old list was populated on every 'draw map' call, in the 'get color glyph' equivalent...
+			// So I could guarantee no side effects and do that... but after discussion with RS the way to go is to
+			// recalculate it every time the player moves and whenever anything else changes which could change visibility.
 			if(messages != DrawOption.DoNotDraw){
 				Messages.Print(false);
 			}

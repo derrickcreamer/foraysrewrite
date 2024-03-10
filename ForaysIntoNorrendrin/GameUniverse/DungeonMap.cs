@@ -274,13 +274,13 @@ namespace Forays {
 						Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
 						Creatures.Add(c, new Point(x, y));
 						Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
-						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
+						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
 					}
 					if(map[y][x] == 'r' || map[y][x] == 'R' || map[y][x] == '2'){
 						Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Cleric };
 						Creatures.Add(c, new Point(x, y));
 						Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
-						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
+						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
 					}
 					/*else if(x < 7 && y < 7){
 						Tiles[x,y] = TileType.Floor;
@@ -328,7 +328,7 @@ namespace Forays {
 
 				Creatures.Add(c, p);
 				Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
-				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn * 10, initiative);
+				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
 			}
 
 			/* for shrine placement:

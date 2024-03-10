@@ -242,7 +242,7 @@ namespace Forays {
 				{
 				}
 				break;
-			   default: throw new InvalidOperationException("Not an orb type: " + Item.Type.ToString());
+				default: throw new InvalidOperationException("Not an orb type: " + Item.Type.ToString());
 			}
 			return null;
 		}
@@ -287,7 +287,7 @@ namespace Forays {
 				{
 				}
 				break;
-			   default: throw new InvalidOperationException("Not a wand type: " + Item.Type.ToString());
+				default: throw new InvalidOperationException("Not a wand type: " + Item.Type.ToString());
 			}
 			return null;
 		}
