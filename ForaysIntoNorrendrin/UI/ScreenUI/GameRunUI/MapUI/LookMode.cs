@@ -64,8 +64,8 @@ namespace ForaysUI.ScreenUI{
 					highlight = new Highlight(MapHighlightType.SinglePoint) { Destination = p };
 				}
 				MapRenderer.UpdateAllSettings(p, highlight);
-				MapRenderer.DrawMap(e);
-				bool hasLOS = e.CellsVisibleThisTurn[p];
+				MapRenderer.DrawMap();
+				bool hasLOS = Map.CellVisibleToPlayer(p);
 				bool seen = Map.Seen[p];
 				string lookDescription = hasLOS? GetDescriptionAtCell(p)
 					: seen? GetLastKnownDescriptionAtCell(p)

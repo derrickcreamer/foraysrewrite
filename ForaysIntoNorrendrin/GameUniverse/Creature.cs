@@ -94,7 +94,7 @@ namespace Forays {
 
 		public bool CanSee(Creature target){
 			if(!HasPosition || !target.HasPosition) return false;
-			else return Position.HasLOS(target.Position, Map.Tiles);
+			else return Map.CheckLOS(Position, target.Position);
 		}
 
 		///<summary>Return value is the cost of the action taken</summary>
@@ -255,7 +255,7 @@ namespace Forays {
 		/// increasing the chance to brave hazards on any given turn.</param>
 		private int? MoveToMeleeRange(Point targetPosition, int? rollToBraveHazards = null){
 			Point idealStep = Position.PointInDir(Position.GetDirectionOfNeighbor(targetPosition));
-			if(IsConsideredImpassable(idealStep) || !idealStep.HasLOS(targetPosition, Map.Tiles)){
+			if(IsConsideredImpassable(idealStep) || !Map.CheckLOS(idealStep, targetPosition)){
 				//todo... clever enemies will do full pathfinding to get around.
 				// Others will try the other cell(s) that'll get this enemy closer on one axis, if possible, but otherwise will wait on the other side.
 				return TryAlternateStepTowardTarget(targetPosition);
@@ -443,7 +443,7 @@ namespace Forays {
 				int dy = (currentPos.Y < destination.Y)? 1 : (currentPos.Y > destination.Y)? -1 : 0;
 				Point nextPos = new Point(currentPos.X + dx, currentPos.Y + dy);
 				if(nextPos == destination) return result; // We're done - don't include the destination cell.
-				if(source.HasLOS(nextPos, Map.Tiles) && !IsConsideredImpassable(nextPos, true)){
+				if(Map.CheckLOS(source, nextPos) && !IsConsideredImpassable(nextPos, true)){
 					result.Add(nextPos);
 					currentPos = nextPos;
 				}
@@ -490,8 +490,8 @@ namespace Forays {
 				if(targetPosition.ChebyshevDistanceFrom(nearby) >= distRangeMin
 					&& nearby.ExistsBetweenMapEdges()
 					&& !IsConsideredImpassable(nearby)
-					&& Position.HasLOS(nearby, Map.Tiles)
-					&& targetPosition.HasLOS(nearby, Map.Tiles))
+					&& Map.CheckLOS(Position, nearby)
+					&& Map.CheckLOS(targetPosition, nearby))
 				{
 					pointsWithinTargetRange.Add(nearby);
 					int dist = Position.ChebyshevDistanceFrom(nearby);

@@ -65,6 +65,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			if(DeadCreatures.Count > 0) {
 				foreach(Creature c in DeadCreatures) {
 					//any notify here? maybe this actually becomes its own GameEvent?
+					//todo, check lightradius here
 					Map.Creatures.Remove(c);
 				}
 				DeadCreatures.Clear();
@@ -76,6 +77,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			MapRNG = new RNG(R.GetNext());
 			Q = new EventQueue();
 			Map = new DungeonMap(this);
+			Map.HoldVisibilityUpdates();
 			CurrentDepth = 1;
 
 			//todo...while loading the rules, do i need a hook so that the UI can insert any message overrides it wants to?
@@ -88,12 +90,14 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
 			Player = new Creature(this) { CancelDecider = new PlayerCancelDecider(this) };
+			Player.LightRadius = 5;
 			Map.Creatures.Add(Player, new Point(30, 10));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);
 
 			Map.GenerateMap();
 			Map.Light.AddLightSource(Player.Position, 5);
+			Map.ResumeVisibilityUpdates();
 		}
 	}
 	public class GameObject {
@@ -107,8 +111,8 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public RNG R => GameUniverse.R;
 		public DungeonMap Map => GameUniverse.Map;
 		public Creature CreatureAt(Point p) => GameUniverse.Map.Creatures[p];
-		public TileType TileTypeAt(Point p) => GameUniverse.Map.Tiles[p];
-		public FeatureType FeaturesAt(Point p) => GameUniverse.Map.Features[p];
+		public TileType TileTypeAt(Point p) => GameUniverse.Map.GetTile(p);
+		public FeatureType FeaturesAt(Point p) => GameUniverse.Map.GetFeatures(p);
 		public Item ItemAt(Point p) => GameUniverse.Map.Items[p];
 	}
 }

@@ -30,7 +30,7 @@ namespace ForaysUI.ScreenUI{
 					commands: DrawOption.Normal
 				);
 				MapRenderer.UpdateAllSettings(Player.Position);
-				MapRenderer.DrawMap(e);
+				MapRenderer.DrawMap();
 				//window update, set suspend if false...
 				/*if(!Screen.Update()){
 					GameUniverse.Suspend = true;

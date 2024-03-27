@@ -63,8 +63,8 @@ namespace Forays {
 		}
 		protected override SimpleEvent.NullResult Execute() {
 			foreach(Point p in Points){
-				Map.Features.Remove(p, FeatureType.Ice);
-				Map.Features.Add(p, FeatureType.CrackedIce);
+				Map.RemoveFeature(p, FeatureType.Ice);
+				Map.AddFeature(p, FeatureType.CrackedIce);
 			}
 			return null;
 		}
@@ -92,8 +92,8 @@ namespace Forays {
 		public IceBreakingEvent(Point point, GameUniverse g) : base(point, g) { }
 		public override bool IsInvalid => !Point.ExistsOnMap() || !FeaturesAt(Point).HasFeature(FeatureType.CrackedIce);
 		protected override SimpleEvent.NullResult Execute() {
-			Map.Features.Remove(Point, FeatureType.CrackedIce);
-			Map.Features.Add(Point, FeatureType.BrokenIce);
+			Map.RemoveFeature(Point, FeatureType.CrackedIce);
+			Map.AddFeature(Point, FeatureType.BrokenIce);
 			return null;
 		}
 	}
@@ -102,12 +102,14 @@ namespace Forays {
 		protected override void ExecuteSimpleEvent(){
 			GameUniverse.CurrentDepth++;
 			GameUniverse.Map = new DungeonMap(GameUniverse);
+			Map.HoldVisibilityUpdates();
 			Map.GenerateMap();
 
 			Map.Creatures.Add(Player, new Point(1, 20));
 			Map.Light.AddLightSource(Player.Position, 5); //todo, where should these end up?
 
 			if(Map.CurrentLevelType == DungeonLevelType.Cramped) Player.ApplyStatus(Status.Stunned, Turns(5));
+			Map.ResumeVisibilityUpdates();
 		}
 	}
 }

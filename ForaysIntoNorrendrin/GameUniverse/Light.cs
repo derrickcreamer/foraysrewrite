@@ -32,10 +32,10 @@ namespace Forays {
 			if(MagicalLightState == MagicalLightState.MagicalLight) return true;
 			else if(MagicalLightState == MagicalLightState.MagicalDarkness) return false;
 			else{
-				if(TileDefinition.IsOpaque(Map.Tiles[cell])){
+				if(TileDefinition.IsOpaque(TileTypeAt(cell))){
 					foreach(Point neighbor in cell.EnumeratePointsAtChebyshevDistance(1, false, false)){
 						if(!neighbor.ExistsBetweenMapEdges()) continue;
-						if(cellBrightness[neighbor] > 0 && !TileDefinition.IsOpaque(Map.Tiles[neighbor])) return true;
+						if(cellBrightness[neighbor] > 0 && !TileDefinition.IsOpaque(TileTypeAt(neighbor))) return true;
 					}
 					return false;
 				}
@@ -49,7 +49,7 @@ namespace Forays {
 			if(MagicalLightState == MagicalLightState.MagicalLight) return true;
 			else if(!IsLit(cell)) return false; // If it isn't lit at all, stop here.
 			else{
-				if(TileDefinition.IsOpaque(Map.Tiles[cell])){
+				if(TileDefinition.IsOpaque(TileTypeAt(cell))){
 					// Light for opaque cells must be done carefully so light sources aren't visible through walls.
 					// If the observer has LOS to any adjacent lit nonopaque cell, that observer knows this wall is lit.
 					for(int i=0;i<8;++i){
@@ -57,7 +57,7 @@ namespace Forays {
 						Point neighbor = cell.PointInDir(dir);
 						if(!neighbor.ExistsBetweenMapEdges()) continue;
 						if(cellBrightness[neighbor] == 0) continue;
-						if(observer.CheckReciprocalBresenhamLineOfSight(neighbor, Map.Tiles)) return true;
+						if(Map.CheckReciprocalBresenhamLineOfSight(observer, neighbor)) return true;
 					}
 					return false;
 				}
@@ -68,13 +68,17 @@ namespace Forays {
 		}
 		///<summary>Adds a light source of the given radius at the given point, updating surrounding light values.</summary>
 		public void AddLightSource(Point sourceCell, int radius){
+			Map.HoldVisibilityUpdates();
 			lightSources.Add(sourceCell, radius);
 			UpdateBrightnessWithinRadius(sourceCell, radius, 1);
+			Map.ResumeVisibilityUpdates();
 		}
 		///<summary>Removes a light source of the given radius at the given point, updating surrounding light values.</summary>
 		public void RemoveLightSource(Point sourceCell, int radius){
+			Map.HoldVisibilityUpdates();
 			if(!lightSources.Remove(sourceCell, radius)) throw new InvalidOperationException("No light source of this radius at this cell");
 			UpdateBrightnessWithinRadius(sourceCell, radius, -1);
+			Map.ResumeVisibilityUpdates();
 		}
 		///<summary>Temporarily removes light sources around the given cell so that that cell's opacity can be changed.
 		/// (Immediately after changing the opacity, UpdateAfterOpacityChange MUST be called.)</summary>
@@ -82,6 +86,7 @@ namespace Forays {
 			if(midOpacityUpdate) throw new InvalidOperationException("Already in the middle of an opacity update");
 			// (A pair of methods to update the opacity of multiple cells at once could also be useful here...)
 			midOpacityUpdate = true;
+			Map.HoldVisibilityUpdates();
 			foreach(KeyValuePair<Point, int> pair in lightSources.GetAllKeyValuePairs()){
 				int dist = cell.ChebyshevDistanceFrom(pair.Key);
 				if(pair.Value >= dist){
@@ -99,13 +104,14 @@ namespace Forays {
 				UpdateBrightnessWithinRadius(pair.Key, pair.Value, 1);
 			}
 			tempRemovedLights.Clear();
+			Map.ResumeVisibilityUpdates();
 		}
 		private void UpdateBrightnessWithinRadius(Point sourceCell, int radius, int increment){
 			for(int i=sourceCell.Y - radius; i<=sourceCell.Y + radius; ++i){
 				for(int j=sourceCell.X - radius; j<=sourceCell.X + radius; ++j){
 					Point p = new Point(j, i);
 					if(!p.ExistsBetweenMapEdges()) continue;
-					if(!TileDefinition.IsOpaque(Map.Tiles[p]) && sourceCell.CheckReciprocalBresenhamLineOfSight(p, Map.Tiles)){
+					if(!TileDefinition.IsOpaque(TileTypeAt(p)) && Map.CheckReciprocalBresenhamLineOfSight(sourceCell, p)){
 						cellBrightness[p] += increment;
 					}
 				}

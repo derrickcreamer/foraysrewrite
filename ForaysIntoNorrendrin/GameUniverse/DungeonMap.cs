@@ -21,9 +21,9 @@ namespace Forays {
 
 		public Grid<Creature, Point> Creatures;
 		//public List<CreatureGroup> CreatureGroups;
-		public PointArray<TileType> Tiles;
+		private PointArray<TileType> Tiles;
 
-		public FeatureMap Features;
+		private FeatureMap Features;
 
 		public Dictionary<Point, Trap> Traps;
 		public bool CellIsTrapped(Point p) => Traps.ContainsKey(p);
@@ -62,6 +62,9 @@ namespace Forays {
 			NeverInLineOfSight = new PointArray<bool>(Width, Height);
 			Light = new LightMap(g);
 			DirectionPlayerExited = new PointArray<Dir8>(Width, Height);
+			cellsVisibleToPlayer = new EasyHashSet<Point>();
+			cellsLitToPlayer = new EasyHashSet<Point>();
+			creaturesVisibleToPlayer = new List<Creature>();
 			//todo, more here?
 			Seen = new PointArray<bool>(Width, Height);
 		}
@@ -90,7 +93,151 @@ namespace Forays {
 			if(Features[p].IsOpaque()) return true;
 			return false;
 		}
-		public void GenerateMap() {
+		///<summary>Hold player visibility data changes so that the game state can be updated. Must
+		/// call ResumeVisibilityUpdates when done. Multiple calls will stack on each other correctly.</summary>
+		public void HoldVisibilityUpdates(){
+			visibilityHolds++;
+		}
+		///<summary>Removes a single 'hold'. If there are no more holds, immediately recalculate player visibility data.</summary>
+		public void ResumeVisibilityUpdates(){
+			visibilityHolds--;
+			if(visibilityHolds > 0) return;
+			if(visibilityHolds < 0) throw new InvalidOperationException("Resume called without Hold");
+
+			cellsVisibleToPlayer = new EasyHashSet<Point>();
+			cellsLitToPlayer = new EasyHashSet<Point>();
+			creaturesVisibleToPlayer = new List<Creature>();
+
+			for(int i = 0; i < GameUniverse.MapHeight; i++) {
+				for(int j = 0; j < GameUniverse.MapWidth; j++) {
+					Point p = new Point(j, i);
+					Creature creature = CreatureAt(p);
+					if(creature != null && Player.CanSee(creature)){
+						creaturesVisibleToPlayer.Add(creature);
+					}
+					if(!NeverInLineOfSight[p] && CheckLOS(Player.Position, p)){
+						Seen[p] = true;
+						cellsVisibleToPlayer.Add(p);
+						if(Light.CellAppearsLitToObserver(p, Player.Position)){
+							cellsLitToPlayer.Add(p);
+						}
+					}
+				}
+			}
+			//todo: make sure this is also called for these things:
+			// - status effects which alter player vis
+			// - picking up/dropping/creating items which have light radius
+			//	 - mostly covered by light radius, EXCEPT:
+			// - items that grant sight directly
+			// - creatures leaving the map (burrowing) - player shouldn't see it until it reappears.
+		}
+		// Note that these are just cached, not serialized:
+		private int visibilityHolds;
+		private EasyHashSet<Point> cellsVisibleToPlayer;
+		private EasyHashSet<Point> cellsLitToPlayer;
+		private List<Creature> creaturesVisibleToPlayer;
+		public bool CellVisibleToPlayer(Point p) => cellsVisibleToPlayer.Contains(p);
+		public bool CellLitToPlayer(Point p) => cellsLitToPlayer.Contains(p);
+		public bool CreatureVisibleToPlayer(Creature creature) => creaturesVisibleToPlayer.Contains(creature);
+
+		public TileType GetTile(Point p) => Tiles[p];
+		public void SetTile(Point p, TileType tileType){
+			//todo, handle vis updates
+			Tiles[p] = tileType;
+		}
+
+		public FeatureType GetFeatures(Point p) => Features[p];
+		public void AddFeature(Point p, FeatureType feature){
+			//todo, handle vis updates
+			Features.Add(p, feature);
+		}
+		public void RemoveFeature(Point p, FeatureType feature){
+			//todo, handle vis updates
+			Features.Remove(p, feature);
+		}
+		public bool CheckLOS(Point source, Point destination){
+			if(TileDefinition.IsOpaque(Tiles[destination])){
+				Point[] neighbors = destination.GetNeighborsBetween(source);
+				for(int i=0;i<neighbors.Length;++i){
+					if(TileDefinition.IsOpaque(Tiles[neighbors[i]])) continue;
+					if(CheckReciprocalBresenhamLineOfSight(source, neighbors[i])) return true;
+				}
+				return false;
+			}
+			else return CheckReciprocalBresenhamLineOfSight(source, destination);
+		}
+		public bool CheckReciprocalBresenhamLineOfSight(Point source, Point destination){
+			int x1 = source.X;
+			int y1 = source.Y;
+			int x2 = destination.X;
+			int y2 = destination.Y;
+			int dx = Math.Abs(x2 - x1);
+			int dy = Math.Abs(y2 - y1);
+			int incrementX = x1 == x2? 0 : x1 < x2? 1 : -1;
+			int incrementY = y1 == y2? 0 : y1 < y2? 1 : -1;
+			if(dx <= 1 && dy <= 1) return true; // Automatically pass the check for anything in the same or adjacent cells.
+			// Next, handle simple cases that don't need Bresenham at all. These cases correspond to straight lines in the 8 directions:
+			if(dx == 0 || dy == 0 || (y1+x1 == y2+x2) || (y1-x1 == y2-x2)){ // (if slope is undefined, 0, -1, or 1)
+				do{
+					x1 += incrementX; // Increment first, so that the opacity of 'source' is ignored.
+					y1 += incrementY;
+					if(TileDefinition.IsOpaque(Tiles[x1, y1])) return false;
+				} while(x1 != x2 || y1 != y2);
+				return true;
+			}
+			// If it wasn't a simple case, move on to reciprocal Bresenham:
+			bool xMajor = (dx > dy);
+			int er = 0; // error accumulator
+			bool blockedA = false; // These 2 are used to track whether each of the 2 possible paths per line is blocked or not.
+			bool blockedB = false; // (The result is equivalent to calculating 2 regular Bresenham lines, source->dest and dest->source.)
+			if(xMajor){
+				do{
+					x1 += incrementX;
+					er += dy;
+					if(er<<1 > dx){
+						y1 += incrementY;
+						er -= dx;
+					}
+					if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+						if(blockedB || er<<1 != dx) return false;
+						blockedA = true;
+					}
+					if(er<<1 == dx){ // This is the part that makes this reciprocal, by checking both options while crossing a corner.
+						y1 += incrementY; // Increment Y, then check the new position:
+						if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+							if(blockedA || er<<1 != dx) return false;
+							blockedB = true;
+						}
+						er -= dx;
+					}
+				} while(x1 != x2);
+			}
+			else{ // Y-major
+				do{
+					y1 += incrementY;
+					er += dx;
+					if(er<<1 > dy){
+						x1 += incrementX;
+						er -= dy;
+					}
+					if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+						if(blockedB || er<<1 != dy) return false;
+						blockedA = true;
+					}
+					if(er<<1 == dy){
+						x1 += incrementX;
+						if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+							if(blockedA || er<<1 != dy) return false;
+							blockedB = true;
+						}
+						er -= dy;
+					}
+				} while(y1 != y2);
+			}
+			return true;
+		}
+
+		public void GenerateMap() { //todo, let's move the actual generation to another file/class
 			CurrentLevelType = MapRNG.OneIn(4) ? DungeonLevelType.Cramped : DungeonLevelType.Sparse;
 			int wallRarity = CurrentLevelType == DungeonLevelType.Cramped ? 6 : 20;
 			int waterRarity = CurrentLevelType == DungeonLevelType.Cramped ? 50 : 8;

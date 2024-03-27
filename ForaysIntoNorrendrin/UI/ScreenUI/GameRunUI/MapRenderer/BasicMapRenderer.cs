@@ -12,22 +12,21 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			GameObjectGlyphs.Initialize();
 		}
 
-		public override void DrawMap(PlayerTurnEvent e){
-			e.CalculateVisibility();
+		public override void DrawMap(){
 			for(int i = 0; i < GameUniverse.MapHeight; i++) {
 				for(int j = 0; j < GameUniverse.MapWidth; j++) {
 					Point p = new Point(j, i);
 					Creature creature = CreatureAt(p);
 					ItemType? item = ItemAt(p)?.Type; //todo check ID
-					if(drawEnemies && creature != null && e.CreaturesVisibleThisTurn.Contains(creature)){
+					if(drawEnemies && creature != null && Map.CreatureVisibleToPlayer(creature)){
 						DrawToMap(i, j, DetermineCreatureColorGlyph(creature.OriginalType, TileTypeAt(p), FeaturesAt(p), item));
 						//todo, need to consider inverting colors when colors are the same.
 						MapUI.RecordMapMemory(p);
 					}
-					else if(e.CellsVisibleThisTurn[p]){
+					else if(Map.CellVisibleToPlayer(p)){
 						MapUI.RecordMapMemory(p); //todo, can I avoid calling RecordMapMemory more than once per turn?
 						ColorGlyph cg = DetermineVisibleColorGlyph(TileTypeAt(p), FeaturesAt(p), item, Map.CurrentDepthSeed, p);
-						if(!e.CellsLitThisTurn[p]){
+						if(!Map.CellLitToPlayer(p)){
 							DrawToMap(i, j, cg.GlyphIndex, Color.DarkCyan, cg.BackgroundColor); //todo, only some tiles get darkened this way, right?
 						}
 						else{

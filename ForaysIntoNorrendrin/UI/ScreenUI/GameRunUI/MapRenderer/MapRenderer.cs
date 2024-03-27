@@ -19,7 +19,7 @@ namespace ForaysUI.ScreenUI.MapRendering{
 		}
 		public static MapRenderer Create(GameRunUI ui) => createMapRenderer.Invoke(ui);
 
-		public abstract void DrawMap(PlayerTurnEvent e);
+		public abstract void DrawMap();
 		public abstract void HideMap();
 		// The Update methods should be overridden if there's any unique update logic (such as setting dirty flags etc.):
 		public virtual void UpdateCursorPosition(Point? cursor){ this.cursor = cursor; }

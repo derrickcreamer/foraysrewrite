@@ -77,43 +77,6 @@ namespace Forays {
 
 		public PlayerTurnEvent(GameUniverse g) : base(g) { }
 
-		///<summary>Populates the values of CellsVisibleThisTurn, CellsLitThisTurn, and CreaturesVisibleThisTurn.
-		/// This idempotent method will always be called when this event executes, but is special in that
-		/// it is allowed to be called in 'BeforeEventExecute' in order to make this data available to the UI.</summary>
-		public void CalculateVisibility(){
-			if(visibilityCalculated) return;
-			visibilityCalculated = true;
-			cellsVisibleThisTurn = new EasyHashSet<Point>();
-			cellsLitThisTurn = new EasyHashSet<Point>();
-			creaturesVisibleThisTurn = new List<Creature>();
-			for(int i = 0; i < GameUniverse.MapHeight; i++) {
-				for(int j = 0; j < GameUniverse.MapWidth; j++) {
-					Point p = new Point(j, i);
-					Creature creature = CreatureAt(p);
-					if(creature != null && Player.CanSee(creature)){
-						creaturesVisibleThisTurn.Add(creature);
-					}
-					if(Player.Position.HasLOS(p, Map.Tiles)){
-						Map.Seen[p] = true;
-						cellsVisibleThisTurn.Add(p);
-						if(Map.Light.CellAppearsLitToObserver(p, Player.Position)){
-							cellsLitThisTurn.Add(p);
-						}
-					}
-				}
-			}
-		}
-
-		// Note that these are just cached, not serialized:
-		private bool visibilityCalculated;
-		private EasyHashSet<Point> cellsVisibleThisTurn;
-		private EasyHashSet<Point> cellsLitThisTurn;
-		private List<Creature> creaturesVisibleThisTurn;
-		// These properties work differently than all other Event properties (they aren't set when the event is created)
-		public EasyHashSet<Point> CellsVisibleThisTurn => cellsVisibleThisTurn;
-		public EasyHashSet<Point> CellsLitThisTurn => cellsLitThisTurn;
-		public List<Creature> CreaturesVisibleThisTurn => creaturesVisibleThisTurn;
-
 		protected override void ExecuteSimpleEvent() {
 			//if(Player.State == CreatureState.Dead) return;
 
@@ -122,7 +85,6 @@ namespace Forays {
 				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
 				return;
 			}
-			CalculateVisibility();
 			EventResult result = null;
 			switch(ChosenAction){
 				// This section has some duplication because of how the type parameters to Q.Execute work:
@@ -161,9 +123,17 @@ namespace Forays {
 			}
 			bool canMove = !Map.Creatures.HasContents(Destination);
 			if(canMove){
-				if(Creature == Player) Map.Light.RemoveLightSource(Player.Position, 5);
+				bool recalculatePlayerVis = (Creature == Player || Creature.LightRadius > 0);
+				if (recalculatePlayerVis) Map.HoldVisibilityUpdates();
+
+				if(Creature.LightRadius > 0) Map.Light.RemoveLightSource(Creature.Position, Creature.LightRadius);
+
 				Map.Creatures.Move(Creature, Destination);
-				if(Creature == Player) Map.Light.AddLightSource(Player.Position, 5);
+
+				if(Creature.LightRadius > 0) Map.Light.AddLightSource(Creature.Position, Creature.LightRadius);
+
+				if (recalculatePlayerVis) Map.ResumeVisibilityUpdates();
+
 				if(TileTypeAt(Destination) == TileType.DeepWater){
 					if(Map.FeaturesAt(Destination).HasFeature(FeatureType.Ice)){
 						Q.Execute(new CheckForIceCrackingEvent(Destination, GameUniverse));
