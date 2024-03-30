@@ -74,7 +74,7 @@ namespace ForaysUI.ScreenUI{
 			Add(TileType.Lava, "lava", uncountable: true);
 
 			Add(FeatureType.Fire, "fire", uncountable: true);
-			Add(FeatureType.PoisonGas, "thick cloud~ of poison gas"); //todo, this currently displays as "you see thick cloud [...]"
+			Add(FeatureType.PoisonGas, "thick cloud~ of poison gas");
 			Add(FeatureType.Fog, "cloud~ of fog");
 			Add(FeatureType.Spores, "cloud~ of spores");
 			Add(FeatureType.ThickDust, "thick cloud~ of dust");

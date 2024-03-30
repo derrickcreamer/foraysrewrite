@@ -14,6 +14,23 @@ namespace Forays {
 			this.Points = points;
 		}
 	}
+	public class TodoChangeTerrainEvent : SinglePointMapEvent<SimpleEvent.NullResult> {
+		public TodoChangeTerrainEvent(Point point, GameUniverse g) : base(point, g) { }
+		protected override SimpleEvent.NullResult Execute() {
+			foreach(Point neighbor in Point.GetNeighbors()){
+				/*if(TileTypeAt(neighbor) == TileType.Wall){
+					Map.SetTile(neighbor, TileType.Brush);
+				}*/
+				if(FeaturesAt(neighbor).HasFeature(FeatureType.ThickDust)){
+					Map.RemoveFeature(neighbor, FeatureType.ThickDust);
+				}
+				else if(TileTypeAt(neighbor) == TileType.Floor){
+					Map.AddFeature(neighbor, FeatureType.ThickDust);
+				}
+			}
+			return null;
+		}
+	}
 	public class CheckForIceCrackingEvent : SinglePointMapEvent<SimpleEvent.NullResult> {
 		public CheckForIceCrackingEvent(Point point, GameUniverse g) : base(point, g) { }
 		public override bool IsInvalid => !Point.ExistsOnMap() || !FeaturesAt(Point).HasFeature(FeatureType.Ice);

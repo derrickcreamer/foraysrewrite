@@ -91,6 +91,7 @@ namespace Forays {
 				case WalkAction action: result = Q.Execute(action); break;
 				case MeleeAttackAction action: result = Q.Execute(action); break;
 				case DescendAction action: result = Q.Execute(action); break;
+				case TodoChangeTerrainEvent action: result = Q.Execute(action); break;
 				//todo, etc...
 				default: break;
 			}

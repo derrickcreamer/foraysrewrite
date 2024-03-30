@@ -141,15 +141,13 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			ColorGlyph cg = GameObjectGlyphs.Get(creature);
 			return new ColorGlyph(cg.GlyphIndex, cg.ForegroundColor, bgColor);
 		}
+		private static FeatureType[] featurePriority = new FeatureType[] { FeatureType.Ice, FeatureType.CrackedIce, FeatureType.BrokenIce,
+			FeatureType.Water, FeatureType.Fire, FeatureType.PoisonGas, FeatureType.ThickDust, }; //todo add
 		private static ColorGlyph DetermineVisibleColorGlyph(TileType tile, FeatureType features, ItemType? item, ulong currentDepthSeed, Point p){ //todo, add trap, shrine, etc.
-			//todo features
 			if(item != null) return GameObjectGlyphs.Get(item.Value);
-			if(features.HasFeature(FeatureType.Ice)) return GameObjectGlyphs.Get(FeatureType.Ice);// new ColorGlyph('~', Color.Cyan, Color.Gray);
-			if(features.HasFeature(FeatureType.CrackedIce)) return new ColorGlyph('~', Color.Red, Color.Gray);
-			if(features.HasFeature(FeatureType.BrokenIce)) return new ColorGlyph('~', Color.Gray, Color.DarkBlue);
-			if(features.HasFeature(FeatureType.Water)) return new ColorGlyph('~', Color.Cyan, Color.DarkCyan);
-			if(features.HasFeature(FeatureType.Fire)) return GameObjectGlyphs.Get(FeatureType.Fire);
-			if(features.HasFeature(FeatureType.PoisonGas)) return GameObjectGlyphs.Get(FeatureType.PoisonGas);
+			for(int i=0;i<featurePriority.Length;++i){
+				if(features.HasFeature(featurePriority[i])) return GameObjectGlyphs.Get(featurePriority[i]);
+			}
 			//todo, should change color for creatures based on background, right? do I need rules for which colors to modify/invert?
 			//so... if background color... then return a modified version.
 			//bg colors are currently black, gray, dark blue... plus targeting/mouseover stuff.

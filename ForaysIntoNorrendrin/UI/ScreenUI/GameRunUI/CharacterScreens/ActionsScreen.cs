@@ -46,7 +46,13 @@ namespace ForaysUI.ScreenUI{
 					default:
 						int letterIndex = key.KeyChar - 'a';
 						if(letterIndex >= 0 && letterIndex < 3){ //todo
-							//
+							if(e == null) break;
+							if(letterIndex == 2)
+							{
+								e.ChosenAction = new TodoChangeTerrainEvent(Player.Position, GameUniverse);
+								return null;
+							}
+
 							//remember to check whether the PlayerTurnEvent is null - that should be allowed.
 						}
 						break;

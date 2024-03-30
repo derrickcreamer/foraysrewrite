@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using Forays;
@@ -34,7 +35,7 @@ namespace ForaysUI.ScreenUI{
 			//todo, check tile known status?
 			FeatureType features = FeaturesAt(p);
 			if(features != FeatureType.None){
-				items.AddRange(Names.GetAllFeatures(features)); //todo, needs articles sometimes
+				items.AddRange(Names.GetAllFeatures(features).Select(name => Grammar.Get(Determinative.AAn, name)));
 			}
 			//todo, traps, shrines, idols, etc.
 			return GetDescriptionInternal(items, tileType, "You see ");

@@ -87,6 +87,7 @@ namespace Forays {
 			TileType type = Tiles[p];
 			return TileDefinition.IsPassable(type);
 		}
+		public bool CellIsOpaque(int x, int y) => CellIsOpaque(new Point(x, y));
 		public bool CellIsOpaque(Point p){
 			TileType type = Tiles[p];
 			if(TileDefinition.IsOpaque(type)) return true;
@@ -142,24 +143,34 @@ namespace Forays {
 
 		public TileType GetTile(Point p) => Tiles[p];
 		public void SetTile(Point p, TileType tileType){
-			//todo, handle vis updates
+			TileType oldType = Tiles[p];
+			if(oldType == tileType) return;
+			bool needVisUpdate = TileDefinition.IsOpaque(oldType) != TileDefinition.IsOpaque(tileType);
+			if(needVisUpdate) Light.UpdateBeforeOpacityChange(p);
 			Tiles[p] = tileType;
+			if(needVisUpdate) Light.UpdateAfterOpacityChange();
 		}
 
 		public FeatureType GetFeatures(Point p) => Features[p];
 		public void AddFeature(Point p, FeatureType feature){
-			//todo, handle vis updates
+			if(Features.ExistsAt(p, feature)) return;
+			bool needVisUpdate = FeatureDefinition.IsOpaque(feature);
+			if(needVisUpdate) Light.UpdateBeforeOpacityChange(p);
 			Features.Add(p, feature);
+			if(needVisUpdate) Light.UpdateAfterOpacityChange();
 		}
 		public void RemoveFeature(Point p, FeatureType feature){
-			//todo, handle vis updates
+			if(!Features.ExistsAt(p, feature)) return;
+			bool needVisUpdate = FeatureDefinition.IsOpaque(feature);
+			if(needVisUpdate) Light.UpdateBeforeOpacityChange(p);
 			Features.Remove(p, feature);
+			if(needVisUpdate) Light.UpdateAfterOpacityChange();
 		}
 		public bool CheckLOS(Point source, Point destination){
-			if(TileDefinition.IsOpaque(Tiles[destination])){
+			if(CellIsOpaque(destination)){
 				Point[] neighbors = destination.GetNeighborsBetween(source);
 				for(int i=0;i<neighbors.Length;++i){
-					if(TileDefinition.IsOpaque(Tiles[neighbors[i]])) continue;
+					if(CellIsOpaque(neighbors[i])) continue;
 					if(CheckReciprocalBresenhamLineOfSight(source, neighbors[i])) return true;
 				}
 				return false;
@@ -181,7 +192,7 @@ namespace Forays {
 				do{
 					x1 += incrementX; // Increment first, so that the opacity of 'source' is ignored.
 					y1 += incrementY;
-					if(TileDefinition.IsOpaque(Tiles[x1, y1])) return false;
+					if(CellIsOpaque(x1, y1)) return false;
 				} while(x1 != x2 || y1 != y2);
 				return true;
 			}
@@ -198,13 +209,13 @@ namespace Forays {
 						y1 += incrementY;
 						er -= dx;
 					}
-					if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+					if(CellIsOpaque(x1, y1)){
 						if(blockedB || er<<1 != dx) return false;
 						blockedA = true;
 					}
 					if(er<<1 == dx){ // This is the part that makes this reciprocal, by checking both options while crossing a corner.
 						y1 += incrementY; // Increment Y, then check the new position:
-						if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+						if(CellIsOpaque(x1, y1)){
 							if(blockedA || er<<1 != dx) return false;
 							blockedB = true;
 						}
@@ -220,13 +231,13 @@ namespace Forays {
 						x1 += incrementX;
 						er -= dy;
 					}
-					if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+					if(CellIsOpaque(x1, y1)){
 						if(blockedB || er<<1 != dy) return false;
 						blockedA = true;
 					}
 					if(er<<1 == dy){
 						x1 += incrementX;
-						if(TileDefinition.IsOpaque(Tiles[x1, y1])){
+						if(CellIsOpaque(x1, y1)){
 							if(blockedA || er<<1 != dy) return false;
 							blockedB = true;
 						}

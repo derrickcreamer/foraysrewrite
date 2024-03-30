@@ -55,5 +55,8 @@ namespace Forays {
 		public void Remove(int x, int y, FeatureType feature){
 			this[x, y] &= (~feature);
 		}
+		public bool ExistsAt(Point p, FeatureType feature){
+			return this[p].HasFeature(feature);
+		}
 	}
 }
