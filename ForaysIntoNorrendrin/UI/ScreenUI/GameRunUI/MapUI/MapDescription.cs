@@ -26,7 +26,7 @@ namespace ForaysUI.ScreenUI{
 			}
 			Item item = ItemAt(p);
 			if(item != null){
-				string itemExtra = "";
+				string itemExtra = null;
 				//check item ID here, todo
 				ItemType finalType = item.Type; //todo, check ID for this too
 				items.Add(Grammar.Get(Determinative.AAn, Names.Get(finalType), extraText: itemExtra));
@@ -49,7 +49,7 @@ namespace ForaysUI.ScreenUI{
 			if(itemsLastSeen.TryGetValue(p, out itemType)){
 				//todo, ID?
 				//todo, extra info?
-				string itemExtra = "";
+				string itemExtra = null;
 				items.Add(Grammar.Get(Determinative.AAn, Names.Get(itemType), extraText: itemExtra));
 			}
 			TileType tileType = tilesLastSeen[p];

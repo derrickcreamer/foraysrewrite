@@ -489,6 +489,17 @@ namespace Forays {
 				Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
 			}
 
+			int numItems = MapRNG.GetNext(5)+1;
+			for(int i = 0; i<numItems; ++i) {
+				ItemType type = ItemDefinition.ChooseItemTypeToGenerate(MapRNG);
+				Item item = new Item(GameUniverse) { Type = type };
+				Point p;
+				do{
+					p = new Point(MapRNG.GetNext(Width-2)+1, MapRNG.GetNext(Height-2)+1);
+				} while(ItemAt(p) != null || !TileDefinition.IsPassable(TileTypeAt(p)));
+				Items.Add(item, p);
+			}
+
 			/* for shrine placement:
 		int count = 50;
 		for(int i=0;i<NUM_LEVELS;++i){

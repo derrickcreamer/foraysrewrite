@@ -22,7 +22,7 @@ namespace Forays {
 	public class CreatureDefinition : CreatureBase {
 		private CreatureDefinition() : base(null){}
 		// Declared, as opposed to calculated:
-		public List<Status> DeclaredStatuses;
+		public List<Status> DeclaredStatuses; //todo, 'declared' or 'inherent'?
 		public Dictionary<Counter, int> DeclaredCounters;
 		public List<AiTrait> DeclaredAiTraits;
 		public Dictionary<Skill, int> DeclaredSkills;

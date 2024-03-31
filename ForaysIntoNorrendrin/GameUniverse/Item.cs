@@ -22,7 +22,7 @@ namespace Forays {
 		///<summary>The actual number of charges that this item has.</summary>
 		public int Charges;
 		///<summary>Wands only. The number of times this wand has been zapped while the true number of charges is unknown. Set to -1 when charges are known.</summary>
-		public int TimesZapped;
+		public int TimesZappedWhileChargesUnknown;
 		///<summary>Whether the player knows what ItemType *this* item is. (Some items need to be seen in the light to be known, but some don't.)</summary>
 		public bool TypeRevealedToPlayer;
 
@@ -47,7 +47,6 @@ namespace Forays {
 			MaxCharges = maxCharges;
 		}
 	}
-
 
 	public static class ItemDefinition{
 		public static ConsumableDefinition GetConsumableDefinition(ItemType type) => defs[type];
@@ -125,6 +124,17 @@ namespace Forays {
 			DefineOther(ItemType.FlintAndSteel, 0, true, 3, 3);
 			DefineOther(ItemType.BlastFungus, 0, true, 0, 0);//todo check
 			DefineOther(ItemType.MagicTrinket, 0);
+		}
+		public static ItemType ChooseItemTypeToGenerate(RNG r){
+			//todo
+			switch(r.GetNext(5)){
+				case 0: return ItemType.ScrollOfThunderclap;
+				case 1: return ItemType.ScrollOfCalling;
+				case 2: return ItemType.OrbOfFlames;
+				case 3: return ItemType.PotionOfRoots;
+				case 4: return ItemType.PotionOfSilence;
+				default: return ItemType.WandOfDustStorm;
+			}
 		}
 	}
 }

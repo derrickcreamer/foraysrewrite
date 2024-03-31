@@ -94,6 +94,13 @@ namespace ForaysUI.ScreenUI.MapRendering{
 			Add(FeatureType.BrokenIce, '~', Color.Gray, Color.DarkBlue);
 			Add(FeatureType.Water, '~', Color.Cyan, Color.DarkCyan);
 
+			Add(ItemType.PotionOfRoots, '!', Color.Cyan);
+			Add(ItemType.PotionOfSilence, '!', Color.White);
+			Add(ItemType.ScrollOfCalling, '?', Color.White);
+			Add(ItemType.ScrollOfThunderclap, '?', Color.White);
+			Add(ItemType.OrbOfFlames, '*', Color.RandomCMY);
+			Add(ItemType.WandOfDustStorm, '\\', Color.Yellow);//todo, find a better way to do this for items
+
 			//Add(ItemType., '!', Color.White);
 			//todo, unIDed items? What gets registered here will probably be the indices based on the names, not the actual item types.
 			// However... care should be taken here, because the potion colors should be the same during a replay, or when 2 players play the same seed...

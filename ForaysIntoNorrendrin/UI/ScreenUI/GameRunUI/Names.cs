@@ -27,18 +27,6 @@ namespace ForaysUI.ScreenUI{
 		}
 		public static string Get(ItemType type) => items[type];
 
-		private static void Add(CreatureType type, string name, bool noArticles = false){
-			creatures[type] = grammar.AddNoun(name, noArticles: noArticles); // Add this name to the grammar object as well as the dictionary.
-		}
-		private static void Add(TileType type, string name, bool uncountable = false, bool noArticles = false){
-			tiles[type] = grammar.AddNoun(name, uncountable: uncountable, noArticles: noArticles);
-		}
-		private static void Add(FeatureType type, string name, bool uncountable = false, bool noArticles = false){
-			features[type] = grammar.AddNoun(name, uncountable: uncountable, noArticles: noArticles);
-		}
-		private static void Add(ItemType type, string name){
-			items[type] = grammar.AddNoun(name);
-		}
 		public static void Initialize(Grammar grammar){
 			if(Names.grammar != null) return; // Initialize only once
 			Names.grammar = grammar;
@@ -87,7 +75,36 @@ namespace ForaysUI.ScreenUI{
 			Add(FeatureType.CrackedIce, "layer~ of cracked ice");
 			Add(FeatureType.BrokenIce, "chunks of ice", uncountable: true);
 
-			Add(ItemType.PotionOfBrutishStrength, "potion~ of brutish strength");
+			AddPotion(ItemType.PotionOfBrutishStrength, "brutish strength");
+			AddPotion(ItemType.PotionOfRoots, "roots");
+			AddScroll(ItemType.ScrollOfCalling, "calling");
+			AddScroll(ItemType.ScrollOfThunderclap, "thunderclap");
+			AddOrb(ItemType.OrbOfFlames, "flames");
+			AddWand(ItemType.WandOfDustStorm, "dust storm"); //todo
+		}
+		private static void Add(CreatureType type, string name, bool noArticles = false){
+			creatures[type] = grammar.AddNoun(name, noArticles: noArticles); // Add this name to the grammar object as well as the dictionary.
+		}
+		private static void Add(TileType type, string name, bool uncountable = false, bool noArticles = false){
+			tiles[type] = grammar.AddNoun(name, uncountable: uncountable, noArticles: noArticles);
+		}
+		private static void Add(FeatureType type, string name, bool uncountable = false, bool noArticles = false){
+			features[type] = grammar.AddNoun(name, uncountable: uncountable, noArticles: noArticles);
+		}
+		private static void Add(ItemType type, string name){
+			items[type] = grammar.AddNoun(name);
+		}
+		private static void AddPotion(ItemType type, string name){
+			items[type] = grammar.AddNoun($"potion~ of {name}");
+		}
+		private static void AddScroll(ItemType type, string name){
+			items[type] = grammar.AddNoun($"scroll~ of {name}");
+		}
+		private static void AddOrb(ItemType type, string name){
+			items[type] = grammar.AddNoun($"orb~ of {name}");
+		}
+		private static void AddWand(ItemType type, string name){
+			items[type] = grammar.AddNoun($"wand~ of {name}");
 		}
 	}
 }
