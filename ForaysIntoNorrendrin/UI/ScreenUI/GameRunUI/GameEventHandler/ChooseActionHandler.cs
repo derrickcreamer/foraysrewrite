@@ -130,6 +130,11 @@ namespace ForaysUI.ScreenUI{
 					case ConsoleKey.D: //todo, 'd' is definitely not 'descend'
 						e.ChosenAction = new DescendAction(Player);
 						break;
+					case ConsoleKey.G:
+						Item item = ItemAt(Player.Position);
+						if(item != null)
+							e.ChosenAction = new PickUpItemAction(Player, item);
+						break;
 					case ConsoleKey.Escape:
 						EscapeMenu.Open();
 						break;

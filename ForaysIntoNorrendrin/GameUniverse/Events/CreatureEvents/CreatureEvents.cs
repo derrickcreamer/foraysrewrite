@@ -4,7 +4,6 @@ using System.Linq;
 using GameComponents;
 using GameComponents.DirectionUtility;
 using Hemlock;
-using UtilityCollections;
 
 namespace Forays {
 	// CreatureAction is a base class for creature actions that'll use the creature's decider by default.
@@ -18,91 +17,56 @@ namespace Forays {
 	// such as item-related actions, or actions involving a choice of target.
 
 	public class AiTurnEvent : SimpleEvent {
-		public Creature Creature { get; set; }
-		public AiTurnEvent(Creature creature) : base(creature.GameUniverse) {
-			this.Creature = creature;
+		public Enemy Enemy { get; set; }
+		public AiTurnEvent(Enemy enemy) : base(enemy.GameUniverse) {
+			this.Enemy = enemy;
 		}
 
 		protected override void ExecuteSimpleEvent() {
 			//todo, what checks whether creature is null? maybe the position check below can cover that too.
 			//todo, if creature is dead?
-			if(!Creature.HasPosition) return; // todo... creatures off the map shouldn't be getting turns
+			if(!Enemy.HasPosition) return; // todo... creatures off the map shouldn't be getting turns
 
-			int timeTaken = Creature.ExecuteMonsterTurn();
-			Q.Schedule(new AiTurnEvent(Creature), timeTaken, Q.GetCurrentInitiative());
+			int timeTaken = Enemy.ExecuteMonsterTurn();
+			Q.Schedule(new AiTurnEvent(Enemy), timeTaken, Q.GetCurrentInitiative());
 
 			return; //todo clean up
 
 
-			List<Point> validPoints = Creature.Position.EnumeratePointsWithinChebyshevDistance(1, false, false)
+			List<Point> validPoints = Enemy.Position.EnumeratePointsWithinChebyshevDistance(1, false, false)
 				.Where(p => TileTypeAt(p) != TileType.Wall).ToList();
-			Point dest = Creature.Position;
+			Point dest = Enemy.Position;
 			if(validPoints.Count > 0)
 				dest = validPoints[R.GetNext(validPoints.Count)];
 
-			if(CreatureAt(dest) != null && CreatureAt(dest) != Creature){
+			if(CreatureAt(dest) != null && CreatureAt(dest) != Enemy){
 				if(CreatureAt(dest) != Player) {
 					//Notify(new NotifyPrintMessage{ Message = "The enemy glares." });
 				}
 				else {
 					//Notify(new NotifyPrintMessage{ Message = "The enemy hits you."});
-					Q.Execute(new MeleeAttackAction(Creature, Player));
+					Q.Execute(new MeleeAttackAction(Enemy, Player));
 				}
 			}
 			else {
-				Q.Execute(new WalkAction(Creature, dest));
+				Q.Execute(new WalkAction(Enemy, dest));
 			}
 
-			Q.Schedule(new AiTurnEvent(Creature), Turns(1), Q.GetCurrentInitiative());
+			Q.Schedule(new AiTurnEvent(Enemy), Turns(1), Q.GetCurrentInitiative());
 		}
 	}
 
 	public class AiChangeBehaviorStateEvent : SimpleEvent {
-		public Creature Creature { get; set; }
+		public Enemy Enemy { get; set; }
 		public CreatureBehaviorState NewBehaviorState { get; set; }
 
-		public AiChangeBehaviorStateEvent(Creature creature, CreatureBehaviorState newBehaviorState) : base(creature.GameUniverse) {
-			this.Creature = creature;
+		public AiChangeBehaviorStateEvent(Enemy enemy, CreatureBehaviorState newBehaviorState) : base(enemy.GameUniverse) {
+			this.Enemy = enemy;
 			this.NewBehaviorState = newBehaviorState;
 		}
 
 		protected override void ExecuteSimpleEvent() {
-			Creature.BehaviorState = NewBehaviorState;
-		}
-	}
-
-	public class PlayerTurnEvent : SimpleEvent {
-		//todo xml: must be Event<TResult>
-		public GameObject ChosenAction { get; set; } = null;
-
-		public PlayerTurnEvent(GameUniverse g) : base(g) { }
-
-		protected override void ExecuteSimpleEvent() {
-			//if(Player.State == CreatureState.Dead) return;
-
-			if(GameUniverse.Suspend) {
-				// (this should either reschedule, or use some kind of "don't remove the current event" feature on the queue...
-				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
-				return;
-			}
-			EventResult result = null;
-			switch(ChosenAction){
-				// This section has some duplication because of how the type parameters to Q.Execute work:
-				case WalkAction action: result = Q.Execute(action); break;
-				case MeleeAttackAction action: result = Q.Execute(action); break;
-				case DescendAction action: result = Q.Execute(action); break;
-				case TodoChangeTerrainEvent action: result = Q.Execute(action); break;
-				//todo, etc...
-				default: break;
-			}
-			if(result?.Canceled == true){
-				Q.ScheduleNow(new PlayerTurnEvent(GameUniverse));
-				//todo, does this reschedule at 0, or just loop and ask again?
-			}
-			else{
-				var time = result?.Cost ?? Turns(1);
-				Q.Schedule(new PlayerTurnEvent(GameUniverse), time, Q.GetCurrentInitiative()); //todo, player initiative
-			}
+			Enemy.BehaviorState = NewBehaviorState;
 		}
 	}
 	public class WalkAction : CreatureAction<PassFailResult> { //todo, this should just be MoveAction, with some kind of movement type enum, right?
@@ -148,14 +112,18 @@ namespace Forays {
 			else return Failure();
 		}
 	}
-	public class DescendAction : CreatureAction<PassFailResult> {
-		public override bool IsInvalid => base.IsInvalid || Creature != Player;
-		protected override long Cost => 0;
+	public class PickUpItemAction : CreatureAction<PassFailResult> {
+		public Item Item {get;set;}
+		public override bool IsInvalid => base.IsInvalid || Item == null || ItemAt(Creature.Position) != Item;
 
-		public DescendAction(Creature creature) : base(creature){ }
-		protected override PassFailResult Execute() {
-			if(TileTypeAt(Creature.Position) != TileType.Staircase) return Failure();
-			Q.Execute(new MoveToNextLevelEvent(GameUniverse));
+		public PickUpItemAction(Creature creature, Item item) : base(creature){
+			Item = item;
+		}
+		protected override PassFailResult Execute(){
+			//todo, check for items with light.
+			Map.Items.Remove(Item);
+			//todo, inventory limit check here?
+			Creature.Inventory.Add(Item);
 			return Success();
 		}
 	}

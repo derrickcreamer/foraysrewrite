@@ -429,13 +429,13 @@ namespace Forays {
 					else Tiles[x,y] = TileType.Floor;
 
 					if(map[y][x] == 'g' || map[y][x] == 'G' || map[y][x] == '1'){
-						Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
+						Enemy c = new Enemy(GameUniverse){ OriginalType = CreatureType.Goblin };
 						Creatures.Add(c, new Point(x, y));
 						Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
 					}
 					if(map[y][x] == 'r' || map[y][x] == 'R' || map[y][x] == '2'){
-						Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Cleric };
+						Enemy c = new Enemy(GameUniverse){ OriginalType = CreatureType.Cleric };
 						Creatures.Add(c, new Point(x, y));
 						Initiative initiative = Q.CreateInitiative(RelativeInitiativeOrder.Last);
 						Q.Schedule(new AiTurnEvent(c), GameUniverse.TicksPerTurn, initiative);
@@ -478,7 +478,7 @@ namespace Forays {
 
 			int numEnemies = MapRNG.GetNext(9);
 			for(int i = 0; i<numEnemies; ++i) {
-				Creature c = new Creature(GameUniverse){ OriginalType = CreatureType.Goblin };
+				Enemy c = new Enemy(GameUniverse){ OriginalType = CreatureType.Goblin };
 				Point p;
 				do{
 					p = new Point(MapRNG.GetNext(Width-2)+1, MapRNG.GetNext(Height-2)+1);

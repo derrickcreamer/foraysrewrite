@@ -77,6 +77,7 @@ namespace ForaysUI.ScreenUI{
 
 			AddPotion(ItemType.PotionOfBrutishStrength, "brutish strength");
 			AddPotion(ItemType.PotionOfRoots, "roots");
+			AddPotion(ItemType.PotionOfSilence, "silence");
 			AddScroll(ItemType.ScrollOfCalling, "calling");
 			AddScroll(ItemType.ScrollOfThunderclap, "thunderclap");
 			AddOrb(ItemType.OrbOfFlames, "flames");

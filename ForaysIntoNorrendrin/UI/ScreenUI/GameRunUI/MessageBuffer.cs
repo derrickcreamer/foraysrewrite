@@ -166,7 +166,7 @@ namespace ForaysUI.ScreenUI{
 		public void AddSimple(Determinative subjectDeterminative, Creature subj, string verb, Punctuation punctuation = Punctuation.Period,
 			Visibility visibility = Visibility.RequireSubject, bool assumeSubjectVisible = false,
 			bool noInterrupt = false, bool requireMorePrompt = false)
-				=> Add(subjectDeterminative, subj, verb, Determinative.None, null, punctuation, visibility,
+				=> Add(subjectDeterminative, subj, verb, Determinative.None, (Creature)null, punctuation, visibility,
 					assumeSubjectVisible, false, noInterrupt, requireMorePrompt);
 		// Same as above, but assuming a determinative of "the":
 		public void Add(Creature subj, string verb, Creature obj,
@@ -177,7 +177,23 @@ namespace ForaysUI.ScreenUI{
 		public void AddSimple(Creature subj, string verb,
 			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireSubject,
 			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
-				=> Add(Determinative.The, subj, verb, Determinative.None, null, punctuation, visibility, //todo, is assumeObjectVisible unused here?
+				=> Add(Determinative.The, subj, verb, Determinative.None, (Creature)null, punctuation, visibility, //todo, is assumeObjectVisible unused here?
 					assumeSubjectVisible, false, noInterrupt, requireMorePrompt);
-}
+
+		public void Add(Determinative subjectDeterminative, Creature subj, string verb, Determinative objectDeterminative, Item obj,
+			Punctuation punctuation = Punctuation.Period, Visibility visibility = Visibility.RequireEither,
+			bool assumeSubjectVisible = false, bool assumeObjectVisible = false, bool noInterrupt = false, bool requireMorePrompt = false)
+		{
+			bool subjectVisible = OmniscienceEnabled || assumeSubjectVisible || Player.CanSee(subj);
+			bool objectVisible = obj != null && (OmniscienceEnabled || assumeObjectVisible || (obj.Position != null && Map.CellVisibleToPlayer(obj.Position.Value)));
+			if(visibility == Visibility.RequireEither && !subjectVisible && !objectVisible) return;
+			if(visibility == Visibility.RequireBoth && (!subjectVisible || !objectVisible)) return;
+			if(visibility == Visibility.RequireSubject && !subjectVisible) return;
+			if(visibility == Visibility.RequireObject && !objectVisible) return;
+			string subjectName = subjectVisible? Names.Get(subj.OriginalType) : "something";
+			string objectName = objectVisible? Names.Get(obj.Type)
+				: (obj == null)? null : "something";
+			Add(subjectDeterminative, subjectName, verb, objectDeterminative, objectName, punctuation, noInterrupt, requireMorePrompt);
+		}
+	}
 }

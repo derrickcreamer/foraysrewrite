@@ -12,7 +12,7 @@ namespace ForaysUI.ScreenUI{
 	// EquipmentScreen.cs
 	// InventoryScreen.cs
 	public partial class CharacterScreens : GameUIObject{
-		private CharacterScreen? ShowInventory(PlayerTurnEvent e){
+		private CharacterScreen? ShowInventory(PlayerTurnEvent e, InventoryScreenMode? inventoryMode){
 			while(true){
 				const int rowOffset = 3;
 				int colOffset = MapUI.ColOffset;
@@ -20,7 +20,7 @@ namespace ForaysUI.ScreenUI{
 				Screen.Clear(0, colOffset, ScreenUIMain.Rows, MapUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.Inventory);
 
-				Screen.Write(rowOffset, colOffset, "In your pack: ");
+				Screen.Write(rowOffset, colOffset, "In your pack: "); //todo, change based on inventory mode
 				//todo...i think the lines are good to set the section apart, but it's possible that i don't need both:
 				Screen.Write(rowOffset + 1, colOffset, SeparatorBar);
 				Screen.Write(rowOffset + 2, colOffset, "[a] a potion of haste"); //todo

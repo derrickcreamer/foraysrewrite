@@ -20,7 +20,7 @@ namespace Forays {
 
 		public ulong GameSeed;
 
-		public Creature Player;
+		public Player Player;
 
 		public EventQueue Q;
 
@@ -89,7 +89,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			// now some setup. It seems likely that a bunch of this will be handed off to things like the dungeon generator:
 
-			Player = new Creature(this) { CancelDecider = new PlayerCancelDecider(this) };
+			Player = new Player(this) { CancelDecider = new PlayerCancelDecider(this) };
 			Player.LightRadius = 5;
 			Map.Creatures.Add(Player, new Point(30, 10));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
@@ -105,7 +105,7 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 		public GameObject(GameUniverse g) { GameUniverse = g; }
 
 		//Note that not everything on GameUniverse will be reflected here - just the most common & useful:
-		public Creature Player => GameUniverse.Player;
+		public Player Player => GameUniverse.Player;
 		public EventQueue Q => GameUniverse.Q;
 		public int Turns(int numTurns) => numTurns * GameUniverse.TicksPerTurn;
 		public RNG R => GameUniverse.R;

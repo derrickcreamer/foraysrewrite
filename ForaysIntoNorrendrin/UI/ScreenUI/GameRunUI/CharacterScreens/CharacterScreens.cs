@@ -11,15 +11,19 @@ namespace ForaysUI.ScreenUI{
 	// EquipmentScreen.cs
 	// InventoryScreen.cs
 	public enum CharacterScreen { Inventory, Equipment, Actions, AdventureLog };
+	public enum InventoryScreenMode { Inventory, Apply, Drop, Fling };
 	public partial class CharacterScreens : GameUIObject{
 		const string SeparatorBar = "------------------------------------------------------------------"; // 66, equal to map display width
 		public CharacterScreens(GameRunUI ui) : base(ui){ }
 
-		public void Show(PlayerTurnEvent e, CharacterScreen screen){
+		public void Show(PlayerTurnEvent e, CharacterScreen screen, InventoryScreenMode? inventoryMode = null){
 			CharacterScreen? nextScreen = screen;
 			MapRenderer.HideMap();
 			do{
-				if(nextScreen == CharacterScreen.Inventory) nextScreen = ShowInventory(e);
+				if(nextScreen == CharacterScreen.Inventory){
+					nextScreen = ShowInventory(e, inventoryMode);
+					inventoryMode = null; // If we leave the inventory, cancel the action and just show the basic inventory screen
+				}
 				else if(nextScreen == CharacterScreen.Equipment) nextScreen = ShowEquipment(e);
 				else if(nextScreen == CharacterScreen.Actions) nextScreen = ShowActions(e);
 				else if(nextScreen == CharacterScreen.AdventureLog) nextScreen = ShowAdventureLog(e);
