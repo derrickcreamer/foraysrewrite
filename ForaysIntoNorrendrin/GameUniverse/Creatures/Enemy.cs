@@ -48,8 +48,6 @@ namespace Forays {
 		public Enemy(GameUniverse g) : base(g) {
 			//todo
 			CurrentHealth = 3;
-			//
-			StatusTracker = g.CreatureRules.CreateStatusTracker(this);
 		}
 
 			// i'm thinking Creature or CreatureBase or CreatureDefinition should have a static Create method that takes care of a few things....

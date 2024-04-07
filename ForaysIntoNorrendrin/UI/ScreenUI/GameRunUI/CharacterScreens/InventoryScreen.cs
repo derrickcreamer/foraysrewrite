@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using Forays;
 using static ForaysUI.ScreenUI.StaticScreen;
 using static ForaysUI.ScreenUI.StaticInput;
@@ -12,7 +14,7 @@ namespace ForaysUI.ScreenUI{
 	// EquipmentScreen.cs
 	// InventoryScreen.cs
 	public partial class CharacterScreens : GameUIObject{
-		private CharacterScreen? ShowInventory(PlayerTurnEvent e, InventoryScreenMode? inventoryMode){
+		private CharacterScreen? ShowInventory(PlayerTurnEvent e, InventoryScreenMode inventoryMode){
 			while(true){
 				const int rowOffset = 3;
 				int colOffset = MapUI.ColOffset;
@@ -20,18 +22,16 @@ namespace ForaysUI.ScreenUI{
 				Screen.Clear(0, colOffset, ScreenUIMain.Rows, MapUI.MapDisplayWidth);
 				DrawCommonSections(CharacterScreen.Inventory);
 
-				Screen.Write(rowOffset, colOffset, "In your pack: "); //todo, change based on inventory mode
+				List<string> itemNames = Player.Inventory.Select(i => Names.Get(i.Type).ToString()).ToList(); //todo, get real final names here
+
+				string inventoryMessage = $"In your pack (TODO {inventoryMode.ToString()}): "; //todo, change based on inventory mode
+				Screen.Write(rowOffset, colOffset, inventoryMessage);
+				Screen.Write(rowOffset + 1, colOffset, SeparatorBar); //todo, handle empty
+				Screen.WriteListOfChoices(rowOffset + 2, colOffset, itemNames);
 				//todo...i think the lines are good to set the section apart, but it's possible that i don't need both:
-				Screen.Write(rowOffset + 1, colOffset, SeparatorBar);
-				Screen.Write(rowOffset + 2, colOffset, "[a] a potion of haste"); //todo
-				Screen.Write(rowOffset + 2, colOffset + 1, 'a', Color.Cyan);
-				Screen.Write(rowOffset + 3, colOffset, "[b] a slender wand");
-				Screen.Write(rowOffset + 3, colOffset + 1, 'b', Color.Cyan);
-				Screen.Write(rowOffset + 4, colOffset, "[c] an iridescent orb");
-				Screen.Write(rowOffset + 4, colOffset + 1, 'c', Color.Cyan);
-				Screen.Write(rowOffset + 5, colOffset, SeparatorBar); //todo, count?
+				Screen.Write(rowOffset + 2 + itemNames.Count, colOffset, SeparatorBar);
 				Screen.ResumeUpdates();
-				Screen.SetCursorPosition(rowOffset, colOffset + 14);
+				Screen.SetCursorPosition(rowOffset, colOffset + inventoryMessage.Length);
 				ConsoleKeyInfo key = Input.ReadKey();
 				bool shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
 				switch(key.Key){
@@ -46,8 +46,43 @@ namespace ForaysUI.ScreenUI{
 						break;
 					default:
 						int letterIndex = key.KeyChar - 'a';
-						if(letterIndex >= 0 && letterIndex < 3){ //todo, inv count here
-							//
+						if(letterIndex >= 0 && letterIndex < Player.Inventory.Count){
+							switch(inventoryMode){
+								case InventoryScreenMode.Apply:
+									e.ChosenAction = new UseItemAction(Player, Player.Inventory[letterIndex]);
+									return null;
+								case InventoryScreenMode.Drop:
+									e.ChosenAction = new DropItemAction(Player, Player.Inventory[letterIndex]);
+									return null;
+								case InventoryScreenMode.Fling:
+									//todo
+									return null;
+								case InventoryScreenMode.Inventory:
+								default:
+									Screen.HoldUpdates();
+									Screen.WriteListOfChoices(rowOffset + 2, colOffset, itemNames, textColor: Color.DarkGray, letterColor: Color.DarkCyan);
+									Screen.WriteSingleChoice(rowOffset + 2 + letterIndex, colOffset, itemNames[letterIndex], letterIndex,
+										textColor: Color.DarkGray, bgColor: Color.Grayscale20, letterColor: Color.DarkCyan);
+									Screen.CursorVisible = false;
+									Screen.ResumeUpdates();
+									//todo, keeping this UI incomplete for now so I can do it right later
+									key = Input.ReadKey();
+									shift = (key.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
+									switch(key.Key){
+										case ConsoleKey.A:
+											e.ChosenAction = new UseItemAction(Player, Player.Inventory[letterIndex]);
+											return null;
+										case ConsoleKey.D:
+											e.ChosenAction = new DropItemAction(Player, Player.Inventory[letterIndex]);
+											return null;
+										case ConsoleKey.F:
+											//todo
+											return null;
+										default:
+											break;
+									}
+									break;
+							}
 						}
 						break;
 				}

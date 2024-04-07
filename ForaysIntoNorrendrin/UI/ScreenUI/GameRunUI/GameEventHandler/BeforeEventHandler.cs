@@ -29,6 +29,9 @@ namespace ForaysUI.ScreenUI{
 				case PickUpItemAction e:
 					Messages.Add(Determinative.The, e.Creature, "pick up", Determinative.The, e.Item); //todo, does this verb need to be registered?
 					break;
+				case DropItemAction e:
+					Messages.Add(Determinative.The, e.Creature, "drop", Determinative.The, e.Item, visibility: Visibility.RequireSubject, assumeObjectVisible: true);
+					break;
 				case IceCrackingEvent e:
 					break;
 				case IceBreakingEvent e:

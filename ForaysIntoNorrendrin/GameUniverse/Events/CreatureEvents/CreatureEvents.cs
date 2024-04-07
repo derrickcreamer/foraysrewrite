@@ -127,12 +127,24 @@ namespace Forays {
 			return Success();
 		}
 	}
+	public class DropItemAction : CreatureAction<PassFailResult> {
+		public Item Item {get;set;}
+		public override bool IsInvalid => base.IsInvalid || Item == null || !Creature.Inventory.Contains(Item);
+
+		public DropItemAction(Creature creature, Item item) : base(creature){
+			Item = item;
+		}
+		protected override PassFailResult Execute(){
+			//todo, check for items with light.
+			Creature.Inventory.Remove(Item);
+			//todo, inventory limit check here?
+			Map.Items.Add(Item, Creature.Position);
+			return Success();
+		}
+	}
 	public class UseItemAction : CreatureAction<PassFailResult> {
 		public Item Item {get;set;}
 
-		//todo...regarding IsInvalid...i feel like maybe invalid events should always throw if
-		//  they're actually executed. It would improve the 'notify on every GameEvent start/end' plan.
-		//Note that this also means that maybe IsInvalid should be part of ALL Events, not just Actions.
 		public override bool IsInvalid => base.IsInvalid || Item == null;
 
 		public UseItemAction(Creature creature, Item item) : base(creature){
@@ -156,31 +168,31 @@ namespace Forays {
 			//  CancelDecider callback that lets you actually choose the target for a wand...
 			switch(ItemDefinition.GetConsumableDefinition(Item.Type).Kind){
 				case ConsumableKind.Potion:
-				Q.Execute(new PotionEffectEvent(Item, Creature));
-				break;
+					Q.Execute(new PotionEffectEvent(Item, Creature));
+					break;
 				case ConsumableKind.Scroll:
-				//todo, make noise (6)
-				Q.Execute(new ScrollEffectEvent(Item, Creature));
-				break;
+					//todo, make noise (6)
+					Q.Execute(new ScrollEffectEvent(Item, Creature));
+					break;
 				case ConsumableKind.Orb:
-				//todo, see above...what, if anything, goes here?
-				break;
+					//todo, see above...what, if anything, goes here?
+					break;
 				case ConsumableKind.Wand:
-				//todo, targeting etc.
-				break;
+					//todo, targeting etc.
+					break;
 				default:
-				switch(Item.Type){
-					case ItemType.BlastFungus:
-					//todo, does nothing...needs to be thrown instead.
+					switch(Item.Type){
+						case ItemType.BlastFungus:
+							//todo, does nothing...needs to be thrown instead.
+							break;
+						case ItemType.FlintAndSteel:
+							break;
+						case ItemType.MagicTrinket: //todo, does nothing, probably remove from this list
+							break;
+						case ItemType.RollOfBandages:
+							break;
+					}
 					break;
-					case ItemType.FlintAndSteel:
-					break;
-					case ItemType.MagicTrinket: //todo, does nothing, probably remove from this list
-					break;
-					case ItemType.RollOfBandages:
-					break;
-				}
-				break;
 			}
 			//todo, remove item from inventory, and remove from game?...
 			return Success(); //todo, maybe not necessary

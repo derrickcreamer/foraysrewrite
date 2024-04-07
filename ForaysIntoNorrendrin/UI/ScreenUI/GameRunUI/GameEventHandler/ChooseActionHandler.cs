@@ -127,8 +127,18 @@ namespace ForaysUI.ScreenUI{
 					case ConsoleKey.NumPad7:
 						ChooseActionFromDirection(e, Dir8.NW, shift);
 						break;
-					case ConsoleKey.D: //todo, 'd' is definitely not 'descend'
-						e.ChosenAction = new DescendAction(Player);
+					case ConsoleKey.OemPeriod:
+						if(shift)
+							e.ChosenAction = new DescendAction(Player);
+						break;
+					case ConsoleKey.A:
+						CharacterScreens.Show(e, CharacterScreen.Inventory, InventoryScreenMode.Apply);
+						break;
+					case ConsoleKey.D:
+						CharacterScreens.Show(e, CharacterScreen.Inventory, InventoryScreenMode.Drop);
+						break;
+					case ConsoleKey.F:
+						CharacterScreens.Show(e, CharacterScreen.Inventory, InventoryScreenMode.Fling);
 						break;
 					case ConsoleKey.G:
 						Item item = ItemAt(Player.Position);

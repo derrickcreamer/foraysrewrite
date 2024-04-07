@@ -16,13 +16,13 @@ namespace ForaysUI.ScreenUI{
 		const string SeparatorBar = "------------------------------------------------------------------"; // 66, equal to map display width
 		public CharacterScreens(GameRunUI ui) : base(ui){ }
 
-		public void Show(PlayerTurnEvent e, CharacterScreen screen, InventoryScreenMode? inventoryMode = null){
+		public void Show(PlayerTurnEvent e, CharacterScreen screen, InventoryScreenMode inventoryMode = InventoryScreenMode.Inventory){
 			CharacterScreen? nextScreen = screen;
 			MapRenderer.HideMap();
 			do{
 				if(nextScreen == CharacterScreen.Inventory){
 					nextScreen = ShowInventory(e, inventoryMode);
-					inventoryMode = null; // If we leave the inventory, cancel the action and just show the basic inventory screen
+					inventoryMode = InventoryScreenMode.Inventory; // If we leave the inventory tab, cancel the action and just show the basic screen
 				}
 				else if(nextScreen == CharacterScreen.Equipment) nextScreen = ShowEquipment(e);
 				else if(nextScreen == CharacterScreen.Actions) nextScreen = ShowActions(e);

@@ -78,5 +78,13 @@ namespace ForaysUI.ScreenUI{
 				row += linesBetweenEach + 1;
 			}
 		}
+		public static void WriteSingleChoice(this IScreen screen, int rowOffset, int colOffset, string choiceText, int letterIndex,
+			Color textColor = Color.Gray, Color bgColor = Color.Black, Color letterColor = Color.Cyan)
+		{
+			screen.Write(rowOffset, colOffset, '[', textColor, bgColor);
+			screen.Write(rowOffset, colOffset + 1, letterIndex + 'a', letterColor, bgColor);
+			screen.Write(rowOffset, colOffset + 2, "] ", textColor, bgColor);
+			screen.Write(rowOffset, colOffset + 4, choiceText, textColor, bgColor);
+		}
 	}
 }

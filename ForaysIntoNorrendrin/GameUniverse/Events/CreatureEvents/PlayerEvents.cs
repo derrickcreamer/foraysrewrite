@@ -23,6 +23,7 @@ namespace Forays {
 				case DescendAction action: result = Q.Execute(action); break;
 				case TodoChangeTerrainEvent action: result = Q.Execute(action); break;
 				case PickUpItemAction action: result = Q.Execute(action); break;
+				case DropItemAction action: result = Q.Execute(action); break;
 				//todo, etc...
 				default: break;
 			}

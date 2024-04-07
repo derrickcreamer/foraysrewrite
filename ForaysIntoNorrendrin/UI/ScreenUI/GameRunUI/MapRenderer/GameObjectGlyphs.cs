@@ -96,9 +96,12 @@ namespace ForaysUI.ScreenUI.MapRendering{
 
 			Add(ItemType.PotionOfRoots, '!', Color.Cyan);
 			Add(ItemType.PotionOfSilence, '!', Color.White);
+			Add(ItemType.PotionOfBrutishStrength, '!', Color.Red);
 			Add(ItemType.ScrollOfCalling, '?', Color.White);
 			Add(ItemType.ScrollOfThunderclap, '?', Color.White);
+			Add(ItemType.ScrollOfTrapClearing, '?', Color.White);
 			Add(ItemType.OrbOfFlames, '*', Color.RandomCMY);
+			Add(ItemType.OrbOfBlades, '*', Color.RandomDCMY);
 			Add(ItemType.WandOfDustStorm, '\\', Color.Yellow);//todo, find a better way to do this for items
 
 			//Add(ItemType., '!', Color.White);

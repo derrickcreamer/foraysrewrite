@@ -91,6 +91,11 @@ actor, tile, and item prototypes or definitions <<< WhateverBase should work nic
 
 			Player = new Player(this) { CancelDecider = new PlayerCancelDecider(this) };
 			Player.LightRadius = 5;
+			Player.Inventory.Add(new Item(this){ Type = ItemType.OrbOfBlades });
+			Player.Inventory.Add(new Item(this){ Type = ItemType.ScrollOfTrapClearing });
+			Player.Inventory.Add(new Item(this){ Type = ItemType.PotionOfBrutishStrength });
+			Player.Inventory.Add(new Item(this){ Type = ItemType.OrbOfFlames });
+			Player.Inventory.Add(new Item(this){ Type = ItemType.ScrollOfThunderclap });
 			Map.Creatures.Add(Player, new Point(30, 10));
 			Initiative playerInitiative = Q.CreateInitiative(RelativeInitiativeOrder.First);
 			Q.Schedule(new PlayerTurnEvent(this), TicksPerTurn, playerInitiative);

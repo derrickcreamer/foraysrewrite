@@ -80,7 +80,9 @@ namespace ForaysUI.ScreenUI{
 			AddPotion(ItemType.PotionOfSilence, "silence");
 			AddScroll(ItemType.ScrollOfCalling, "calling");
 			AddScroll(ItemType.ScrollOfThunderclap, "thunderclap");
+			AddScroll(ItemType.ScrollOfTrapClearing, "trap clearing");
 			AddOrb(ItemType.OrbOfFlames, "flames");
+			AddOrb(ItemType.OrbOfBlades, "blades");
 			AddWand(ItemType.WandOfDustStorm, "dust storm"); //todo
 		}
 		private static void Add(CreatureType type, string name, bool noArticles = false){
